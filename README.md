@@ -16,7 +16,7 @@ agent 会自动把仓库内容放到对应的 skills 目录：
 - Claude Code：`~/.claude/skills/repoguide/`
 - Codex：`~/.codex/skills/repoguide/`
 
-依赖：Python 3.10+、Git、Bash。PDF 需要 pandoc/weasyprint/markdown-pdf 之一，不装则只出 Markdown。
+依赖：Python 3.10+、Git、Bash。PDF 由 skill 自动处理，依赖缺失时会自动尝试安装；实在装不上则只出 Markdown。
 
 ## 使用
 
@@ -55,7 +55,7 @@ agent 会自动把仓库内容放到对应的 skills 目录：
 ├── SKILL.kimi.md         # Kimi Code 适配
 ├── README.md             # 本文件
 ├── references/           # 语言特征、分层规则、报告模板
-└── scripts/              # detect-stack、clone-if-url、generate-pdf
+└── scripts/              # detect-stack、clone-if-url、generate-pdf.py
 ```
 
 ## License

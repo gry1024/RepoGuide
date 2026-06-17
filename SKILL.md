@@ -202,7 +202,7 @@ prompt:
    - 第 5 层: 用 analysis_c.json + analysis_d.json
    - 附录: 收集所有 subagent 报告的 "limitation_notes" 和 "known_issues"
 4. 用 `Write` 工具写到 `$REPO_PATH/../repoguide-report.md`（报告保存在**当前用户工作目录**，不是仓库内）
-5. 调用 `bash scripts/generate-pdf.sh repoguide-report.md` 生成 PDF
+5. 调用 `python scripts/generate-pdf.py repoguide-report.md` 生成 PDF（脚本会自动安装所需 Python 依赖；若安装失败则优雅降级，只保留 Markdown）
 6. 在对话中输出报告摘要（每层一句话）+ 两个文件绝对路径
 
 ## 进度反馈规则
