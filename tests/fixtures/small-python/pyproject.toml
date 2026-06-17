@@ -1,0 +1,8 @@
+[project]
+name = "small-python-fixture"
+version = "0.1.0"
+description = "Small Python repo for RepoGuide testing"
+requires-python = ">=3.10"
+
+[project.scripts]
+small-python = "main:cli_main"
