@@ -4,18 +4,17 @@
 
 ## 安装
 
-把本仓库内容复制到对应 agent 的 skills 目录：
+直接把仓库地址丢给你的 coding agent：
 
-```bash
-# Kimi Code
-xcopy /E /I . %USERPROFILE%\.kimi\skills\repoguide
-
-# Claude Code
-xcopy /E /I . %USERPROFILE%\.claude\skills\repoguide
-
-# Codex
-xcopy /E /I . %USERPROFILE%\.codex\skills\repoguide
 ```
+请从 https://github.com/gry1024/RepoGuide 安装 RepoGuide skill
+```
+
+agent 会自动把仓库内容放到对应的 skills 目录：
+
+- Kimi Code：`~/.kimi/skills/repoguide/`
+- Claude Code：`~/.claude/skills/repoguide/`
+- Codex：`~/.codex/skills/repoguide/`
 
 依赖：Python 3.10+、Git、Bash。PDF 需要 pandoc/weasyprint/markdown-pdf 之一，不装则只出 Markdown。
 
@@ -54,7 +53,7 @@ xcopy /E /I . %USERPROFILE%\.codex\skills\repoguide
 ├── SKILL.md              # Claude Code 主版本
 ├── SKILL.codex.md        # Codex 适配
 ├── SKILL.kimi.md         # Kimi Code 适配
-├── INSTALL.md            # 安装细节
+├── README.md             # 本文件
 ├── references/           # 语言特征、分层规则、报告模板
 └── scripts/              # detect-stack、clone-if-url、generate-pdf
 ```
