@@ -36,7 +36,7 @@ agent 会自动把仓库内容放到对应的 skills 目录：
 输出产物：
 
 - `<当前目录>/repoguide-report.md`
-- `<当前目录>/repoguide-report.pdf`（如果装了 PDF 工具）
+- `<当前目录>/repoguide-report.pdf`（自动从 Markdown 生成，无需额外安装工具）
 
 ## 报告结构
 
