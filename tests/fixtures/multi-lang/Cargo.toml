@@ -1,0 +1,8 @@
+[package]
+name = "multi-lang-native"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "multi_lang_native"
+crate-type = ["cdylib"]
