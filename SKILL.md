@@ -114,7 +114,7 @@ prompt:
    - 入参出参/副作用
    - 依赖关系 (该文件 import 哪些其他文件)
 3. 对其他文件做"重要度"判断: 高/中/低 + 一句话作用
-4. 智能分层规则见 $REPO_PATH/../references/depth-rules.md (相对路径读)
+4. 智能分层规则见 references/depth-rules.md
 
 输出 JSON 结构:
 {

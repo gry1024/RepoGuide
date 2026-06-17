@@ -1,36 +1,33 @@
 # RepoGuide
 
-一个 Kimi / Claude / Codex 通用的 Skill：给它一个本地仓库路径或 GitHub URL，自动生成一份自顶向下的代码分析报告（Markdown + 可选 PDF）。
-
-报告分五层：元信息、快速上手、技术栈、架构与数据流、核心代码详解；如果仓库里有论文 PDF，还会加上论文-代码映射。
+一个帮你快速理解任意代码仓库并自动生成分析报告的 Skill。给它一个本地路径或 GitHub URL，它会产出一份自顶向下的 Markdown 报告；如果仓库里放了论文 PDF（或 README 里贴了 arXiv 链接），还会自动加上论文与代码的映射章节。
 
 ## 安装
 
-复制 `repoguide/` 到对应 agent 的 skills 目录：
+把本仓库内容复制到对应 agent 的 skills 目录：
 
 ```bash
-# Kimi Code（当前环境）
-mkdir -p ~/.kimi/skills
-xcopy /E /I repoguide %USERPROFILE%\.kimi\skills\repoguide
+# Kimi Code
+xcopy /E /I . %USERPROFILE%\.kimi\skills\repoguide
 
 # Claude Code
-xcopy /E /I repoguide %USERPROFILE%\.claude\skills\repoguide
+xcopy /E /I . %USERPROFILE%\.claude\skills\repoguide
 
 # Codex
-xcopy /E /I repoguide %USERPROFILE%\.codex\skills\repoguide
+xcopy /E /I . %USERPROFILE%\.codex\skills\repoguide
 ```
 
 依赖：Python 3.10+、Git、Bash。PDF 需要 pandoc/weasyprint/markdown-pdf 之一，不装则只出 Markdown。
 
 ## 使用
 
-在任意仓库目录下说：
+在目标仓库目录下说：
 
 ```
 使用 RepoGuide skill 帮我分析仓库结构
 ```
 
-或显式给路径 / URL：
+或显式指定路径 / URL：
 
 ```
 使用 RepoGuide skill 分析 /path/to/repo
@@ -42,25 +39,22 @@ xcopy /E /I repoguide %USERPROFILE%\.codex\skills\repoguide
 - `<当前目录>/repoguide-report.md`
 - `<当前目录>/repoguide-report.pdf`（如果装了 PDF 工具）
 
-## 测试
+## 报告结构
 
-```bash
-# 单元测试
-python -m pytest tests/unit/test_detect_stack.py -v
-bash tests/unit/test_clone_if_url.sh
-bash tests/unit/test_generate_pdf.sh
+0. 元信息（语言、文件数、论文检测）
+1. 一句话总括 + 快速上手
+2. 技术栈与依赖
+3. 架构与数据流
+4. 核心代码详解
+5. 论文-代码映射（检测到论文时自动出现）
 
-# 集成测试
-bash tests/integration/test_e2e.sh
-```
-
-## 结构
+## 仓库结构
 
 ```
-repoguide/
 ├── SKILL.md              # Claude Code 主版本
 ├── SKILL.codex.md        # Codex 适配
 ├── SKILL.kimi.md         # Kimi Code 适配
+├── INSTALL.md            # 安装细节
 ├── references/           # 语言特征、分层规则、报告模板
 └── scripts/              # detect-stack、clone-if-url、generate-pdf
 ```

@@ -1,5 +1,0 @@
-[project]
-name = "multi-lang-fixture"
-version = "0.1.0"
-description = "Python + Rust mixed repo for RepoGuide testing"
-requires-python = ">=3.10"
