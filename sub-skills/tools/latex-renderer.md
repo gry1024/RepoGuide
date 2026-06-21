@@ -138,7 +138,31 @@ while i < len(lines):
 out_path.write_text("\n".join(out), encoding="utf-8")
 ```
 
-### 步骤 4: 填充模板
+### 步骤 4: 处理图片
+
+1. 确保 `$REPO_PATH/_repoguide/images/` 目录存在。
+2. 将图片复制到 `$REPO_PATH/_repoguide/images/`（如果尚未在）。
+3. 将 Markdown 图片语法转换为 LaTeX figure 环境：
+
+```python
+import re
+
+body = Path('_repoguide/manual-body.tex').read_text(encoding='utf-8')
+
+def md_img_to_latex(m):
+    alt = m.group(1)
+    src = m.group(2)
+    return f"""\\begin{{figure}}[htbp]
+  \\centering
+  \\includegraphics[width=0.8\\textwidth]{{{src}}}
+  \\caption{{{alt}}}
+\\end{{figure}}"""
+
+body = re.sub(r'!\[([^\]]*)\]\(([^)]+)\)', md_img_to_latex, body)
+Path('_repoguide/manual-body.tex').write_text(body, encoding='utf-8')
+```
+
+### 步骤 5: 填充模板
 
 从 `references/latex-template/main.tex` 复制到 `$REPO_PATH/_repoguide/repoguide-manual.tex`，并替换占位符：
 
@@ -149,7 +173,7 @@ out_path.write_text("\n".join(out), encoding="utf-8")
 - `{DATE}` → 生成日期
 - `{CONTENT}` → `manual-body.tex` 的内容
 
-### 步骤 5: 编译 PDF
+### 步骤 6: 编译 PDF
 
 ```bash
 cd "$REPO_PATH/_repoguide"
@@ -157,7 +181,7 @@ xelatex -interaction=nonstopmode repoguide-manual.tex
 xelatex -interaction=nonstopmode repoguide-manual.tex
 ```
 
-### 步骤 6: 复制到用户目录
+### 步骤 7: 复制到用户目录
 
 ```bash
 cp "$REPO_PATH/_repoguide/repoguide-manual.pdf" "$PWD/repoguide-manual.pdf"

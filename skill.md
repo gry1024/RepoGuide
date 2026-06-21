@@ -33,6 +33,7 @@ version: 2.0.0
 Phase 0: 输入归一化（主 agent）
 Phase 1: 仓库画像（profiler agent）
 Phase 2: 并行深度分析（architect + code-analyst agents）
+Phase 2.5: 图片处理（image-handler agent，可选）
 Phase 3: 论文解析与映射（paper-analyst + paper-code-mapper，可选）
 Phase 4: 手册组装（writer agent）
 Phase 5: LaTeX PDF 渲染（renderer agent）
@@ -66,6 +67,7 @@ Phase 6: 输出到用户工作目录（主 agent）
 | PDF 读取 | `sub-skills/tools/pdf-reader.md` |
 | 论文获取 | `sub-skills/tools/paper-fetcher.md` |
 | LaTeX 渲染 | `sub-skills/tools/latex-renderer.md` |
+| 图像处理 | `sub-skills/tools/image-handler.md` |
 | 手册模板 | `references/manual-template.md` |
 | 智能分层规则 | `references/depth-rules.md` |
 | 语言特征表 | `references/language-profiles.md` |

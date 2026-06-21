@@ -140,6 +140,20 @@ writer agent 按本模板组装 Markdown 内容。
 {{reasoning}}
 {{/each}}
 
+### 3.4 配图
+
+{{#each generated_diagrams}}
+#### {{caption}}
+
+![{{caption}}]({{path}})
+{{/each}}
+
+{{#each repo_figures}}
+#### 仓库图片: {{path}}
+
+![{{path}}]({{path}})
+{{/each}}
+
 ---
 
 ## 第 4 层 · 核心代码详解
@@ -252,7 +266,15 @@ writer agent 按本模板组装 Markdown 内容。
 | {{experiment}} | `{{script}}` | `{{file}}` |
 {{/each}}
 
-### 5.3 关键术语对照表
+### 5.3 论文原图
+
+{{#each paper_figures}}
+#### {{caption}}
+
+![{{caption}}]({{path}})
+{{/each}}
+
+### 5.4 关键术语对照表
 
 | 论文术语 | 代码标识符 |
 |----------|------------|
