@@ -41,13 +41,14 @@ SendMessage({
 
 ```
 coordinator (主 agent)
-├── profiler        → _repoguide/profile.json
-├── architect       → _repoguide/analysis_arch.json
-├── code-analyst    → _repoguide/analysis_code.json
-├── paper-analyst   → _repoguide/analysis_paper.json  (可选)
-├── paper-mapper    → _repoguide/analysis_map.json    (可选)
-├── writer          → _repoguide/report.md
-└── renderer        → _repoguide/report.pdf
+├── profiler        → $WORK_DIR/profile.json
+├── architect       → $WORK_DIR/analysis_arch.json
+├── code-analyst    → $WORK_DIR/analysis_code.json
+├── paper-analyst   → $WORK_DIR/analysis_paper.json  (可选)
+├── paper-mapper    → $WORK_DIR/analysis_map.json    (可选)
+├── image-handler   → $WORK_DIR/images/ + $WORK_DIR/image-manifest.json  (可选)
+├── writer          → $WORK_DIR/manual.md
+└── renderer        → $WORK_DIR/repoguide-manual.pdf (或 .html 降级)
 ```
 
 所有子 agent 并行创建，各自写产物；coordinator 在最后读取产物、汇总、输出摘要。

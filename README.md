@@ -25,18 +25,21 @@
 
 AI 会自动完成：
 
-1. 克隆仓库
+1. 获取仓库（GitHub URL 默认浅克隆，本地路径/当前目录无需克隆）
 2. 识别技术栈
 3. 分析架构与数据流
 4. 详解核心代码
 5. 解析论文（如果有）
 6. 建立论文-代码映射
-7. 用 xelatex 渲染 PDF 仓库手册
+7. 处理论文/仓库图片与生成架构图（可选）
+8. 用 xelatex 渲染 PDF 仓库手册（不可用时降级为 HTML）
 
 最终产物：
 
-- `<当前目录>/repoguide-manual.pdf`
+- `<当前目录>/repoguide-manual.pdf`（需要 xelatex）
+- `<当前目录>/repoguide-manual.html`（xelatex 不可用时降级）
 - `<当前目录>/repoguide-manual.md`
+- `<当前目录>/_repoguide/`（中间产物目录，默认保留）
 
 ## 特点
 

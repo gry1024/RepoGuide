@@ -79,4 +79,4 @@ for task in task_list:
 
 1. 不要直接调用本接口，而是在 task skill 中通过自然语言引用。
 2. 每个 agent 的 prompt 必须包含：输入路径、输出路径、任务要求、输出格式。
-3. 所有 agent 的产物必须写到约定的 `_repoguide/` 工作目录下，方便主 agent 汇总。
+3. 所有 agent 的产物必须写到约定的 `$WORK_DIR`（即 `<cwd>/_repoguide/`）工作目录下，方便主 agent 汇总。

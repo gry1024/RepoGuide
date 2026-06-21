@@ -1,6 +1,6 @@
 ---
 name: repoguide
-description: 端到端分析代码仓库并生成精美 PDF 仓库手册指南。用户只需发送 GitHub 地址和可选 arXiv 论文链接，AI 自动完成克隆、分析、论文解析、代码映射、LaTeX 渲染全流程。在 cc/codex/kimi 中说"分析 https://github.com/owner/repo"或"分析这个仓库"即可触发。
+description: 端到端分析代码仓库并生成精美 PDF 仓库手册指南。用户只需发送 GitHub 地址和可选 arXiv 论文链接，AI 自动完成仓库获取、分析、论文解析、代码映射、LaTeX 渲染全流程。本地路径和当前目录无需克隆，GitHub 仓库默认浅克隆到工作目录。在 cc/codex/kimi 中说"分析 https://github.com/owner/repo"或"分析这个仓库"即可触发。
 version: 2.0.0
 ---
 
@@ -61,7 +61,7 @@ Phase 6: 输出到用户工作目录（主 agent）
 | Claude Team | `sub-skills/runtime/claude-team.md` |
 | Codex Subagent | `sub-skills/runtime/codex-subagent.md` |
 | Kimi Team | `sub-skills/runtime/kimi-team.md` |
-| 仓库归一化 | `sub-skills/tools/repo-cloner.md` |
+| 仓库归一化 | `sub-skills/tools/repo-normalizer.md` |
 | 技术栈识别 | `sub-skills/tools/detect-stack.md` |
 | 代码分析策略 | `sub-skills/tools/code-analyzer.md` |
 | PDF 读取 | `sub-skills/tools/pdf-reader.md` |
@@ -75,8 +75,10 @@ Phase 6: 输出到用户工作目录（主 agent）
 
 ## 输出
 
-- `<cwd>/repoguide-manual.pdf`
+- `<cwd>/repoguide-manual.pdf`（需要 xelatex）
+- `<cwd>/repoguide-manual.html`（xelatex 不可用时降级输出）
 - `<cwd>/repoguide-manual.md`（中间产物，保留）
+- `<cwd>/_repoguide/`（中间产物目录，默认保留）
 
 ## 核心原则
 

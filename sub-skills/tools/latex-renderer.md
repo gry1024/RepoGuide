@@ -28,8 +28,8 @@ which xelatex || echo "XELATEX_NOT_FOUND"
 优先使用 pandoc：
 
 ```bash
-pandoc "$REPO_PATH/_repoguide/manual.md" -t html --standalone \
-  -o "$REPO_PATH/_repoguide/repoguide-manual.html"
+pandoc "$WORK_DIR/manual.md" -t html --standalone \
+  -o "$WORK_DIR/repoguide-manual.html"
 ```
 
 如果 pandoc 不可用，使用 Python 生成基础 HTML：
@@ -38,8 +38,8 @@ pandoc "$REPO_PATH/_repoguide/manual.md" -t html --standalone \
 import re
 from pathlib import Path
 
-md_path = Path("$REPO_PATH/_repoguide/manual.md")
-html_path = Path("$REPO_PATH/_repoguide/repoguide-manual.html")
+md_path = Path("$WORK_DIR/manual.md")
+html_path = Path("$WORK_DIR/repoguide-manual.html")
 
 text = md_path.read_text(encoding="utf-8", errors="ignore")
 
@@ -138,16 +138,16 @@ html_path.write_text(html, encoding="utf-8")
 ### 步骤 2: 准备 Markdown 与模板
 
 假设：
-- Markdown 手册路径：`$REPO_PATH/_repoguide/manual.md`
-- 模板路径：`$REPO_PATH/_repoguide/repoguide-manual.tex`（从 `references/latex-template/main.tex` 复制并替换占位符）
+- Markdown 手册路径：`$WORK_DIR/manual.md`
+- 模板路径：`$WORK_DIR/repoguide-manual.tex`（从 `references/latex-template/main.tex` 复制并替换占位符）
 
 ### 步骤 3: 生成 LaTeX 正文
 
 优先使用 pandoc：
 
 ```bash
-pandoc "$REPO_PATH/_repoguide/manual.md" -t latex --standalone --listings \
-  > "$REPO_PATH/_repoguide/manual-body.tex"
+pandoc "$WORK_DIR/manual.md" -t latex --standalone --listings \
+  > "$WORK_DIR/manual-body.tex"
 ```
 
 如果 pandoc 不可用，使用内置 Python 转换：
@@ -156,8 +156,8 @@ pandoc "$REPO_PATH/_repoguide/manual.md" -t latex --standalone --listings \
 import re
 from pathlib import Path
 
-md_path = Path("$REPO_PATH/_repoguide/manual.md")
-out_path = Path("$REPO_PATH/_repoguide/manual-body.tex")
+md_path = Path("$WORK_DIR/manual.md")
+out_path = Path("$WORK_DIR/manual-body.tex")
 
 text = md_path.read_text(encoding="utf-8", errors="ignore")
 
@@ -252,14 +252,14 @@ out_path.write_text("\n".join(out), encoding="utf-8")
 
 ### 步骤 4: 处理图片
 
-1. 确保 `$REPO_PATH/_repoguide/images/` 目录存在。
-2. 将图片复制到 `$REPO_PATH/_repoguide/images/`（如果尚未在）。
+1. 确保 `$WORK_DIR/images/` 目录存在。
+2. 将图片复制到 `$WORK_DIR/images/`（如果尚未在）。
 3. 将 Markdown 图片语法转换为 LaTeX figure 环境：
 
 ```python
 import re
 
-body = Path('_repoguide/manual-body.tex').read_text(encoding='utf-8')
+body = Path('$WORK_DIR/manual-body.tex').read_text(encoding='utf-8')
 
 def md_img_to_latex(m):
     alt = m.group(1)
@@ -271,12 +271,12 @@ def md_img_to_latex(m):
 \\end{{figure}}"""
 
 body = re.sub(r'!\[([^\]]*)\]\(([^)]+)\)', md_img_to_latex, body)
-Path('_repoguide/manual-body.tex').write_text(body, encoding='utf-8')
+Path('$WORK_DIR/manual-body.tex').write_text(body, encoding='utf-8')
 ```
 
 ### 步骤 5: 填充模板
 
-从 `references/latex-template/main.tex` 复制到 `$REPO_PATH/_repoguide/repoguide-manual.tex`，并替换占位符：
+从 `references/latex-template/main.tex` 复制到 `$WORK_DIR/repoguide-manual.tex`，并替换占位符：
 
 - `{TITLE}` → 手册标题
 - `{REPO_NAME}` → 仓库名
@@ -288,7 +288,7 @@ Path('_repoguide/manual-body.tex').write_text(body, encoding='utf-8')
 ### 步骤 6: 编译 PDF
 
 ```bash
-cd "$REPO_PATH/_repoguide"
+cd "$WORK_DIR"
 xelatex -interaction=nonstopmode repoguide-manual.tex
 xelatex -interaction=nonstopmode repoguide-manual.tex
 ```
@@ -297,17 +297,17 @@ xelatex -interaction=nonstopmode repoguide-manual.tex
 
 ```bash
 # PDF
-if [ -f "$REPO_PATH/_repoguide/repoguide-manual.pdf" ]; then
-  cp "$REPO_PATH/_repoguide/repoguide-manual.pdf" "$PWD/repoguide-manual.pdf"
+if [ -f "$WORK_DIR/repoguide-manual.pdf" ]; then
+  cp "$WORK_DIR/repoguide-manual.pdf" "$PWD/repoguide-manual.pdf"
 fi
 
 # HTML（降级时生成）
-if [ -f "$REPO_PATH/_repoguide/repoguide-manual.html" ]; then
-  cp "$REPO_PATH/_repoguide/repoguide-manual.html" "$PWD/repoguide-manual.html"
+if [ -f "$WORK_DIR/repoguide-manual.html" ]; then
+  cp "$WORK_DIR/repoguide-manual.html" "$PWD/repoguide-manual.html"
 fi
 
 # Markdown（始终保留）
-cp "$REPO_PATH/_repoguide/manual.md" "$PWD/repoguide-manual.md"
+cp "$WORK_DIR/manual.md" "$PWD/repoguide-manual.md"
 ```
 
 ## 降级

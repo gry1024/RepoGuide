@@ -313,4 +313,4 @@ writer agent 按本模板组装 Markdown 内容。
 2. 按字段名填入对应位置。
 3. 缺失字段留空或在"已知限制"附录标注。
 4. mermaid 图直接嵌入 `mermaid` 代码块。
-5. 输出到 `<repo>/_repoguide/manual.md`，随后渲染为 PDF。
+5. 输出到 `$WORK_DIR/manual.md`，随后渲染为 PDF（或 HTML 降级）。
