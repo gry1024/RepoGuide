@@ -4,9 +4,23 @@ __pycache__/
 .pytest_cache/
 *.pdf
 _repoguide/
-repoguide-manual.md
-repoguide-manual.pdf
-repoguide-manual.html
+*-manual.md
+*-manual.pdf
+*-manual.html
+repoguide-report.md
+repoguide-report.pdf
+
+# xelatex / pandoc temp
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+tex2pdf.*/
 
 # Virtual environments
 .venv/

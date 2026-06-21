@@ -48,7 +48,7 @@ coordinator (主 agent)
 ├── paper-mapper    → $WORK_DIR/analysis_map.json    (可选)
 ├── image-handler   → $WORK_DIR/images/ + $WORK_DIR/image-manifest.json  (可选)
 ├── writer          → $WORK_DIR/manual.md
-└── renderer        → $WORK_DIR/repoguide-manual.pdf (或 .html 降级)
+└── renderer        → $WORK_DIR/<repo_name>-manual.pdf (或 .html 降级)
 ```
 
 所有子 agent 并行创建，各自写产物；coordinator 在最后读取产物、汇总、输出摘要。

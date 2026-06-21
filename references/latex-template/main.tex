@@ -29,35 +29,43 @@
   frame=single,
   rulecolor=\color{codeframe},
   breaklines=true,
+  breakatwhitespace=false,
   showstringspaces=false,
   tabsize=2,
   captionpos=b,
   numbers=left,
   numberstyle=\tiny\color{gray},
   xleftmargin=2em,
-  framexleftmargin=1.5em
+  framexleftmargin=1.5em,
+  extendedchars=true,
+  literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
 }
 
 % Graphics
 \usepackage{graphicx}
-\graphicspath{{figures/}{./}}
+\graphicspath{{images/}{./}}
+\usepackage{float}
 
 % Tables
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
+\usepackage{multirow}
 
 % Lists
 \usepackage{enumitem}
 \setlist[itemize]{leftmargin=2em}
 \setlist[enumerate]{leftmargin=2em}
 
+% Verbatim for mermaid fallback
+\usepackage{fancyvrb}
+
 % Pandoc compatibility
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 
 % Mermaid fallback placeholder
-\newcommand{\mermaid}[1]{\begin{verbatim}#1\end{verbatim}}
+\newcommand{\mermaid}[1]{\begin{Verbatim}#1\end{Verbatim}}
 
 % Title info
 \title{\Huge\bfseries {TITLE}\\[0.5em]\Large 仓库手册指南}

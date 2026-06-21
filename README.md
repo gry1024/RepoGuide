@@ -34,11 +34,11 @@ AI 会自动完成：
 7. 处理论文/仓库图片与生成架构图（可选）
 8. 用 xelatex 渲染 PDF 仓库手册（不可用时降级为 HTML）
 
-最终产物：
+最终产物（假设仓库名为 `<repo_name>`）：
 
-- `<当前目录>/repoguide-manual.pdf`（需要 xelatex）
-- `<当前目录>/repoguide-manual.html`（xelatex 不可用时降级）
-- `<当前目录>/repoguide-manual.md`
+- `<当前目录>/<repo_name>-manual.pdf`（需要 xelatex）
+- `<当前目录>/<repo_name>-manual.html`（xelatex 不可用时降级）
+- `<当前目录>/<repo_name>-manual.md`
 - `<当前目录>/_repoguide/`（中间产物目录，默认保留）
 
 ## 特点

@@ -154,6 +154,26 @@ writer agent 按本模板组装 Markdown 内容。
 ![{{path}}]({{path}})
 {{/each}}
 
+### 3.5 仓库目录树
+
+> 仅在 `depth == deep` 时输出完整目录树。standard/fast 输出关键文件清单。
+
+```text
+{{directory_tree}}
+```
+
+目录树规范：
+- 使用 `tree` 命令风格：
+  ```
+  repo/
+  ├── src/
+  │   └── main.py          # 入口文件
+  └── README.md
+  ```
+- 每个核心目录/文件右侧用 `# 简短注释` 说明作用。
+- 忽略 `.git/`、`__pycache__/`、`node_modules/` 等无关目录。
+- 保持层级清晰，深度建议不超过 5 层。
+
 ---
 
 ## 第 4 层 · 核心代码详解
