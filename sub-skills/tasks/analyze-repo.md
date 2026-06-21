@@ -269,11 +269,12 @@ image-manifest.json:
 
 ```
 输入: $REPO_PATH/_repoguide/manual.md
-输出: $REPO_PATH/_repoguide/repoguide-manual.pdf
+输出: $REPO_PATH/_repoguide/repoguide-manual.pdf (优先)
+       $REPO_PATH/_repoguide/repoguide-manual.html (xelatex 不可用时降级)
 
 任务:
 1. 按 sub-skills/tools/latex-renderer.md 中的代码片段，使用 xelatex 渲染 PDF
-2. 如果 xelatex 不可用，保留 Markdown 并记录降级信息
+2. 如果 xelatex 不可用，保留 Markdown 并降级渲染为 HTML，记录降级信息
 ```
 
 引用 `sub-skills/tools/latex-renderer.md`。
@@ -284,7 +285,8 @@ image-manifest.json:
 
 1. 将 `$REPO_PATH/_repoguide/manual.md` 复制到 `<cwd>/repoguide-manual.md`。
 2. 如果 PDF 生成成功，复制到 `<cwd>/repoguide-manual.pdf`。
-3. 输出摘要。
+3. 如果 PDF 未生成但 HTML 已生成，复制到 `<cwd>/repoguide-manual.html`。
+4. 输出摘要。
 
 ## 进度反馈
 
@@ -304,7 +306,7 @@ image-manifest.json:
 | 仓库 URL 失效 / 为空 | 立即终止，无手册 |
 | 单文件分析失败 | 跳过，写入 limitation_notes |
 | 论文 PDF 损坏 / 无法解析 | 跳过第 5 层 |
-| xelatex 不可用 | 保留 Markdown，提示用户 |
+| xelatex 不可用 | 保留 Markdown 并降级渲染 HTML，提示用户 |
 | Agent 工具不可用 | 主 agent 串行执行各 phase |
 
 ## 输出模板
@@ -322,7 +324,8 @@ image-manifest.json:
 
 📄 产物文件:
 - Markdown: <absolute path>/repoguide-manual.md
-- PDF: <absolute path>/repoguide-manual.pdf
+- PDF: <absolute path>/repoguide-manual.pdf (如 xelatex 可用)
+- HTML: <absolute path>/repoguide-manual.html (xelatex 不可用时降级生成)
 
 🎯 一句话总结: <从第 1 层提取>
 ```

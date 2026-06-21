@@ -21,7 +21,119 @@ description: RepoGuide 的 LaTeX / xelatex PDF 渲染方法，将 Markdown 手�
 which xelatex || echo "XELATEX_NOT_FOUND"
 ```
 
-如果未找到，跳过 PDF 渲染，仅保留 Markdown 手册，并在输出摘要中提示用户安装 TeX Live。
+如果未找到，跳过 PDF 渲染，保留 Markdown 手册并降级渲染为 HTML 格式，同时在输出摘要中提示用户安装 TeX Live。
+
+### 步骤 1.5: 降级渲染 HTML（当 xelatex 不可用时）
+
+优先使用 pandoc：
+
+```bash
+pandoc "$REPO_PATH/_repoguide/manual.md" -t html --standalone \
+  -o "$REPO_PATH/_repoguide/repoguide-manual.html"
+```
+
+如果 pandoc 不可用，使用 Python 生成基础 HTML：
+
+```python
+import re
+from pathlib import Path
+
+md_path = Path("$REPO_PATH/_repoguide/manual.md")
+html_path = Path("$REPO_PATH/_repoguide/repoguide-manual.html")
+
+text = md_path.read_text(encoding="utf-8", errors="ignore")
+
+# Strip YAML frontmatter
+if text.startswith("---"):
+    parts = text.split("---", 2)
+    if len(parts) >= 3:
+        text = parts[2]
+
+def escape_html(s):
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+def inline(s):
+    s = re.sub(r"`([^`]+)`", lambda m: f"<code>{escape_html(m.group(1))}</code>", s)
+    s = re.sub(r"\*\*(.+?)\*\*", lambda m: f"<strong>{escape_html(m.group(1))}</strong>", s)
+    s = re.sub(r"\*(.+?)\*", lambda m: f"<em>{escape_html(m.group(1))}</em>", s)
+    s = re.sub(r"!\[([^\]]*)\]\(([^)]+)\)", lambda m: f'<img src="{escape_html(m.group(2))}" alt="{escape_html(m.group(1))}" style="max-width:100%">', s)
+    s = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", lambda m: f'<a href="{escape_html(m.group(2))}">{escape_html(m.group(1))}</a>', s)
+    return s
+
+lines = text.splitlines()
+body = []
+i = 0
+while i < len(lines):
+    line = lines[i]
+    s = line.strip()
+
+    if s.startswith("```"):
+        i += 1
+        code = []
+        while i < len(lines) and not lines[i].strip().startswith("```"):
+            code.append(lines[i])
+            i += 1
+        body.append(f"<pre><code>{escape_html(chr(10).join(code))}</code></pre>")
+        i += 1
+        continue
+
+    if s.startswith("#"):
+        level = len(s) - len(s.lstrip("#"))
+        if level <= 6 and s[level:].startswith(" "):
+            body.append(f"<h{level}>{inline(s[level+1:].strip())}</h{level}>")
+            i += 1
+            continue
+
+    if s in ("---", "***", "___"):
+        body.append("<hr>")
+        i += 1
+        continue
+
+    if not s:
+        i += 1
+        continue
+
+    if s.startswith(("- ", "* ", "+ ")):
+        items = [s[2:]]
+        i += 1
+        while i < len(lines) and lines[i].strip().startswith(("- ", "* ", "+ ")):
+            items.append(lines[i].strip()[2:])
+            i += 1
+        body.append("<ul>")
+        for item in items:
+            body.append(f"<li>{inline(item)}</li>")
+        body.append("</ul>")
+        continue
+
+    para = [line]
+    i += 1
+    while i < len(lines) and lines[i].strip():
+        para.append(lines[i])
+        i += 1
+    body.append(f"<p>{inline(' '.join(para))}</p>")
+
+html = f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>仓库手册指南</title>
+<style>
+body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif; max-width: 900px; margin: 0 auto; padding: 2rem; line-height: 1.7; color: #333; }}
+h1, h2, h3, h4 {{ color: #1a1a1a; margin-top: 1.5em; }}
+pre {{ background: #f6f8fa; padding: 1rem; border-radius: 6px; overflow-x: auto; }}
+code {{ font-family: Consolas, Monaco, monospace; font-size: 0.9em; }}
+img {{ max-width: 100%; height: auto; }}
+a {{ color: #0366d6; }}
+</style>
+</head>
+<body>
+{chr(10).join(body)}
+</body>
+</html>"""
+
+html_path.write_text(html, encoding="utf-8")
+```
 
 ### 步骤 2: 准备 Markdown 与模板
 
@@ -184,7 +296,17 @@ xelatex -interaction=nonstopmode repoguide-manual.tex
 ### 步骤 7: 复制到用户目录
 
 ```bash
-cp "$REPO_PATH/_repoguide/repoguide-manual.pdf" "$PWD/repoguide-manual.pdf"
+# PDF
+if [ -f "$REPO_PATH/_repoguide/repoguide-manual.pdf" ]; then
+  cp "$REPO_PATH/_repoguide/repoguide-manual.pdf" "$PWD/repoguide-manual.pdf"
+fi
+
+# HTML（降级时生成）
+if [ -f "$REPO_PATH/_repoguide/repoguide-manual.html" ]; then
+  cp "$REPO_PATH/_repoguide/repoguide-manual.html" "$PWD/repoguide-manual.html"
+fi
+
+# Markdown（始终保留）
 cp "$REPO_PATH/_repoguide/manual.md" "$PWD/repoguide-manual.md"
 ```
 
@@ -193,10 +315,12 @@ cp "$REPO_PATH/_repoguide/manual.md" "$PWD/repoguide-manual.md"
 如果 `xelatex` 不可用：
 
 1. 保留 Markdown 手册。
-2. 在对话中提示用户安装 TeX Live。
-3. 不终止整体流程。
+2. 渲染 HTML 格式（优先 pandoc，否则使用 Python 降级方案）。
+3. 在对话中提示用户安装 TeX Live。
+4. 不终止整体流程。
 
 ## 输出
 
-- `<cwd>/repoguide-manual.pdf`
+- `<cwd>/repoguide-manual.pdf`（需要 xelatex）
+- `<cwd>/repoguide-manual.html`（xelatex 不可用时降级输出）
 - `<cwd>/repoguide-manual.md`（中间产物，默认保留）
