@@ -396,8 +396,9 @@ body_path.write_text(body, encoding="utf-8")
 - `{CONTENT}` → `manual-body.tex` 的内容
 
 ```bash
-# $SKILL_DIR 为 RepoGuide skill 根目录（包含 skill.md、references/ 等）
-cp "$SKILL_DIR/references/latex-template/main.tex" "$WORK_DIR/${REPO_NAME}-manual.tex"
+# 当前工作目录即为 RepoGuide 仓库根目录
+# 其中包含 references/latex-template/main.tex
+cp "references/latex-template/main.tex" "$WORK_DIR/${REPO_NAME}-manual.tex"
 # 占位符替换可用 Python/sed，由 agent 执行
 ```
 

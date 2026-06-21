@@ -10,54 +10,40 @@
 
 ## 快速开始
 
-### 1. 安装 skill
+RepoGuide 不依赖 `~/.claude/skills/` 安装机制，所有逻辑都在本仓库的 Markdown 文件中。有两种使用方式：
 
-RepoGuide 需要被安装到 AI agent 的 skills 目录后，才能通过 `repoguide` 触发。**仅仅把仓库 clone 到本地是不够的**，agent 默认从 `~/.claude/skills/repoguide/` 加载。
+### 方式一：直接让 agent 下载并执行（推荐）
+
+对 Claude Code / Codex / Kimi Code 说：
+
+```
+下载 https://github.com/gry1024/RepoGuide，并执行这个 skill
+分析 https://github.com/owner/repo
+```
+
+agent 会自行下载 RepoGuide，读取其中的 [skill.md](skill.md)，并引用 `sub-skills/`、`references/` 中的子文件。
+
+### 方式二：本地目录启动
 
 ```bash
-# 下载仓库
 git clone https://github.com/gry1024/RepoGuide.git
 cd RepoGuide
-
-# 安装到 Claude Code（默认）
-./install.sh
-
-# 或安装到 Codex / Kimi Code
-./install.sh --codex
-./install.sh --kimi
+claude
+# 或 kimi / codex
 ```
 
-安装后，skill 文件会被复制到 `~/.claude/skills/repoguide/`。
-
-### 2. 更新 skill
-
-**每次 `git pull` 更新仓库后，必须重新运行 `./install.sh`**，否则 agent 仍然使用旧版本。
-
-```bash
-cd RepoGuide
-git pull
-./install.sh
-```
-
-### 3. 使用
-
-打开任意 AI coding agent，直接说：
+然后在 agent 中说：
 
 ```
 分析 https://github.com/owner/repo
 ```
 
-带上论文链接（可选）：
+### 带上论文或指定细致度
 
 ```
 分析 https://github.com/owner/repo，论文 https://arxiv.org/abs/xxxx.xxxxx
-```
-
-指定细致度（可选）：
-
-```
 快速分析 https://github.com/owner/repo
-深度分析 https://github.com/owner/repo，论文 https://arxiv.org/abs/xxxx.xxxxx
+深度分析 https://github.com/owner/repo
 ```
 
 AI 会自动完成：
@@ -91,7 +77,6 @@ AI 会自动完成：
 
 ```
 ├── skill.md                    # 主 skill（唯一入口）
-├── install.sh                  # 传统安装脚本（可选）
 ├── README.md                   # 本文件
 ├── sub-skills/                 # skill 子模块
 │   ├── runtime/                # 运行时与 Agent Team
