@@ -156,7 +156,7 @@ writer agent 按本模板组装 Markdown 内容。
 
 ### 3.5 仓库目录树
 
-> 仅在 `depth == deep` 时输出完整目录树。standard/fast 输出关键文件清单。
+> `standard` 输出核心目录的 tree 风格目录树；`deep` 输出完整目录树；`fast` 可省略。
 
 ```text
 {{directory_tree}}
@@ -172,7 +172,8 @@ writer agent 按本模板组装 Markdown 内容。
   ```
 - 每个核心目录/文件右侧用 `# 简短注释` 说明作用。
 - 忽略 `.git/`、`__pycache__/`、`node_modules/` 等无关目录。
-- 保持层级清晰，深度建议不超过 5 层。
+- `standard`：保留到核心模块层级，核心文件带注释。
+- `deep`：面面俱到，每个目录、每个主要文件都带注释，深度建议不超过 6 层。
 
 ---
 

@@ -10,10 +10,40 @@
 
 ## 快速开始
 
-打开任意 AI coding agent（Claude Code / Codex / Kimi Code），直接说：
+### 1. 安装 skill
+
+RepoGuide 需要被安装到 AI agent 的 skills 目录后，才能通过 `repoguide` 触发。**仅仅把仓库 clone 到本地是不够的**，agent 默认从 `~/.claude/skills/repoguide/` 加载。
+
+```bash
+# 下载仓库
+git clone https://github.com/gry1024/RepoGuide.git
+cd RepoGuide
+
+# 安装到 Claude Code（默认）
+./install.sh
+
+# 或安装到 Codex / Kimi Code
+./install.sh --codex
+./install.sh --kimi
+```
+
+安装后，skill 文件会被复制到 `~/.claude/skills/repoguide/`。
+
+### 2. 更新 skill
+
+**每次 `git pull` 更新仓库后，必须重新运行 `./install.sh`**，否则 agent 仍然使用旧版本。
+
+```bash
+cd RepoGuide
+git pull
+./install.sh
+```
+
+### 3. 使用
+
+打开任意 AI coding agent，直接说：
 
 ```
-下载 https://github.com/gry1024/RepoGuide，并执行这个 skill
 分析 https://github.com/owner/repo
 ```
 
@@ -21,6 +51,13 @@
 
 ```
 分析 https://github.com/owner/repo，论文 https://arxiv.org/abs/xxxx.xxxxx
+```
+
+指定细致度（可选）：
+
+```
+快速分析 https://github.com/owner/repo
+深度分析 https://github.com/owner/repo，论文 https://arxiv.org/abs/xxxx.xxxxx
 ```
 
 AI 会自动完成：
@@ -65,16 +102,6 @@ AI 会自动完成：
     ├── depth-rules.md          # 智能分层规则
     ├── language-profiles.md    # 语言特征表
     └── latex-template/         # LaTeX PDF 模板
-```
-
-## 可选安装
-
-如果你想把 skill 安装到 agent 的 skills 目录：
-
-```bash
-./install.sh              # Claude Code
-./install.sh --codex      # Codex
-./install.sh --kimi       # Kimi Code
 ```
 
 ## License

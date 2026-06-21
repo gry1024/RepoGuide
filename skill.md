@@ -1,6 +1,6 @@
 ---
 name: repoguide
-description: 端到端分析代码仓库并生成精美 PDF 仓库手册指南。用户只需发送 GitHub 地址和可选 arXiv 论文链接，AI 自动完成仓库获取、分析、论文解析、代码映射、LaTeX 渲染全流程。本地路径和当前目录无需克隆，GitHub 仓库默认浅克隆到工作目录。在 cc/codex/kimi 中说"分析 https://github.com/owner/repo"或"分析这个仓库"即可触发。
+description: 端到端分析代码仓库并生成精美 PDF 仓库手册指南。用户只需发送 GitHub 地址和可选 arXiv 论文链接，AI 自动完成仓库获取、分析、论文解析、代码映射、LaTeX 渲染全流程。本地路径和当前目录无需克隆，GitHub 仓库默认浅克隆到工作目录。在 cc/codex/kimi 中说"分析 https://github.com/owner/repo"或"分析这个仓库"即可触发。注意：本 skill 必须先通过 install.sh 安装到 agent skills 目录，git pull 后必须重新 install，否则 agent 会使用旧版本。
 version: 2.0.0
 ---
 
