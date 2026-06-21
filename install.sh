@@ -45,14 +45,12 @@ echo "RepoGuide -> $DEST"
 mkdir -p "$DEST"
 
 # Copy skill files and supporting directories
-cp "$SRC/SKILL.md" "$DEST/"
-cp "$SRC/SKILL.codex.md" "$DEST/"
-cp "$SRC/SKILL.kimi.md" "$DEST/"
-cp -R "$SRC/scripts" "$DEST/"
+cp "$SRC/skill.md" "$DEST/"
 cp -R "$SRC/references" "$DEST/"
+cp -R "$SRC/sub-skills" "$DEST/"
 
 echo ""
 echo "RepoGuide installed to $DEST"
 echo ""
-echo "Usage: in any repo, say \"使用 RepoGuide skill 帮我分析仓库结构\""
-echo "       or \"使用 RepoGuide skill 分析 https://github.com/owner/repo\""
+echo "Usage: in any repo, say \"下载 https://github.com/gry1024/RepoGuide 并执行这个 skill\""
+echo "       or \"分析 https://github.com/owner/repo\""

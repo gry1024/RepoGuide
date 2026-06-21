@@ -1,0 +1,179 @@
+---
+name: repoguide-tool-detect-stack
+description: RepoGuide 的技术栈识别方法，输出仓库画像 JSON，全部以代码片段形式写在 md 中由 agent 执行。
+---
+
+# RepoGuide · 仓库画像
+
+## 执行代码
+
+由 profiler agent 在目标仓库根目录执行以下 Python 代码：
+
+```python
+import json
+import re
+from pathlib import Path
+
+REPO_PATH = Path("/path/to/repo").resolve()
+
+LANGUAGE_SIGNALS = {
+    "python": {
+        "package_files": ["pyproject.toml", "requirements.txt", "setup.py", "setup.cfg", "Pipfile", "poetry.lock", "uv.lock"],
+        "entry_patterns": ["main.py", "app.py", "__main__.py", "cli.py", "run.py"],
+        "exts": [".py"],
+    },
+    "javascript": {
+        "package_files": ["package.json", "package-lock.json", "yarn.lock", "pnpm-lock.yaml", "bun.lockb"],
+        "entry_patterns": ["index.js", "index.mjs", "index.cjs", "app.js", "server.js", "main.js"],
+        "exts": [".js", ".mjs", ".cjs"],
+    },
+    "typescript": {
+        "package_files": ["tsconfig.json", "package.json", "package-lock.json", "yarn.lock", "pnpm-lock.yaml"],
+        "entry_patterns": ["index.ts", "app.ts", "main.ts", "src/index.ts", "src/main.ts"],
+        "exts": [".ts", ".tsx"],
+    },
+    "java": {
+        "package_files": ["pom.xml", "build.gradle", "build.gradle.kts", "settings.gradle"],
+        "entry_patterns": ["Application.java", "Main.java"],
+        "exts": [".java"],
+    },
+    "go": {
+        "package_files": ["go.mod", "go.sum"],
+        "entry_patterns": ["main.go"],
+        "exts": [".go"],
+    },
+    "rust": {
+        "package_files": ["Cargo.toml", "Cargo.lock"],
+        "entry_patterns": ["src/main.rs", "src/lib.rs", "main.rs", "lib.rs"],
+        "exts": [".rs"],
+    },
+}
+
+IGNORE_DIRS = {".git", "node_modules", "vendor", ".venv", "venv", "env", "dist", "build", "target", "__pycache__", ".pytest_cache"}
+
+def collect_files(repo_path):
+    files = []
+    by_ext = {}
+    for item in repo_path.rglob("*"):
+        if not item.is_file():
+            continue
+        if any(p in item.parts for p in IGNORE_DIRS):
+            continue
+        files.append(item)
+        ext = item.suffix.lstrip(".") or "no_ext"
+        by_ext[ext] = by_ext.get(ext, 0) + 1
+    return files, len(files), by_ext
+
+def detect_paper(repo_path):
+    for pattern in ["*.pdf", "*.tex", "paper*", "Paper*"]:
+        matches = sorted(repo_path.glob(pattern))
+        if matches:
+            return True, str(matches[0])
+    for readme in repo_path.glob("README*"):
+        try:
+            content = readme.read_text(encoding="utf-8", errors="ignore")
+            if "arxiv.org" in content.lower():
+                return True, str(readme)
+        except Exception:
+            pass
+    return False, None
+
+def detect_language(repo_path, files):
+    package_managers = []
+    entry_points = []
+    languages_present = []
+    for lang, signals in LANGUAGE_SIGNALS.items():
+        found_pkg = [pf for pf in signals["package_files"] if (repo_path / pf).exists()]
+        if found_pkg:
+            package_managers.extend(found_pkg)
+            if lang not in languages_present:
+                languages_present.append(lang)
+        for ep in signals["entry_patterns"]:
+            candidate = repo_path / ep
+            if candidate.exists():
+                rel = candidate.relative_to(repo_path).as_posix()
+                if rel not in entry_points:
+                    entry_points.append(rel)
+    ext_counts = {}
+    for f in files:
+        ext_counts[f.suffix] = ext_counts.get(f.suffix, 0) + 1
+    for lang, signals in LANGUAGE_SIGNALS.items():
+        if lang in languages_present:
+            continue
+        if any(ext_counts.get(ext, 0) > 0 for ext in signals["exts"]):
+            languages_present.append(lang)
+    primary = languages_present[0] if languages_present else None
+    return primary, package_managers, entry_points, languages_present
+
+def find_modules(repo_path, files, primary):
+    candidates = set()
+    if primary == "python":
+        for f in files:
+            if f.name == "__init__.py":
+                candidates.add(f.parent.relative_to(repo_path).as_posix())
+    elif primary in ("javascript", "typescript"):
+        for f in files:
+            if f.name in ("index.js", "index.ts", "index.mjs", "index.cjs"):
+                candidates.add(f.parent.relative_to(repo_path).as_posix())
+    elif primary == "rust":
+        if (repo_path / "src").is_dir():
+            candidates.add("src")
+    elif primary == "go":
+        for f in files:
+            if f.suffix == ".go":
+                candidates.add(f.parent.relative_to(repo_path).as_posix())
+    elif primary == "java":
+        for f in files:
+            if f.suffix == ".java":
+                candidates.add(f.parent.relative_to(repo_path).as_posix())
+    return sorted(candidates)
+
+files, total, by_ext = collect_files(REPO_PATH)
+primary, package_managers, entry_points, languages = detect_language(REPO_PATH, files)
+paper_found, paper_path = detect_paper(REPO_PATH)
+modules = find_modules(REPO_PATH, files, primary)
+
+profile = {
+    "repo_path": str(REPO_PATH),
+    "repo_name": REPO_PATH.name,
+    "primary_language": primary,
+    "all_languages": languages,
+    "package_managers": package_managers,
+    "entry_points": entry_points,
+    "paper_found": paper_found,
+    "paper_path": paper_path,
+    "file_count_total": total,
+    "file_count_by_ext": by_ext,
+    "module_candidates": modules,
+    "core_files_seed": sorted(set(entry_points + package_managers + ["README.md"])),
+}
+
+(REPO_PATH / "_repoguide").mkdir(exist_ok=True)
+(REPO_PATH / "_repoguide" / "profile.json").write_text(json.dumps(profile, indent=2, ensure_ascii=False), encoding="utf-8")
+print(json.dumps(profile, indent=2, ensure_ascii=False))
+```
+
+## 输出字段
+
+```json
+{
+  "repo_path": "...",
+  "repo_name": "...",
+  "primary_language": "python",
+  "all_languages": ["python"],
+  "package_managers": ["pyproject.toml"],
+  "entry_points": ["src/main.py"],
+  "paper_found": false,
+  "paper_path": null,
+  "file_count_total": 42,
+  "file_count_by_ext": {"py": 30, "md": 5},
+  "module_candidates": ["src"],
+  "core_files_seed": ["src/main.py", "pyproject.toml", "README.md"]
+}
+```
+
+## 使用方式
+
+1. 由 profiler agent 执行上述代码，生成 `profile.json`。
+2. 其他 agent 读取 `profile.json` 作为分析输入。
+3. 语言特定入口识别参考 `references/language-profiles.md`。

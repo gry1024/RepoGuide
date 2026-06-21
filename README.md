@@ -1,71 +1,77 @@
-# RepoGuide
+<p align="center">
+  <strong>RepoGuide</strong>
+</p>
 
-一个帮你快速理解任意代码仓库并自动生成分析报告的 Skill。给它一个本地路径或 GitHub URL，它会产出一份自顶向下的 Markdown 报告；如果仓库里放了论文 PDF（或 README 里贴了 arXiv 链接），还会自动加上论文与代码的映射章节。
+<p align="center">
+  让 AI 直接读懂任意代码仓库，自动生成 PDF 仓库手册指南
+</p>
 
-## 安装
+---
 
-```bash
-git clone https://github.com/gry1024/RepoGuide.git
-cd RepoGuide
-./install.sh                # 安装到 ~/.claude/skills/repoguide/
-```
+## 快速开始
 
-或安装到其他平台 / 项目本地：
-
-```bash
-./install.sh --kimi                    # ~/.kimi/skills/repoguide/
-./install.sh --codex                   # ~/.codex/skills/repoguide/
-./install.sh --project ~/my-project    # ~/my-project/.claude/skills/repoguide/
-./install.sh --kimi --project ~/my-project  # ~/my-project/.kimi/skills/repoguide/
-```
-
-也可以直接把仓库地址丢给你的 coding agent，agent 会自动完成上述步骤：
+打开任意 AI coding agent（Claude Code / Codex / Kimi Code），直接说：
 
 ```
-请从 https://github.com/gry1024/RepoGuide 安装 RepoGuide skill
+下载 https://github.com/gry1024/RepoGuide，并执行这个 skill
+分析 https://github.com/owner/repo
 ```
 
-依赖：Python 3.10+、Git、Bash。PDF 由 skill 自动处理，依赖缺失时会自动尝试安装；实在装不上则只出 Markdown。
-
-## 使用
-
-在目标仓库目录下说：
+带上论文链接（可选）：
 
 ```
-使用 RepoGuide skill 帮我分析仓库结构
+分析 https://github.com/owner/repo，论文 https://arxiv.org/abs/xxxx.xxxxx
 ```
 
-或显式指定路径 / URL：
+AI 会自动完成：
 
-```
-使用 RepoGuide skill 分析 /path/to/repo
-使用 RepoGuide skill 分析 https://github.com/owner/repo
-```
+1. 克隆仓库
+2. 识别技术栈
+3. 分析架构与数据流
+4. 详解核心代码
+5. 解析论文（如果有）
+6. 建立论文-代码映射
+7. 用 xelatex 渲染 PDF 仓库手册
 
-输出产物：
+最终产物：
 
-- `<当前目录>/repoguide-report.md`
-- `<当前目录>/repoguide-report.pdf`（自动从 Markdown 生成，无需额外安装工具）
+- `<当前目录>/repoguide-manual.pdf`
+- `<当前目录>/repoguide-manual.md`
 
-## 报告结构
+## 特点
 
-0. 元信息（语言、文件数、论文检测）
-1. 一句话总括 + 快速上手
-2. 技术栈与依赖
-3. 架构与数据流
-4. 核心代码详解
-5. 论文-代码映射（检测到论文时自动出现）
+- **零学习成本**: 不需要记命令，直接自然语言对话
+- **Agent Team 模式**: 多个 subagent 并行分析
+- **自动论文解析**: 支持 arXiv 链接与本地 PDF
+- **LaTeX 精美 PDF**: 使用 xelatex + ctex 中文模板
+- **跨平台**: 自动适配 Claude Code / Codex / Kimi Code
+- **纯 Markdown**: 无脚本，无 CLI，所有逻辑以代码片段写在 md 中
 
 ## 仓库结构
 
 ```
-├── SKILL.md              # Claude Code 主版本
-├── SKILL.codex.md        # Codex 适配
-├── SKILL.kimi.md         # Kimi Code 适配
-├── install.sh            # 一键安装脚本
-├── README.md             # 本文件
-├── references/           # 语言特征、分层规则、报告模板
-└── scripts/              # detect-stack、clone-if-url、generate-pdf.py
+├── skill.md                    # 主 skill（唯一入口）
+├── install.sh                  # 传统安装脚本（可选）
+├── README.md                   # 本文件
+├── sub-skills/                 # skill 子模块
+│   ├── runtime/                # 运行时与 Agent Team
+│   ├── tasks/                  # 任务流程
+│   └── tools/                  # 工具方法（纯代码片段）
+└── references/                 # 模板与规则
+    ├── manual-template.md      # 仓库手册 Markdown 模板
+    ├── depth-rules.md          # 智能分层规则
+    ├── language-profiles.md    # 语言特征表
+    └── latex-template/         # LaTeX PDF 模板
+```
+
+## 可选安装
+
+如果你想把 skill 安装到 agent 的 skills 目录：
+
+```bash
+./install.sh              # Claude Code
+./install.sh --codex      # Codex
+./install.sh --kimi       # Kimi Code
 ```
 
 ## License

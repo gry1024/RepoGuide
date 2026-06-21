@@ -1,0 +1,90 @@
+\documentclass[12pt,a4paper]{ctexart}
+
+% Geometry
+\usepackage{geometry}
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+
+% Colors
+\usepackage{xcolor}
+\definecolor{codebg}{RGB}{248,248,248}
+\definecolor{codeframe}{RGB}{221,221,221}
+\definecolor{linkblue}{RGB}{0,82,147}
+
+% Links
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=linkblue,
+  urlcolor=linkblue,
+  citecolor=linkblue,
+  pdfauthor={RepoGuide},
+  pdftitle={{TITLE}}
+}
+
+% Listings
+\usepackage{listings}
+\lstset{
+  basicstyle=\small\ttfamily,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{codeframe},
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  captionpos=b,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  xleftmargin=2em,
+  framexleftmargin=1.5em
+}
+
+% Graphics
+\usepackage{graphicx}
+\graphicspath{{figures/}{./}}
+
+% Tables
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+
+% Lists
+\usepackage{enumitem}
+\setlist[itemize]{leftmargin=2em}
+\setlist[enumerate]{leftmargin=2em}
+
+% Pandoc compatibility
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% Mermaid fallback placeholder
+\newcommand{\mermaid}[1]{\begin{verbatim}#1\end{verbatim}}
+
+% Title info
+\title{\Huge\bfseries {TITLE}\\[0.5em]\Large 仓库手册指南}
+\author{RepoGuide Skill}
+\date{{DATE}}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+\vfill
+\begin{center}
+\begin{tabular}{rl}
+\textbf{仓库：} & {REPO_NAME} \\
+\textbf{主语言：} & {PRIMARY_LANGUAGE} \\
+\textbf{文件总数：} & {FILE_COUNT} \\
+\textbf{生成时间：} & {DATE} \\
+\end{tabular}
+\end{center}
+\vfill
+
+\newpage
+\tableofcontents
+\newpage
+
+% Content placeholder
+{CONTENT}
+
+\end{document}
