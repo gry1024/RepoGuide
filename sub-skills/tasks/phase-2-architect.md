@@ -70,6 +70,20 @@ description: RepoGuide Phase 2a：架构与数据流分析。创建 architect ag
 - 节点命名清晰，边标注说明数据/调用方向。
 - deep 模式下，图应覆盖所有主要模块和关键函数，避免只画"A -> B"的粗粒度图。
 
+## 输出校验
+
+使用 `_index.md` 中的 `validate_json` 校验 `$WORK_DIR/analysis_arch.json`：
+
+```python
+validate_json(
+    "$WORK_DIR/analysis_arch.json",
+    required_fields=["module_dependency_graph", "data_flow_graph",
+                     "key_state_points", "design_decisions", "limitation_notes"],
+)
+```
+
+`call_chain_graph` 和 `state_lifecycle_graph` 为 deep 模式必填，standard 模式可选。
+
 ## 下一 Phase
 
 本 Phase 与 [phase-2-code-analyst.md](phase-2-code-analyst.md) 并行执行。

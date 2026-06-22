@@ -34,7 +34,11 @@ import os
 def fetch_arxiv(url: str, output: str = None):
     if output is None:
         output = os.path.join(os.environ.get("WORK_DIR", "_repoguide"), "paper.pdf")
-    arxiv_id = re.search(r"arxiv\.org/(?:abs|pdf)/(\d+\.\d+|[^/]+)", url).group(1)
+    # 兼容新版 ID（如 2401.12345）和老版分类 ID（如 cs/0011001、quant-ph/9809069）
+    arxiv_id = re.search(
+        r"arxiv\.org/(?:abs|pdf)/([a-zA-Z-]+(?:\.[A-Z]+)?/\d+|\d+\.\d+)",
+        url,
+    ).group(1)
     pdf_url = f"https://arxiv.org/pdf/{arxiv_id}.pdf"
     urllib.request.urlretrieve(pdf_url, output)
     return output

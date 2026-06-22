@@ -11,10 +11,13 @@ description: RepoGuide 的技术栈识别方法，输出仓库画像 JSON，全�
 
 ```python
 import json
+import os
 import re
 from pathlib import Path
 
 REPO_PATH = Path("/path/to/repo").resolve()
+WORK_DIR = Path(os.environ.get("WORK_DIR", str(REPO_PATH.parent / "_repoguide"))).resolve()
+DEPTH = os.environ.get("REPOGUIDE_DEPTH", "standard")
 
 LANGUAGE_SIGNALS = {
     "python": {
@@ -135,6 +138,7 @@ modules = find_modules(REPO_PATH, files, primary)
 
 profile = {
     "repo_path": str(REPO_PATH),
+    "work_dir": str(WORK_DIR),
     "repo_name": REPO_PATH.name,
     "primary_language": primary,
     "all_languages": languages,
@@ -142,14 +146,15 @@ profile = {
     "entry_points": entry_points,
     "paper_found": paper_found,
     "paper_path": paper_path,
+    "depth": DEPTH if DEPTH in ("standard", "deep") else "standard",
     "file_count_total": total,
     "file_count_by_ext": by_ext,
     "module_candidates": modules,
     "core_files_seed": sorted(set(entry_points + package_managers + ["README.md"])),
 }
 
-(REPO_PATH / "_repoguide").mkdir(exist_ok=True)
-(REPO_PATH / "_repoguide" / "profile.json").write_text(json.dumps(profile, indent=2, ensure_ascii=False), encoding="utf-8")
+WORK_DIR.mkdir(parents=True, exist_ok=True)
+(WORK_DIR / "profile.json").write_text(json.dumps(profile, indent=2, ensure_ascii=False), encoding="utf-8")
 print(json.dumps(profile, indent=2, ensure_ascii=False))
 ```
 
@@ -158,6 +163,7 @@ print(json.dumps(profile, indent=2, ensure_ascii=False))
 ```json
 {
   "repo_path": "...",
+  "work_dir": "...",
   "repo_name": "...",
   "primary_language": "python",
   "all_languages": ["python"],
@@ -165,6 +171,7 @@ print(json.dumps(profile, indent=2, ensure_ascii=False))
   "entry_points": ["src/main.py"],
   "paper_found": false,
   "paper_path": null,
+  "depth": "standard",
   "file_count_total": 42,
   "file_count_by_ext": {"py": 30, "md": 5},
   "module_candidates": ["src"],

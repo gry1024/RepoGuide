@@ -101,7 +101,27 @@ echo "REMOTE:$REPO_PATH"
 
 ## 输出
 
-将以下信息写入 `$WORK_DIR/profile.json` 的对应字段：
+在归一化仓库后，立即把以下信息写入 `$WORK_DIR/profile.json`：
+
+```python
+import json
+import os
+from pathlib import Path
+
+work_dir = Path(os.environ.get("WORK_DIR", "_repoguide"))
+work_dir.mkdir(parents=True, exist_ok=True)
+
+profile = {
+    "repo_path": os.environ.get("REPO_PATH", ""),
+    "work_dir": str(work_dir.resolve()),
+    "analysis_mode": os.environ.get("ANALYSIS_MODE", "clone"),
+}
+
+(work_dir / "profile.json").write_text(
+    json.dumps(profile, indent=2, ensure_ascii=False),
+    encoding="utf-8",
+)
+```
 
 ```json
 {

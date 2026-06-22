@@ -178,9 +178,75 @@ print(f"FILE_COUNT={file_count_total}")
 print(f"DATE={date}")
 ```
 
+### 步骤 2.5: 图片预处理
+
+在把 Markdown 转成 LaTeX 之前，先把 `manual.md` 里引用的图片统一整理到 `$WORK_DIR/images/`，并生成标准化路径映射。
+
+```python
+import json
+import os
+import re
+import shutil
+from pathlib import Path
+
+work_dir = Path(os.environ.get("WORK_DIR", "_repoguide"))
+img_dir = work_dir / "images"
+img_dir.mkdir(exist_ok=True)
+
+md_path = work_dir / "manual.md"
+md_text = md_path.read_text(encoding="utf-8", errors="ignore")
+
+image_map = {}      # 原始路径 -> images/fig_xxx.ext
+counter = 0
+
+def normalize_image(m):
+    global counter
+    alt = m.group(1).strip() or "图"
+    src = m.group(2).strip()
+
+    # 网络图片保持原样，生成占位
+    if src.startswith("http://") or src.startswith("https://"):
+        return f"![{alt}]({src})"
+
+    original = Path(src)
+    if original.is_absolute():
+        resolved = original
+    else:
+        # 先相对于 manual.md/work_dir 解析，再回退到仓库根
+        resolved = work_dir / original
+        if not resolved.exists():
+            repo_path = Path(os.environ.get("REPO_PATH", work_dir / "repo"))
+            resolved = repo_path / original
+
+    if resolved.exists():
+        ext = resolved.suffix or ".png"
+        counter += 1
+        new_name = f"fig_{counter:03d}{ext}"
+        dst = img_dir / new_name
+        shutil.copy2(resolved, dst)
+        image_map[src] = f"images/{new_name}"
+        return f"![{alt}](images/{new_name})"
+    else:
+        # 图片不存在，保留原路径并在 limitation 中记录
+        return f"![{alt}]({src})"
+
+new_md_text = re.sub(r"!\[([^\]]*)\]\(([^)]+)\)", normalize_image, md_text)
+
+# 写回标准化后的 manual.md，后续转换基于它
+md_path.write_text(new_md_text, encoding="utf-8")
+
+# 记录映射供调试
+(work_dir / "image-map.json").write_text(
+    json.dumps(image_map, indent=2, ensure_ascii=False),
+    encoding="utf-8",
+)
+```
+
 ### 步骤 3: 生成 LaTeX 正文
 
-**首选方案：使用 pandoc 快速转换**，然后修正图片路径：
+步骤 2.5 已经把 `manual.md` 中的图片路径标准化为 `images/fig_xxx.ext`，本步骤基于标准化后的 `manual.md` 转换。
+
+**首选方案：使用 pandoc 快速转换**：
 
 ```bash
 cd "$WORK_DIR"
@@ -227,9 +293,26 @@ def inline(s):
     s = re.sub(r"`([^`]+)`", lambda m: f"\\texttt{{{escape(m.group(1))}}}", s)
     s = re.sub(r"\*\*(.+?)\*\*", lambda m: f"\\textbf{{{escape(m.group(1))}}}", s)
     s = re.sub(r"\*(.+?)\*", lambda m: f"\\textit{{{escape(m.group(1))}}}", s)
-    s = re.sub(r"!\[([^\]]*)\]\(([^)]+)\)", lambda m: "", s)  # 图片在步骤4单独处理
     s = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", lambda m: f"\\href{{{escape(m.group(2))}}}{{{escape(m.group(1))}}}", s)
     return escape(s)
+
+def figure_env(alt, src):
+    alt = inline(alt) or "图"
+    if src.startswith("http://") or src.startswith("https://"):
+        return (
+            f"\\begin{{figure}}[htbp]\n"
+            f"  \\centering\n"
+            f"  \\fbox{{\\parbox{{0.8\\textwidth}}{{\\centering [{alt}] \\newline \\footnotesize \\url{{{escape(src)}}}}}}}\n"
+            f"  \\caption{{{alt}}}\n"
+            f"\\end{{figure}}"
+        )
+    return (
+        f"\\begin{{figure}}[htbp]\n"
+        f"  \\centering\n"
+        f"  \\includegraphics[width=0.85\\textwidth]{{{escape(src)}}}\n"
+        f"  \\caption{{{alt}}}\n"
+        f"\\end{{figure}}"
+    )
 
 def parse_table(lines, start):
     """Parse a Markdown table starting at index `start`. Returns (latex_lines, next_index)."""
@@ -308,6 +391,14 @@ while i < len(lines):
         i += 1
         continue
 
+    # 图片独立成段，直接生成 figure 环境
+    if s.startswith("!["):
+        m = re.match(r"!\[([^\]]*)\]\(([^)]+)\)", s)
+        if m:
+            out.append(figure_env(m.group(1), m.group(2)))
+            i += 1
+            continue
+
     if s.startswith(("- ", "* ", "+ ")):
         items = [s[2:]]
         i += 1
@@ -342,12 +433,13 @@ while i < len(lines):
 out_path.write_text("\n".join(out), encoding="utf-8")
 ```
 
-### 步骤 4: 处理图片
+### 步骤 4: 图片最终检查
+
+步骤 2.5 已经把 `manual.md` 中的图片路径标准化为 `images/fig_xxx.ext`，步骤 3 的转换器也已把图片语法转成 LaTeX `figure` 环境。本步骤做最终兜底：
 
 1. 确保 `$WORK_DIR/images/` 目录存在。
-2. 将 `manual.md` 中引用的图片统一复制/整理到 `$WORK_DIR/images/`。
-3. 将 Markdown 图片语法替换为 LaTeX `figure` 环境。
-4. 所有图片路径在 LaTeX 中使用相对于 `$WORK_DIR` 的 `images/xxx.png`。
+2. 扫描 `manual-body.tex`，若还有未标准化的本地图片路径，复制到 `images/` 并修正路径。
+3. 网络图片保持 `[网络图片]` 占位框。
 
 ```python
 import os, re, shutil
@@ -357,54 +449,97 @@ work_dir = Path(os.environ.get("WORK_DIR", "_repoguide"))
 img_dir = work_dir / "images"
 img_dir.mkdir(exist_ok=True)
 
-md_path = work_dir / "manual.md"
 body_path = work_dir / "manual-body.tex"
+if body_path.exists():
+    body = body_path.read_text(encoding="utf-8", errors="ignore")
 
-md_text = md_path.read_text(encoding="utf-8", errors="ignore")
-body = body_path.read_text(encoding="utf-8", errors="ignore")
+    def collect_and_rename(m):
+        alt = m.group(1).strip() or "图"
+        src = m.group(2).strip()
+        if src.startswith("http://") or src.startswith("https://"):
+            return m.group(0)
+        original = Path(src)
+        resolved = original if original.is_absolute() else (work_dir / original)
+        if resolved.exists() and not src.startswith("images/"):
+            ext = resolved.suffix or ".png"
+            counter = getattr(collect_and_rename, "counter", 0) + 1
+            collect_and_rename.counter = counter
+            new_name = f"fig_{counter:03d}{ext}"
+            shutil.copy2(resolved, img_dir / new_name)
+            return f"\\includegraphics[width=0.85\\textwidth]{{images/{new_name}}}"
+        return m.group(0)
 
-# 复制 manual.md 中引用的图片到 images/ 并统一命名
-counter = 0
-image_map = {}
-
-def collect_and_rename(m):
-    global counter
-    alt = m.group(1).strip() or "图"
-    src = m.group(2).strip()
-    original = Path(src)
-    if src.startswith("http://") or src.startswith("https://"):
-        # 网络图片保持原样，xelatex 无法直接引用，跳过
-        return f"\\begin{{figure}}[htbp]\n  \\centering\n  \\fbox{{\\parbox{{0.8\\textwidth}}{{\\centering [网络图片] {alt}\\newline \\footnotesize \\url{{{src}}}}}}}\n  \\caption{{{alt}}}\n\\end{{figure}}"
-    resolved = original if original.is_absolute() else (work_dir / original)
-    if resolved.exists():
-        ext = resolved.suffix or ".png"
-        counter += 1
-        new_name = f"fig_{counter:03d}{ext}"
-        dst = img_dir / new_name
-        shutil.copy2(resolved, dst)
-        image_map[src] = f"images/{new_name}"
-    return f"\\begin{{figure}}[htbp]\n  \\centering\n  \\includegraphics[width=0.85\\textwidth]{{{image_map.get(src, src)}}}\n  \\caption{{{alt}}}\n\\end{{figure}}"
-
-body = re.sub(r'!\[([^\]]*)\]\(([^)]+)\)', collect_and_rename, body)
-body_path.write_text(body, encoding="utf-8")
+    body = re.sub(r'\\includegraphics\[[^\]]*\]\{([^}]+)\}', collect_and_rename, body)
+    body_path.write_text(body, encoding="utf-8")
 ```
 
 ### 步骤 5: 填充模板
 
-从 `references/latex-template/main.tex` 复制到 `$WORK_DIR/<repo_name>-manual.tex`，并替换占位符：
+从 `references/latex-template/main.tex` 复制到 `$WORK_DIR/<repo_name>-manual.tex`，并替换占位符。替换时必须对值进行 LaTeX 转义，避免仓库名含 `# % & _ ^` 等字符时编译失败。
+
+占位符：
 
 - `{TITLE}` → 手册标题
 - `{REPO_NAME}` → 仓库名
 - `{PRIMARY_LANGUAGE}` → 主语言
 - `{FILE_COUNT}` → 文件总数
 - `{DATE}` → 生成日期
-- `{CONTENT}` → `manual-body.tex` 的内容
+- `{CONTENT}` → `manual-body.tex` 的内容（已在步骤 3 转义）
+
+```python
+import os
+import re
+from pathlib import Path
+
+work_dir = Path(os.environ.get("WORK_DIR", "_repoguide"))
+repo_name = os.environ.get("REPO_NAME", "repo")
+primary_language = os.environ.get("PRIMARY_LANGUAGE", "")
+file_count = os.environ.get("FILE_COUNT", "0")
+date = os.environ.get("DATE", "")
+
+template_path = Path("references/latex-template/main.tex")
+tex_path = work_dir / f"{repo_name}-manual.tex"
+body_path = work_dir / "manual-body.tex"
+
+template = template_path.read_text(encoding="utf-8", errors="ignore")
+body = body_path.read_text(encoding="utf-8", errors="ignore")
+
+LATEX_ESCAPES = {
+    "\\": "\\textbackslash{}",
+    "{": "\\{",
+    "}": "\\}",
+    "$": "\\$",
+    "&": "\\&",
+    "#": "\\#",
+    "_": "\\_",
+    "%": "\\%",
+    "~": "\\textasciitilde{}",
+    "^": "\\textasciicircum{}",
+}
+
+def latex_escape(s):
+    return "".join(LATEX_ESCAPES.get(c, c) for c in s)
+
+title = f"{repo_name} 仓库手册指南"
+replacements = {
+    "{TITLE}": latex_escape(title),
+    "{REPO_NAME}": latex_escape(repo_name),
+    "{PRIMARY_LANGUAGE}": latex_escape(primary_language),
+    "{FILE_COUNT}": latex_escape(file_count),
+    "{DATE}": latex_escape(date),
+    "{CONTENT}": body,
+}
+
+# 按占位符长度降序替换，避免短占位符干扰长的
+for placeholder, value in sorted(replacements.items(), key=lambda x: -len(x[0])):
+    template = template.replace(placeholder, value)
+
+tex_path.write_text(template, encoding="utf-8")
+```
 
 ```bash
-# 当前工作目录即为 RepoGuide 仓库根目录
-# 其中包含 references/latex-template/main.tex
-cp "references/latex-template/main.tex" "$WORK_DIR/${REPO_NAME}-manual.tex"
-# 占位符替换可用 Python/sed，由 agent 执行
+# 如果不在 RepoGuide 仓库根目录，先定位模板再执行 Python
+# cp "references/latex-template/main.tex" "$WORK_DIR/${REPO_NAME}-manual.tex"
 ```
 
 ### 步骤 6: 编译 PDF
