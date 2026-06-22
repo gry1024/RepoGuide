@@ -38,14 +38,17 @@ which xelatex || echo "XELATEX_NOT_FOUND"
 
 ### 步骤 1.5: 降级渲染 HTML（当 xelatex 不可用时）
 
-优先使用 pandoc：
+优先使用 pandoc，并显式声明 UTF-8 与中文：
 
 ```bash
 pandoc "$WORK_DIR/manual.md" -t html --standalone \
+  --metadata charset=UTF-8 \
+  --metadata lang=zh-CN \
+  -V "header-includes=<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">" \
   -o "$WORK_DIR/${REPO_NAME}-manual.html"
 ```
 
-如果 pandoc 不可用，使用 Python 生成基础 HTML：
+如果 pandoc 不可用，使用 Python 生成基础 HTML（带 UTF-8 BOM，Windows 记事本可直接识别）：
 
 ```python
 import os, re
@@ -130,6 +133,7 @@ html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{repo_name} 仓库手册指南</title>
 <style>
@@ -146,7 +150,8 @@ a {{ color: #0366d6; }}
 </body>
 </html>"""
 
-html_path.write_text(html, encoding="utf-8")
+# 带 UTF-8 BOM，确保 Windows 记事本和旧浏览器正确识别中文
+html_path.write_bytes("\ufeff".encode("utf-8") + html.encode("utf-8"))
 ```
 
 ### 步骤 2: 读取元数据
