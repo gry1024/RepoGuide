@@ -32,7 +32,7 @@ repoguide 分析 https://github.com/owner/repo，论文 https://arxiv.org/abs/xx
 
 agent 会自行读取 [skill.md](skill.md)，并行调用多个 subagent 完成仓库画像、架构分析、代码解读、论文解析与 PDF 渲染。
 
-> 执行前 agent 会主动询问分析细致度（快速 / 标准 / 深度）。
+> 执行前 agent 会主动询问分析细致度（标准 / 深度）。
 
 ---
 

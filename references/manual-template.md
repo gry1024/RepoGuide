@@ -156,7 +156,7 @@ writer agent 按本模板组装 Markdown 内容。
 
 ### 3.5 仓库目录树
 
-> `standard` 输出核心目录的 tree 风格目录树；`deep` 输出完整目录树；`fast` 可省略。
+> `standard` 输出核心目录的 tree 风格目录树；`deep` 输出完整目录树，每个核心文件带注释。
 
 ```text
 {{directory_tree}}
