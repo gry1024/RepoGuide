@@ -208,7 +208,7 @@ LaTeX 推荐图片格式优先级：
 
 ## 8. 自动生成图片任务
 
-在 analyze-repo.md 的 Agent Team 中增加可选 agent：
+本工具由 `sub-skills/tasks/phase-2-5-image-handler.md` 调用。在该 Phase 中创建可选 agent：
 
 ```
 agent: image-handler

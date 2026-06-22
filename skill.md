@@ -29,12 +29,12 @@ version: 2.0.0
 
 ### 分析细致度
 
-执行前 AI 会询问细致度，共 2 档：
+执行前 AI 会询问细致度，共 2 档，**不默认推荐任何一档**：
 
 | 档位 | 仓库分析 | 论文分析 | 适用场景 |
 |------|----------|----------|----------|
-| **标准 (standard)** | 核心模块、架构图、关键文件、核心数据流 | 主要章节、公式、算法、术语 | 日常仓库手册（默认） |
-| **深度 (deep)** | 所有文件、每个类/函数、完整调用链、依赖图、目录树 | 逐章映射、实验-脚本对应、图片提取 | 论文复现、技术报告 |
+| **标准 (standard)** | 核心模块、架构图、关键文件、tree 风格目录树（核心目录）、核心数据流 | 主要章节、公式、算法、术语 | 日常仓库手册 |
+| **深度 (deep)** | 所有文件、每个类/函数、完整依赖链、完整 tree 目录树、完整数据流（模块依赖图 + 数据流图 + 状态/调用链图） | 逐章映射、实验-脚本对应、图片提取 | 论文复现、技术报告 |
 
 指定方式：
 
@@ -66,7 +66,22 @@ Phase 6: 输出到用户工作目录（主 agent）
 
 ## 任务详情
 
-引用: `sub-skills/tasks/analyze-repo.md`
+引用: `sub-skills/tasks/_index.md`
+
+任务已按 Phase 拆分为多个子任务文件，便于 agent 按部就班执行：
+
+| Phase | 文件 |
+|-------|------|
+| 任务总览 | `sub-skills/tasks/_index.md` |
+| 0: 输入归一化 | `sub-skills/tasks/phase-0-normalize.md` |
+| 1: 仓库画像 | `sub-skills/tasks/phase-1-profiler.md` |
+| 2a: 架构与数据流 | `sub-skills/tasks/phase-2-architect.md` |
+| 2b: 代码详解 | `sub-skills/tasks/phase-2-code-analyst.md` |
+| 2.5: 图片处理 | `sub-skills/tasks/phase-2-5-image-handler.md` |
+| 3: 论文解析与映射 | `sub-skills/tasks/phase-3-paper.md` |
+| 4: 手册组装 | `sub-skills/tasks/phase-4-writer.md` |
+| 5: PDF 渲染 | `sub-skills/tasks/phase-5-renderer.md` |
+| 6: 输出到用户目录 | `sub-skills/tasks/phase-6-output.md` |
 
 包含完整的输入解析、Agent Team 分工、JSON 输出格式、手册结构、错误处理。
 
