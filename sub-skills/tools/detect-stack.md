@@ -136,10 +136,43 @@ primary, package_managers, entry_points, languages = detect_language(REPO_PATH, 
 paper_found, paper_path = detect_paper(REPO_PATH)
 modules = find_modules(REPO_PATH, files, primary)
 
+# 研究/训练入口脚本提升：train_*.py / run_*.py / combine_*.py 视为入口并加入 core_files_seed
+RESEARCH_ENTRY_GLOBS = ["train_*.py", "run_*.py", "combine_*.py"]
+research_entrypoints = []
+for pat in RESEARCH_ENTRY_GLOBS:
+    for f in REPO_PATH.glob(pat):
+        if f.is_file():
+            rel = f.relative_to(REPO_PATH).as_posix()
+            if rel not in research_entrypoints:
+                research_entrypoints.append(rel)
+            if rel not in entry_points:
+                entry_points.append(rel)
+
+# 优先使用环境变量或已有 profile 中的 repo_name / repo_ref，其次从路径推断
+repo_name = os.environ.get("REPO_NAME")
+repo_ref = os.environ.get("REPO_REF")
+existing = {}
+if (WORK_DIR / "profile.json").exists():
+    try:
+        existing = json.loads((WORK_DIR / "profile.json").read_text(encoding="utf-8"))
+    except Exception:
+        existing = {}
+if not repo_name:
+    repo_name = existing.get("repo_name")
+if not repo_name:
+    repo_name = REPO_PATH.name
+if not repo_ref:
+    repo_ref = existing.get("repo_ref")
+
+# 分析模式：从已有 profile 继承（Phase 0 写入），否则按路径推断
+analysis_mode = existing.get("analysis_mode", "local")
+
 profile = {
     "repo_path": str(REPO_PATH),
     "work_dir": str(WORK_DIR),
-    "repo_name": REPO_PATH.name,
+    "analysis_mode": analysis_mode,
+    "repo_name": repo_name,
+    "repo_ref": repo_ref,
     "primary_language": primary,
     "all_languages": languages,
     "package_managers": package_managers,
@@ -150,7 +183,7 @@ profile = {
     "file_count_total": total,
     "file_count_by_ext": by_ext,
     "module_candidates": modules,
-    "core_files_seed": sorted(set(entry_points + package_managers + ["README.md"])),
+    "core_files_seed": sorted(set(entry_points + package_managers + research_entrypoints + ["README.md"])),
 }
 
 WORK_DIR.mkdir(parents=True, exist_ok=True)

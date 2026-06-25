@@ -1,27 +1,28 @@
 ---
 name: repoguide-tool-latex-renderer
-description: RepoGuide 的 LaTeX / xelatex PDF 渲染方法：将 Markdown 仓库手册转换为精美中文 PDF。全部以代码片段形式写在 md 中由 agent 执行。
+description: RepoGuide 的 LaTeX / xelatex PDF 渲染方法：数学公式感知的 Markdown→LaTeX 转换、自适应图片尺寸、精美中文 PDF。全部以代码片段写在 md 中由 agent 执行。
 ---
 
 # RepoGuide · LaTeX PDF 渲染
 
 ## 设计原则
 
-1. **必须用 xelatex 编译**：pandoc 只作为 Markdown→LaTeX 正文的辅助转换，最终 PDF 必须由 xelatex 生成。
-2. **图片必须显式处理**：统一复制到 `$WORK_DIR/images/`，并在 LaTeX 中设置正确的 `\graphicspath`。
-3. **中文必须正确渲染**：使用 `ctex` 文档类 + 系统 CJK 字体（Windows: 微软雅黑/宋体；macOS: 苹方；Linux: Noto CJK）。
-4. **产物命名带仓库名**：`<repo_name>-manual.pdf`。
+1. **必须用 xelatex 编译**：pandoc 仅作辅助，最终 PDF 由 xelatex 生成。
+2. **数学公式感知转换（关键修复）**：`$...$` / `$$...$$` / `\[...\]` 数学段在转义时必须**原样保留**，不得把 `$` 转义为 `\$`、不得把 `^`/`_` 转义。这是过去"公式渲染失败"的根因。
+3. **图片自适应尺寸**：统一 `\includegraphics[width=\linewidth,height=0.75\textheight,keepaspectratio]`，小图不放大、大图不溢出。
+4. **中文必须正确渲染**：`ctex` 文档类 + 系统 CJK 字体。
+5. **产物命名带仓库名**：`<repo_name>-manual.pdf`。
 
 ## 依赖
 
-- TeX Live / MacTeX / MiKTeX / TinyTeX，包含 `xelatex`
-- 中文字体（Windows: SimSun/SimHei/Microsoft YaHei；macOS: PingFang SC/STSong；Linux: Noto Sans CJK SC/WenQuanYi）
-- 可选：`pandoc`（仅用于快速将 Markdown 转为 LaTeX 正文，若不可用则用内置 Python 转换器）
+- TeX Live / MiKTeX / TinyTeX（含 `xelatex`、`amsmath`、`amssymb`、`tcolorbox`、`graphicx`、`booktabs`）
+- 中文字体（Windows: 微软雅黑/宋体；macOS: 苹方；Linux: Noto CJK）
+- 可选 `pandoc`
 
 ## 变量
 
 - `$WORK_DIR`: `<cwd>/_repoguide/`
-- `$REPO_NAME`: 仓库名（从 `$WORK_DIR/profile.json` 的 `repo_name` 字段读取）
+- `$REPO_NAME`: 仓库名（从 `profile.json` 读取）
 - 最终产物前缀: `$REPO_NAME-manual`
 
 ## 执行代码
@@ -34,21 +35,9 @@ description: RepoGuide 的 LaTeX / xelatex PDF 渲染方法：将 Markdown 仓�
 which xelatex || echo "XELATEX_NOT_FOUND"
 ```
 
-如果未找到，跳过 PDF 渲染，保留 Markdown 手册并降级渲染为 HTML 格式，同时在输出摘要中提示用户安装 TeX Live。
+未找到则跳过 PDF，保留 Markdown 并降级渲染 HTML（步骤 1.5）。
 
-### 步骤 1.5: 降级渲染 HTML（当 xelatex 不可用时）
-
-优先使用 pandoc，并显式声明 UTF-8 与中文：
-
-```bash
-pandoc "$WORK_DIR/manual.md" -t html --standalone \
-  --metadata charset=UTF-8 \
-  --metadata lang=zh-CN \
-  -V "header-includes=<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">" \
-  -o "$WORK_DIR/${REPO_NAME}-manual.html"
-```
-
-如果 pandoc 不可用，使用 Python 生成基础 HTML（带 UTF-8 BOM，Windows 记事本可直接识别）：
+### 步骤 1.5: 降级渲染 HTML（xelatex 不可用时）
 
 ```python
 import os, re
@@ -60,7 +49,6 @@ md_path = work_dir / "manual.md"
 html_path = work_dir / f"{repo_name}-manual.html"
 
 text = md_path.read_text(encoding="utf-8", errors="ignore")
-
 if text.startswith("---"):
     parts = text.split("---", 2)
     if len(parts) >= 3:
@@ -70,11 +58,14 @@ def escape_html(s):
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 def inline(s):
+    # 保护行内数学 $...$
+    s = re.sub(r"\$([^$]+)\$", lambda m: f"\x00MATH\x01{escape_html(m.group(1))}\x02MATH\x00", s)
     s = re.sub(r"`([^`]+)`", lambda m: f"<code>{escape_html(m.group(1))}</code>", s)
     s = re.sub(r"\*\*(.+?)\*\*", lambda m: f"<strong>{escape_html(m.group(1))}</strong>", s)
     s = re.sub(r"\*(.+?)\*", lambda m: f"<em>{escape_html(m.group(1))}</em>", s)
-    s = re.sub(r"!\[([^\]]*)\]\(([^)]+)\)", lambda m: f'<img src="{escape_html(m.group(2))}" alt="{escape_html(m.group(1))}" style="max-width:100%">', s)
+    s = re.sub(r"!\[([^\]]*)\]\(([^)]+)\)", lambda m: f'<img src="{escape_html(m.group(2))}" alt="{escape_html(m.group(1))}" style="max-width:100%;height:auto">', s)
     s = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", lambda m: f'<a href="{escape_html(m.group(2))}">{escape_html(m.group(1))}</a>', s)
+    s = s.replace("\x00MATH\x01", '<span class="math">\\(').replace("\x02MATH\x00", '\\)</span>')
     return s
 
 lines = text.splitlines()
@@ -83,74 +74,87 @@ i = 0
 while i < len(lines):
     line = lines[i]
     s = line.strip()
-
+    # 块级数学 $$...$$
+    if s.startswith("$$"):
+        math_lines = [s[2:]]
+        if s.endswith("$$") and len(s) > 2:
+            pass
+        else:
+            i += 1
+            while i < len(lines) and not lines[i].strip().endswith("$$"):
+                math_lines.append(lines[i]); i += 1
+            if i < len(lines):
+                math_lines.append(lines[i].rstrip()[:-2]); i += 1
+        body.append(f'<div class="math">\\[{escape_html(" ".join(math_lines))}\\]</div>')
+        continue
     if s.startswith("```"):
         i += 1
         code = []
         while i < len(lines) and not lines[i].strip().startswith("```"):
-            code.append(lines[i])
-            i += 1
+            code.append(lines[i]); i += 1
         body.append(f"<pre><code>{escape_html(chr(10).join(code))}</code></pre>")
-        i += 1
-        continue
-
+        i += 1; continue
     if s.startswith("#"):
         level = len(s) - len(s.lstrip("#"))
         if level <= 6 and s[level:].startswith(" "):
             body.append(f"<h{level}>{inline(s[level+1:].strip())}</h{level}>")
-            i += 1
-            continue
-
+            i += 1; continue
     if s in ("---", "***", "___"):
-        body.append("<hr>")
-        i += 1
-        continue
-
+        body.append("<hr>"); i += 1; continue
     if not s:
-        i += 1
-        continue
-
+        i += 1; continue
     if s.startswith(("- ", "* ", "+ ")):
-        items = [s[2:]]
-        i += 1
+        items = [s[2:]]; i += 1
         while i < len(lines) and lines[i].strip().startswith(("- ", "* ", "+ ")):
-            items.append(lines[i].strip()[2:])
-            i += 1
+            items.append(lines[i].strip()[2:]); i += 1
         body.append("<ul>")
         for item in items:
             body.append(f"<li>{inline(item)}</li>")
-        body.append("</ul>")
-        continue
-
-    para = [line]
-    i += 1
-    while i < len(lines) and lines[i].strip():
-        para.append(lines[i])
-        i += 1
+        body.append("</ul>"); continue
+    if s.startswith("|"):
+        tbl = ["<table>"]; i += 0
+        rows = []
+        while i < len(lines) and lines[i].strip().startswith("|"):
+            rows.append(lines[i].strip()); i += 1
+        if len(rows) >= 2:
+            tbl.append("<tr>")
+            for c in rows[0].split("|")[1:-1]:
+                tbl.append(f"<th>{inline(c.strip())}</th>")
+            tbl.append("</tr>")
+            for r in rows[2:]:
+                tbl.append("<tr>")
+                for c in r.split("|")[1:-1]:
+                    tbl.append(f"<td>{inline(c.strip())}</td>")
+                tbl.append("</tr>")
+        tbl.append("</table>")
+        body.extend(tbl); continue
+    para = [line]; i += 1
+    while i < len(lines) and lines[i].strip() and not lines[i].strip().startswith(("#","```","|","- ","* ","$$")):
+        para.append(lines[i]); i += 1
     body.append(f"<p>{inline(' '.join(para))}</p>")
 
 html = f"""<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{repo_name} 仓库手册指南</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{{delimiters:[{{left:'$$',right:'$$',display:true}},{{left:'\\\\(',right:'\\\\)',display:false}},{{left:'\\\\[',right:'\\\\]',display:true}}]}});"></script>
 <style>
-body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif; max-width: 900px; margin: 0 auto; padding: 2rem; line-height: 1.7; color: #333; }}
-h1, h2, h3, h4 {{ color: #1a1a1a; margin-top: 1.5em; }}
+body {{ font-family: -apple-system, "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif; max-width: 920px; margin: 0 auto; padding: 2rem; line-height: 1.75; color: #24292f; }}
+h1,h2,h3,h4 {{ color: #0b3d91; margin-top: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: .3em; }}
 pre {{ background: #f6f8fa; padding: 1rem; border-radius: 6px; overflow-x: auto; }}
-code {{ font-family: Consolas, Monaco, monospace; font-size: 0.9em; }}
-img {{ max-width: 100%; height: auto; }}
-a {{ color: #0366d6; }}
-</style>
-</head>
-<body>
+code {{ font-family: Consolas, Monaco, monospace; font-size: .92em; }}
+table {{ border-collapse: collapse; width: 100%; margin: 1em 0; }}
+th, td {{ border: 1px solid #d0d7de; padding: .5em .7em; text-align: left; }}
+th {{ background: #eef2f7; }}
+img {{ max-width: 100%; height: auto; display: block; margin: 1em auto; }}
+blockquote {{ border-left: 4px solid #0b3d91; margin: 1em 0; padding: .5em 1em; background: #f6f8fa; color: #444; }}
+</style></head><body>
 {chr(10).join(body)}
-</body>
-</html>"""
-
-# 带 UTF-8 BOM，确保 Windows 记事本和旧浏览器正确识别中文
+</body></html>"""
 html_path.write_bytes("\ufeff".encode("utf-8") + html.encode("utf-8"))
 ```
 
@@ -159,103 +163,67 @@ html_path.write_bytes("\ufeff".encode("utf-8") + html.encode("utf-8"))
 ```python
 import os, json
 from pathlib import Path
+from datetime import datetime
 
 work_dir = Path(os.environ.get("WORK_DIR", "_repoguide"))
 profile = json.loads((work_dir / "profile.json").read_text(encoding="utf-8"))
-
 repo_name = profile["repo_name"]
 primary_language = profile.get("primary_language", "")
 file_count_total = profile.get("file_count_total", 0)
-date = profile.get("generated_at", "")
-if not date:
-    from datetime import datetime
-    date = datetime.now().strftime("%Y-%m-%d")
-
-# 导出环境变量供后续脚本使用
-print(f"REPO_NAME={repo_name}")
-print(f"PRIMARY_LANGUAGE={primary_language}")
-print(f"FILE_COUNT={file_count_total}")
-print(f"DATE={date}")
+date = profile.get("generated_at") or datetime.now().strftime("%Y-%m-%d")
+print(f"REPO_NAME={repo_name}\nPRIMARY_LANGUAGE={primary_language}\nFILE_COUNT={file_count_total}\nDATE={date}")
 ```
 
-### 步骤 2.5: 图片预处理
+### 步骤 2.5: 图片路径标准化
 
-在把 Markdown 转成 LaTeX 之前，先把 `manual.md` 里引用的图片统一整理到 `$WORK_DIR/images/`，并生成标准化路径映射。
+把 `manual.md` 里引用的本地图片统一复制到 `$WORK_DIR/images/`，路径改为 `images/xxx.png`。
 
 ```python
-import json
-import os
-import re
-import shutil
+import os, re, shutil
 from pathlib import Path
+from PIL import Image
 
 work_dir = Path(os.environ.get("WORK_DIR", "_repoguide"))
-img_dir = work_dir / "images"
-img_dir.mkdir(exist_ok=True)
-
+img_dir = work_dir / "images"; img_dir.mkdir(exist_ok=True)
 md_path = work_dir / "manual.md"
 md_text = md_path.read_text(encoding="utf-8", errors="ignore")
-
-image_map = {}      # 原始路径 -> images/fig_xxx.ext
 counter = 0
 
 def normalize_image(m):
     global counter
     alt = m.group(1).strip() or "图"
     src = m.group(2).strip()
-
-    # 网络图片保持原样，生成占位
-    if src.startswith("http://") or src.startswith("https://"):
+    if src.startswith(("http://", "https://")):
         return f"![{alt}]({src})"
-
     original = Path(src)
-    if original.is_absolute():
-        resolved = original
-    else:
-        # 先相对于 manual.md/work_dir 解析，再回退到仓库根
-        resolved = work_dir / original
-        if not resolved.exists():
-            repo_path = Path(os.environ.get("REPO_PATH", work_dir / "repo"))
-            resolved = repo_path / original
-
+    resolved = original if original.is_absolute() else (work_dir / original)
+    if not resolved.exists():
+        repo_path = Path(os.environ.get("REPO_PATH", work_dir / "repo"))
+        resolved = repo_path / original
     if resolved.exists():
-        ext = resolved.suffix or ".png"
         counter += 1
-        new_name = f"fig_{counter:03d}{ext}"
+        new_name = f"fig_{counter:03d}.png"
         dst = img_dir / new_name
-        shutil.copy2(resolved, dst)
-        image_map[src] = f"images/{new_name}"
+        try:
+            with Image.open(resolved) as img:
+                if img.mode in ("RGBA", "P"):
+                    img = img.convert("RGB")
+                # 限制尺寸
+                max_w, max_h = 1800, 2200
+                if img.width > max_w or img.height > max_h:
+                    scale = min(max_w/img.width, max_h/img.height)
+                    img = img.resize((int(img.width*scale), int(img.height*scale)), Image.Resampling.LANCZOS)
+                img.save(dst, "PNG", optimize=True)
+        except Exception:
+            shutil.copy2(resolved, dst)
         return f"![{alt}](images/{new_name})"
-    else:
-        # 图片不存在，保留原路径并在 limitation 中记录
-        return f"![{alt}]({src})"
+    return f"![{alt}]({src})"
 
 new_md_text = re.sub(r"!\[([^\]]*)\]\(([^)]+)\)", normalize_image, md_text)
-
-# 写回标准化后的 manual.md，后续转换基于它
 md_path.write_text(new_md_text, encoding="utf-8")
-
-# 记录映射供调试
-(work_dir / "image-map.json").write_text(
-    json.dumps(image_map, indent=2, ensure_ascii=False),
-    encoding="utf-8",
-)
 ```
 
-### 步骤 3: 生成 LaTeX 正文
-
-步骤 2.5 已经把 `manual.md` 中的图片路径标准化为 `images/fig_xxx.ext`，本步骤基于标准化后的 `manual.md` 转换。
-
-**首选方案：使用 pandoc 快速转换**：
-
-```bash
-cd "$WORK_DIR"
-pandoc "manual.md" -t latex --listings \
-  --template="$WORK_DIR/raw-body.tex" \
-  -o "$WORK_DIR/manual-body.tex" 2>/dev/null || true
-```
-
-如果 pandoc 没有生成有效文件，或转换结果不理想，**使用内置 Python 转换器**重写 `$WORK_DIR/manual-body.tex`：
+### 步骤 3: 数学公式感知的 Markdown→LaTeX 转换（关键修复）
 
 ```python
 import os, re
@@ -266,229 +234,173 @@ md_path = work_dir / "manual.md"
 out_path = work_dir / "manual-body.tex"
 
 text = md_path.read_text(encoding="utf-8", errors="ignore")
-
-# Strip YAML frontmatter
 if text.startswith("---"):
     parts = text.split("---", 2)
     if len(parts) >= 3:
         text = parts[2]
 
-INLINE_ESCAPES = {
+# 非数学区的 LaTeX 转义（注意：$ 不在此表中，单独处理）
+TEXT_ESCAPES = {
     "\\": "\\textbackslash{}",
-    "{": "\\{",
-    "}": "\\}",
-    "$": "\\$",
-    "&": "\\&",
-    "#": "\\#",
-    "_": "\\_",
-    "%": "\\%",
+    "{": "\\{", "}": "\\}",
+    "&": "\\&", "#": "\\#", "%": "\\%",
     "~": "\\textasciitilde{}",
-    "^": "\\textasciicircum{}",
 }
+# 数学区内不转义任何字符（保留 ^ _ $ 原样）
 
-def escape(s):
-    return "".join(INLINE_ESCAPES.get(c, c) for c in s)
+def escape_text(s):
+    return "".join(TEXT_ESCAPES.get(c, c) for c in s)
 
 def inline(s):
-    s = re.sub(r"`([^`]+)`", lambda m: f"\\texttt{{{escape(m.group(1))}}}", s)
-    s = re.sub(r"\*\*(.+?)\*\*", lambda m: f"\\textbf{{{escape(m.group(1))}}}", s)
-    s = re.sub(r"\*(.+?)\*", lambda m: f"\\textit{{{escape(m.group(1))}}}", s)
-    s = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", lambda m: f"\\href{{{escape(m.group(2))}}}{{{escape(m.group(1))}}}", s)
-    return escape(s)
+    # 先抽出行内数学 $...$，用占位符保护
+    placeholders = []
+    def stash_math(m):
+        placeholders.append(m.group(1))
+        return f"\x00MATH{len(placeholders)-1}\x00"
+    s = re.sub(r"\$([^$\n]+)\$", stash_math, s)
+    # 行内代码
+    code_ph = []
+    def stash_code(m):
+        code_ph.append(m.group(1))
+        return f"\x00CODE{len(code_ph)-1}\x00"
+    s = re.sub(r"`([^`]+)`", stash_code, s)
+    # 粗体/斜体/链接
+    s = re.sub(r"\*\*(.+?)\*\*", lambda m: f"\\textbf{{{escape_text(m.group(1))}}}", s)
+    s = re.sub(r"\*(.+?)\*", lambda m: f"\\textit{{{escape_text(m.group(1))}}}", s)
+    s = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", lambda m: f"\\href{{{escape_text(m.group(2))}}}{{{escape_text(m.group(1))}}}", s)
+    # 还原代码
+    for i, c in enumerate(code_ph):
+        s = s.replace(f"\x00CODE{i}\x00", f"\\texttt{{{escape_text(c)}}}")
+    # 普通文本转义
+    s = escape_text(s)
+    # 还原数学（原样输出，包裹 $...$）
+    for i, m in enumerate(placeholders):
+        s = s.replace(f"\x00MATH{i}\x00", f"$\\({m}\\)$")
+    return s
 
 def figure_env(alt, src):
     alt = inline(alt) or "图"
-    if src.startswith("http://") or src.startswith("https://"):
-        return (
-            f"\\begin{{figure}}[htbp]\n"
-            f"  \\centering\n"
-            f"  \\fbox{{\\parbox{{0.8\\textwidth}}{{\\centering [{alt}] \\newline \\footnotesize \\url{{{escape(src)}}}}}}}\n"
-            f"  \\caption{{{alt}}}\n"
-            f"\\end{{figure}}"
-        )
-    return (
-        f"\\begin{{figure}}[htbp]\n"
-        f"  \\centering\n"
-        f"  \\includegraphics[width=0.85\\textwidth]{{{escape(src)}}}\n"
-        f"  \\caption{{{alt}}}\n"
-        f"\\end{{figure}}"
-    )
+    if src.startswith(("http://", "https://")):
+        return (f"\\begin{{figure}}[htbp]\n  \\centering\n"
+                f"  \\fbox{{\\parbox{{0.8\\textwidth}}{{\\centering [{alt}]}}}}\n"
+                f"  \\caption{{{alt}}}\n\\end{{figure}}")
+    # 自适应尺寸：不溢出，小图不放大
+    return (f"\\begin{{figure}}[htbp]\n  \\centering\n"
+            f"  \\includegraphics[width=\\linewidth,height=0.75\\textheight,keepaspectratio]{{{escape_text(src)}}}\n"
+            f"  \\caption{{{alt}}}\n\\end{{figure}}")
 
 def parse_table(lines, start):
-    """Parse a Markdown table starting at index `start`. Returns (latex_lines, next_index)."""
     header = lines[start].strip()
-    sep = lines[start + 1].strip() if start + 1 < len(lines) else ""
-    if not sep or not all(c in "-|:\" for c in sep):
+    sep = lines[start+1].strip() if start+1 < len(lines) else ""
+    if not sep or not all(c in "-|:" for c in sep):
         return None, start
     cols = header.split("|")[1:-1]
     n = len(cols)
     align = []
     for cell in sep.split("|")[1:-1]:
-        cell = cell.strip()
-        if cell.startswith(":") and cell.endswith(":"):
-            align.append("c")
-        elif cell.endswith(":"):
-            align.append("r")
-        else:
-            align.append("l")
-    align = align[:n] + ["l"] * (n - len(align))
-    out_lines = ["\\begin{center}", "\\begin{tabular}{" + "".join(align) + "}", "\\toprule"]
-    out_lines.append(" & ".join(escape(c.strip()) for c in cols) + " \\\\")
-    out_lines.append("\\midrule")
-    i = start + 2
+        c = cell.strip()
+        align.append("c" if c.startswith(":") and c.endswith(":") else ("r" if c.endswith(":") else "l"))
+    align = align[:n] + ["l"]*(n-len(align))
+    out = ["\\begin{center}", "\\begin{tabular}{"+"".join(align)+"}", "\\toprule",
+           " & ".join(inline(c.strip()) for c in cols) + " \\\\", "\\midrule"]
+    i = start+2
     while i < len(lines) and lines[i].strip().startswith("|"):
         row = lines[i].strip().split("|")[1:-1]
-        row = row[:n] + [""] * (n - len(row))
-        out_lines.append(" & ".join(escape(c.strip()) for c in row) + " \\\\")
+        row = row[:n] + [""]*(n-len(row))
+        out.append(" & ".join(inline(c.strip()) for c in row) + " \\\\")
         i += 1
-    out_lines.append("\\bottomrule")
-    out_lines.append("\\end{tabular}")
-    out_lines.append("\\end{center}")
-    return out_lines, i
+    out += ["\\bottomrule", "\\end{tabular}", "\\end{center}"]
+    return out, i
 
 lines = text.splitlines()
 out = []
 i = 0
 while i < len(lines):
-    line = lines[i]
-    s = line.strip()
+    line = lines[i]; s = line.strip()
 
+    # 块级数学 $$...$$
+    if s.startswith("$$"):
+        if s.endswith("$$") and len(s) > 2:
+            math = s[2:-2].strip()
+            out.append(f"\\[{math}\\]")
+            i += 1; continue
+        math_lines = [s[2:]]
+        i += 1
+        while i < len(lines) and not lines[i].strip().endswith("$$"):
+            math_lines.append(lines[i]); i += 1
+        if i < len(lines):
+            math_lines.append(lines[i].rstrip()[:-2]); i += 1
+        out.append(f"\\[{' '.join(m for m in math_lines if m).strip()}\\]")
+        continue
+
+    # 代码块
     if s.startswith("```"):
         lang = s[3:].strip()
-        i += 1
-        code = []
+        i += 1; code = []
         while i < len(lines) and not lines[i].strip().startswith("```"):
-            code.append(lines[i])
-            i += 1
-        out.append(f"\\begin{{lstlisting}}[language={lang or 'TeX'},basicstyle=\\small\\ttfamily,breaklines=true]")
-        out.append(escape("\n".join(code)))
+            code.append(lines[i]); i += 1
+        lang_map = {"python":"Python","py":"Python","bash":"bash","sh":"bash",
+                    "javascript":"JavaScript","js":"JavaScript","text":"{}","dot":"{}"}
+        lstlang = lang_map.get(lang, lang or "{}")
+        out.append(f"\\begin{{lstlisting}}[language={lstlang},basicstyle=\\small\\ttfamily,breaklines=true,breakatwhitespace=false]")
+        out.append("\n".join(code))  # 代码内容不转义（listings 原样处理）
         out.append("\\end{lstlisting}")
-        i += 1
-        continue
+        i += 1; continue
 
     if s.startswith("#"):
         level = len(s) - len(s.lstrip("#"))
         if level <= 6 and s[level:].startswith(" "):
-            cmd = ["\\section", "\\subsection", "\\subsubsection", "\\paragraph", "\\subparagraph", "\\subparagraph"][min(level-1, 5)]
+            cmd = ["\\section","\\subsection","\\subsubsection","\\paragraph","\\subparagraph","\\subparagraph"][min(level-1,5)]
             out.append(f"{cmd}{{{inline(s[level+1:].strip())}}}")
-            i += 1
-            continue
+            i += 1; continue
 
     if s.startswith("|"):
-        table_lines, next_i = parse_table(lines, i)
-        if table_lines:
-            out.extend(table_lines)
-            i = next_i
-            continue
+        tbl, ni = parse_table(lines, i)
+        if tbl:
+            out.extend(tbl); i = ni; continue
 
-    if s in ("---", "***", "___"):
-        out.append("\\hrulefill")
-        i += 1
-        continue
-
+    if s in ("---","***","___"):
+        out.append("\\par\\noindent\\rule{\\textwidth}{0.4pt}"); i += 1; continue
     if not s:
-        out.append("")
-        i += 1
-        continue
-
-    # 图片独立成段，直接生成 figure 环境
+        out.append(""); i += 1; continue
     if s.startswith("!["):
         m = re.match(r"!\[([^\]]*)\]\(([^)]+)\)", s)
         if m:
-            out.append(figure_env(m.group(1), m.group(2)))
-            i += 1
-            continue
-
-    if s.startswith(("- ", "* ", "+ ")):
-        items = [s[2:]]
-        i += 1
-        while i < len(lines) and lines[i].strip().startswith(("- ", "* ", "+ ")):
-            items.append(lines[i].strip()[2:])
-            i += 1
+            out.append(figure_env(m.group(1), m.group(2))); i += 1; continue
+    if s.startswith(("- ","* ","+ ")):
+        items=[s[2:]]; i+=1
+        while i<len(lines) and lines[i].strip().startswith(("- ","* ","+ ")):
+            items.append(lines[i].strip()[2:]); i+=1
         out.append("\\begin{itemize}")
-        for item in items:
-            out.append(f"  \\item {inline(item)}")
-        out.append("\\end{itemize}")
-        continue
-
-    if re.match(r"^\d+\\.\\s", s):
-        items = [re.sub(r"^\d+\\.\\s", "", s)]
-        i += 1
-        while i < len(lines) and re.match(r"^\d+\\.\\s", lines[i].strip()):
-            items.append(re.sub(r"^\d+\\.\\s", "", lines[i].strip()))
-            i += 1
+        for it in items: out.append(f"  \\item {inline(it)}")
+        out.append("\\end{itemize}"); continue
+    if re.match(r"^\d+\.\s", s):
+        items=[re.sub(r"^\d+\.\s","",s)]; i+=1
+        while i<len(lines) and re.match(r"^\d+\.\s", lines[i].strip()):
+            items.append(re.sub(r"^\d+\.\s","",lines[i].strip())); i+=1
         out.append("\\begin{enumerate}")
-        for item in items:
-            out.append(f"  \\item {inline(item)}")
-        out.append("\\end{enumerate}")
-        continue
+        for it in items: out.append(f"  \\item {inline(it)}")
+        out.append("\\end{enumerate}"); continue
 
-    para = [line]
-    i += 1
-    while i < len(lines) and lines[i].strip():
-        para.append(lines[i])
-        i += 1
+    para=[line]; i+=1
+    while i<len(lines) and lines[i].strip() and not lines[i].strip().startswith(("#","```","|","- ","* ","$$","![")):
+        para.append(lines[i]); i+=1
     out.append(inline(" ".join(para)))
 
 out_path.write_text("\n".join(out), encoding="utf-8")
 ```
 
-### 步骤 4: 图片最终检查
+**与旧版的区别（修复点）**：
+- 不再把 `$` 转义为 `\$`；数学段被占位符保护后原样输出为 `\(...\)` / `\[...\]`。
+- 数学段内 `^`、`_` 不转义，公式正常渲染。
+- 图片用 `width=\linewidth,height=0.75\textheight,keepaspectratio`，小图不放大、大图不溢出。
 
-步骤 2.5 已经把 `manual.md` 中的图片路径标准化为 `images/fig_xxx.ext`，步骤 3 的转换器也已把图片语法转成 LaTeX `figure` 环境。本步骤做最终兜底：
+### 步骤 4: 填充模板
 
-1. 确保 `$WORK_DIR/images/` 目录存在。
-2. 扫描 `manual-body.tex`，若还有未标准化的本地图片路径，复制到 `images/` 并修正路径。
-3. 网络图片保持 `[网络图片]` 占位框。
-
-```python
-import os, re, shutil
-from pathlib import Path
-
-work_dir = Path(os.environ.get("WORK_DIR", "_repoguide"))
-img_dir = work_dir / "images"
-img_dir.mkdir(exist_ok=True)
-
-body_path = work_dir / "manual-body.tex"
-if body_path.exists():
-    body = body_path.read_text(encoding="utf-8", errors="ignore")
-
-    def collect_and_rename(m):
-        alt = m.group(1).strip() or "图"
-        src = m.group(2).strip()
-        if src.startswith("http://") or src.startswith("https://"):
-            return m.group(0)
-        original = Path(src)
-        resolved = original if original.is_absolute() else (work_dir / original)
-        if resolved.exists() and not src.startswith("images/"):
-            ext = resolved.suffix or ".png"
-            counter = getattr(collect_and_rename, "counter", 0) + 1
-            collect_and_rename.counter = counter
-            new_name = f"fig_{counter:03d}{ext}"
-            shutil.copy2(resolved, img_dir / new_name)
-            return f"\\includegraphics[width=0.85\\textwidth]{{images/{new_name}}}"
-        return m.group(0)
-
-    body = re.sub(r'\\includegraphics\[[^\]]*\]\{([^}]+)\}', collect_and_rename, body)
-    body_path.write_text(body, encoding="utf-8")
-```
-
-### 步骤 5: 填充模板
-
-从 `references/latex-template/main.tex` 复制到 `$WORK_DIR/<repo_name>-manual.tex`，并替换占位符。替换时必须对值进行 LaTeX 转义，避免仓库名含 `# % & _ ^` 等字符时编译失败。
-
-占位符：
-
-- `{TITLE}` → 手册标题
-- `{REPO_NAME}` → 仓库名
-- `{PRIMARY_LANGUAGE}` → 主语言
-- `{FILE_COUNT}` → 文件总数
-- `{DATE}` → 生成日期
-- `{CONTENT}` → `manual-body.tex` 的内容（已在步骤 3 转义）
+从 `references/latex-template/main.tex` 复制到 `$WORK_DIR/<repo_name>-manual.tex`，替换占位符（值须 LaTeX 转义，`{CONTENT}` 除外）。
 
 ```python
 import os
-import re
 from pathlib import Path
 
 work_dir = Path(os.environ.get("WORK_DIR", "_repoguide"))
@@ -499,50 +411,25 @@ date = os.environ.get("DATE", "")
 
 template_path = Path("references/latex-template/main.tex")
 tex_path = work_dir / f"{repo_name}-manual.tex"
-body_path = work_dir / "manual-body.tex"
-
+body = (work_dir / "manual-body.tex").read_text(encoding="utf-8", errors="ignore")
 template = template_path.read_text(encoding="utf-8", errors="ignore")
-body = body_path.read_text(encoding="utf-8", errors="ignore")
 
-LATEX_ESCAPES = {
-    "\\": "\\textbackslash{}",
-    "{": "\\{",
-    "}": "\\}",
-    "$": "\\$",
-    "&": "\\&",
-    "#": "\\#",
-    "_": "\\_",
-    "%": "\\%",
-    "~": "\\textasciitilde{}",
-    "^": "\\textasciicircum{}",
-}
+LATEX_ESC = {"\\":"\\textbackslash{}","{":"\\{","}":"\\}","$":"\\$","&":"\\&","#":"\\#","_":"\\_","%":"\\%","~":"\\textasciitilde{}","^":"\\textasciicircum{}"}
+def esc(s): return "".join(LATEX_ESC.get(c,c) for c in s)
 
-def latex_escape(s):
-    return "".join(LATEX_ESCAPES.get(c, c) for c in s)
-
-title = f"{repo_name} 仓库手册指南"
-replacements = {
-    "{TITLE}": latex_escape(title),
-    "{REPO_NAME}": latex_escape(repo_name),
-    "{PRIMARY_LANGUAGE}": latex_escape(primary_language),
-    "{FILE_COUNT}": latex_escape(file_count),
-    "{DATE}": latex_escape(date),
+for ph, val in sorted({
+    "{TITLE}": esc(f"{repo_name} 仓库手册指南"),
+    "{REPO_NAME}": esc(repo_name),
+    "{PRIMARY_LANGUAGE}": esc(primary_language),
+    "{FILE_COUNT}": esc(str(file_count)),
+    "{DATE}": esc(date),
     "{CONTENT}": body,
-}
-
-# 按占位符长度降序替换，避免短占位符干扰长的
-for placeholder, value in sorted(replacements.items(), key=lambda x: -len(x[0])):
-    template = template.replace(placeholder, value)
-
+}.items(), key=lambda x: -len(x[0])):
+    template = template.replace(ph, val)
 tex_path.write_text(template, encoding="utf-8")
 ```
 
-```bash
-# 如果不在 RepoGuide 仓库根目录，先定位模板再执行 Python
-# cp "references/latex-template/main.tex" "$WORK_DIR/${REPO_NAME}-manual.tex"
-```
-
-### 步骤 6: 编译 PDF
+### 步骤 5: 编译 PDF（两次以生成目录）
 
 ```bash
 cd "$WORK_DIR"
@@ -550,20 +437,11 @@ xelatex -interaction=nonstopmode "${REPO_NAME}-manual.tex"
 xelatex -interaction=nonstopmode "${REPO_NAME}-manual.tex"
 ```
 
-### 步骤 7: 复制到用户目录
+### 步骤 6: 复制到用户目录
 
 ```bash
-# PDF
-if [ -f "$WORK_DIR/${REPO_NAME}-manual.pdf" ]; then
-  cp "$WORK_DIR/${REPO_NAME}-manual.pdf" "$PWD/${REPO_NAME}-manual.pdf"
-fi
-
-# HTML（降级时生成）
-if [ -f "$WORK_DIR/${REPO_NAME}-manual.html" ]; then
-  cp "$WORK_DIR/${REPO_NAME}-manual.html" "$PWD/${REPO_NAME}-manual.html"
-fi
-
-# Markdown（始终保留）
+[ -f "$WORK_DIR/${REPO_NAME}-manual.pdf" ] && cp "$WORK_DIR/${REPO_NAME}-manual.pdf" "$PWD/"
+[ -f "$WORK_DIR/${REPO_NAME}-manual.html" ] && cp "$WORK_DIR/${REPO_NAME}-manual.html" "$PWD/"
 cp "$WORK_DIR/manual.md" "$PWD/${REPO_NAME}-manual.md"
 ```
 
@@ -571,16 +449,14 @@ cp "$WORK_DIR/manual.md" "$PWD/${REPO_NAME}-manual.md"
 
 | 问题 | 原因 | 解决 |
 |------|------|------|
-| xelatex 找不到 ctex 宏包 | 未安装中文 LaTeX 环境 | 安装 TeX Live / MiKTeX / TinyTeX 完整版 |
-| 中文显示为方框 / 乱码 | 系统缺少 CJK 字体 | Windows 用 SimSun/SimHei/Microsoft YaHei；macOS 用 PingFang SC；Linux 用 fonts-noto-cjk |
-| 图片不显示 | 图片路径错误或格式不支持 | 统一复制到 `images/`；优先 PNG/PDF；SVG 需预转 |
-| mermaid 图丢失 | mermaid-cli 未安装 | 保留 mermaid 文本代码块或转 PNG |
-| 代码块换行截断 | listings 未开启 breaklines | 模板已默认开启 `breaklines=true` |
-| pandoc 转换后中文异常 | pandoc 默认字体不兼容 | 仅把 pandoc 当辅助，最终用 xelatex 编译 |
-| PDF 目录不存在 | 只编译一次 | xelatex 编译两次以生成正确目录和交叉引用 |
+| 公式渲染失败 | 旧版把 `$`→`\$`、`^`/`_` 转义 | 数学段占位符保护，原样输出 `\(...\)`/`\[...\]` |
+| 图片太大撑破页面 | 固定 `width=0.85\textwidth` | 改 `width=\linewidth,height=0.75\textheight,keepaspectratio` |
+| 论文图碎片 | 用 `get_images` 抽裸 raster | 改用 `get_image_info` bbox + clip 渲染（见 image-handler） |
+| 中文乱码 | 缺 CJK 字体 | ctex + 系统字体 |
+| PDF 无目录 | 只编译一次 | xelatex 编译两次 |
 
 ## 输出
 
-- `<cwd>/<repo_name>-manual.pdf`（需要 xelatex）
-- `<cwd>/<repo_name>-manual.html`（xelatex 不可用时降级输出）
-- `<cwd>/<repo_name>-manual.md`（中间产物，默认保留）
+- `<cwd>/<repo_name>-manual.pdf`（需 xelatex）
+- `<cwd>/<repo_name>-manual.html`（xelatex 不可用时降级）
+- `<cwd>/<repo_name>-manual.md`

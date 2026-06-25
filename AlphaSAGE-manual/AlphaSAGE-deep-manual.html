@@ -1,0 +1,3661 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AlphaSAGE 仓库手册指南</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',function(){if(window.hljs){document.querySelectorAll('pre code').forEach(b=>hljs.highlightElement(b));}});</script>
+<style>
+:root {
+  --primary: #0b3d91;
+  --primary-light: #eef2f7;
+  --border: #d0d7de;
+  --bg: #ffffff;
+  --bg-alt: #f6f8fa;
+  --text: #24292f;
+  --text-muted: #57606a;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei",
+               "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 3rem;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+  font-size: 0.95em;
+}
+h1, h2, h3, h4, h5, h6 {
+  color: var(--primary);
+  margin-top: 1.2em;
+  margin-bottom: 0.4em;
+  line-height: 1.25;
+}
+h1 { font-size: 1.75em; border-bottom: 2px solid var(--primary); padding-bottom: .25em; }
+h2 { font-size: 1.4em; border-bottom: 1px solid var(--border); padding-bottom: .25em; }
+h3 { font-size: 1.15em; margin-top: 1em; }
+h4 { font-size: 1.05em; color: #1f4e8c; }
+h5 { font-size: 0.95em; color: #2c5fa0; margin-top: 0.8em; font-weight: 600; }
+p { margin: 0.5em 0; }
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+strong { color: #1a1a1a; }
+code {
+  font-family: "Consolas", "Monaco", "Courier New", monospace;
+  font-size: 0.88em;
+  background: var(--bg-alt);
+  padding: 0.08em 0.3em;
+  border-radius: 3px;
+  color: #d6336c;
+}
+pre {
+  background: var(--bg-alt);
+  padding: 0.7rem 0.9rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  margin: 0.6em 0;
+}
+pre code {
+  background: transparent;
+  padding: 0;
+  color: var(--text);
+  font-size: 0.85em;
+  line-height: 1.45;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.8em 0;
+  font-size: 0.9em;
+}
+th, td {
+  border: 1px solid var(--border);
+  padding: 0.35em 0.6em;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  background: var(--primary-light);
+  color: var(--primary);
+  font-weight: 600;
+}
+tbody tr:nth-child(even) { background: #fafbfc; }
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0.8em auto;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+blockquote {
+  border-left: 3px solid var(--primary);
+  margin: 0.6em 0;
+  padding: 0.4em 1em;
+  background: var(--bg-alt);
+  color: var(--text-muted);
+  border-radius: 0 4px 4px 0;
+  font-size: 0.92em;
+}
+blockquote strong { color: var(--primary); }
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.2em 0;
+}
+.math-display {
+  margin: 0.8em 0;
+  padding: 0.7em 1.2em;
+  background: var(--bg-alt);
+  border-radius: 6px;
+  text-align: center;
+  overflow-x: auto;
+}
+.math-inline { display: inline; }
+ul, ol { padding-left: 1.4em; margin: 0.4em 0; }
+li { margin: 0.15em 0; }
+@media print {
+  body { max-width: none; padding: 1cm; }
+  pre, table { box-shadow: none; }
+  h1, h2 { page-break-after: avoid; }
+}
+</style>
+</head>
+<body>
+<h1>AlphaSAGE 仓库手册指南</h1>
+<blockquote>由 RepoGuide 自动生成于 2026-06-25 20:27<br>仓库路径：<code>E:\KimiClaw\RepoGuide\_repoguide\repo</code><br>分析档位：deep　生成耗时：约 5 分钟</blockquote>
+<hr>
+<h2>一、一页速览</h2>
+<blockquote><strong>一句话总括</strong>：AlphaSAGE 是基于 GFlowNet 与 RGCN 的量化 alpha 自动挖掘框架，以结构感知编码器（RGCN 作用于 AST）和稠密多维奖励（IC+SA+NOV 时间退火）替代传统 RL，挖掘多样、新颖且高预测力的 alpha 组合，并提供动态线性组合（Mega-Alpha）落地。</blockquote>
+<table>
+<thead><tr>
+<th>项</th>
+<th>值</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>主语言</td>
+<td>python</td>
+</tr>
+<tr>
+<td>文件总数</td>
+<td>102</td>
+</tr>
+<tr>
+<td>论文</td>
+<td>已配套</td>
+</tr>
+<tr>
+<td>核心入口</td>
+<td><code>train_AFF.py</code>, <code>train_gfn.py</code>, <code>train_GP.py</code>, <code>train_ppo.py</code>, <code>train_qcm.py</code>, <code>run_adaptive_combination.py</code></td>
+</tr>
+</tbody></table>
+<h3>三条命令上手</h3>
+<pre><code class="language-bash"># 安装（PDM 管理依赖）
+git clone https://github.com/BerkinChen/AlphaSAGE.git &amp;&amp; cd AlphaSAGE &amp;&amp; pdm install
+
+# 训练 GFlowNet 挖掘 alpha 池
+python train_gfn.py --seed 0 --instrument csi300 --pool_capacity 50 --n_episodes 10000 \
+    --encoder_type gnn --ssl_weight 1.0 --nov_weight 0.3
+
+# 评估与动态组合（生成 Mega-Alpha）
+python run_adaptive_combination.py --expressions_file results_dir --instruments csi300 \
+    --threshold_ric 0.015 --threshold_ricir 0.15 --n_factors 20 --train_end_year 2020</code></pre>
+<h3>五个最关键的文件</h3>
+<table>
+<thead><tr>
+<th>#</th>
+<th>文件</th>
+<th>用途</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>train_gfn.py</code></td>
+<td>GFlowNet 训练主入口，含主循环、退火调度、池更新</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>run_adaptive_combination.py</code></td>
+<td>alpha 池动态线性组合，生成 Mega-Alpha 并回测</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>src/alpha_gfn/gflownet.py</code></td>
+<td>GFlowNet 策略与前向采样、TB 损失实现</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>src/alpha_gfn/modules.py</code></td>
+<td>RGCN 结构感知编码器与策略网络</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>src/alpha_gfn/alpha_pool.py</code></td>
+<td>alpha 池管理、IC/SA/NOV 奖励计算</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>二、技术栈与依赖</h2>
+<h3>语言与版本</h3>
+<ul>
+<li>python：3.11+（pyproject.toml 声明）</li>
+</ul>
+<h3>包管理</h3>
+<ul>
+<li><code>pyproject.toml</code></li>
+</ul>
+<h3>核心依赖</h3>
+<h4>深度学习与图神经网络</h4>
+<table>
+<thead><tr>
+<th>包</th>
+<th>用途</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>torch</td>
+<td>GFlowNet/RGCN 神经网络主体</td>
+</tr>
+<tr>
+<td>torch-geometric</td>
+<td>RGCNConv 消息传递与图池化</td>
+</tr>
+<tr>
+<td>numpy</td>
+<td>数值计算与 IC 相关性</td>
+</tr>
+</tbody></table>
+<h4>量化金融数据</h4>
+<table>
+<thead><tr>
+<th>包</th>
+<th>用途</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>qlib</td>
+<td>微软开源量化平台，提供 CSI300/500/1000 与 S&amp;P500 数据</td>
+</tr>
+<tr>
+<td>pandas</td>
+<td>时序面板数据处理</td>
+</tr>
+</tbody></table>
+<h4>训练与评估</h4>
+<table>
+<thead><tr>
+<th>包</th>
+<th>用途</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>einops</td>
+<td>张量重排</td>
+</tr>
+<tr>
+<td>tqdm</td>
+<td>进度条</td>
+</tr>
+<tr>
+<td>scikit-learn</td>
+<td>线性回归（动态组合）</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>三、架构与数据流</h2>
+<h3>3.1 架构总览图</h3>
+<p><img src="images/architecture_overview.png" alt="AlphaSAGE 架构总览" loading="lazy"></p>
+<blockquote>图 1：分层架构与数据流转总览（graphviz 自动生成，按层着色）。左→右依次为：数据与配置层 → 核心模型层（GFlowNet+RGCN+奖励）→ 训练与组合层 → 评估输出层。</blockquote>
+<h3>3.2 注释化目录树</h3>
+<blockquote>每一行末尾 <code>#</code> 后为该文件/目录的中文用途说明。deep 模式。</blockquote>
+<pre><code class="language-text">AlphaSAGE/ # 基于GFlowNet的量化alpha因子挖掘框架根目录
+├── README.md # 项目说明文档与快速启动指南
+├── LICENSE # MIT开源许可证
+├── pyproject.toml # PDM项目配置与依赖声明
+├── pdm.lock # PDM依赖版本锁定文件
+├── .gitignore # Git忽略规则配置
+├── train_gfn.py # 主训练入口:GFlowNet+RGCN生成alpha池
+├── train_AFF.py # AlphaForge风格GAN基线训练脚本
+├── train_GP.py # 遗传编程基线训练脚本
+├── train_ppo.py # AlphaGen PPO强化学习基线训练脚本
+├── train_qcm.py # AlphaQCM分布式RL基线训练脚本
+├── run_adaptive_combination.py # 自适应组合评估第二阶段脚本
+├── combine_AFF.py # AlphaForge结果组合与评估脚本
+├── exp_AFF_calc_result.ipynb # AlphaForge实验结果分析笔记本
+├── exp_GP_calc_result.ipynb # 遗传编程实验结果分析笔记本
+├── exp_ML_train_and_result.ipynb # 机器学习基线训练结果笔记本
+├── exp_RL_calc_result.ipynb # 强化学习实验结果分析笔记本
+├── config/ # 配置文件目录
+│   └── qcm_config/ # AlphaQCM模型超参配置
+│       ├── fqf.yaml # FQF模型超参配置
+│       ├── iqn.yaml # IQN模型超参配置
+│       └── qrdqn.yaml # QRDQN模型超参配置
+├── img/ # 论文图片资源目录
+│   ├── overview.png # 框架总览图
+│   └── backtest.png # 回测结果图
+└── src/ # 源代码主目录
+    ├── alpha_gfn/ # AlphaSAGE核心:GFlowNet生成模块
+    │   ├── __init__.py # 模块初始化导出config/env/alpha_pool
+    │   ├── config.py # GFN超参:算子/特征/常数/时间窗口
+    │   ├── gflownet.py # 熵正则化轨迹平衡GFlowNet损失
+    │   ├── modules.py # 序列编码器(LSTM/Transformer/RGCN)
+    │   ├── alpha_pool.py # alpha池:SSL奖励/新颖度/k近邻
+    │   ├── preprocessors.py # 整数状态预处理器
+    │   └── env/ # GFlowNet离散环境
+    │       ├── __init__.py # 环境模块初始化
+    │       └── core.py # GFNEnvCore:alpha表达式生成环境
+    ├── alphagen/ # 基础alpha生成框架(源自AlphaGen)
+    │   ├── config.py # 基础配置:算子/特征/动作空间
+    │   ├── data/ # 表达式与数据计算
+    │   │   ├── calculator.py # alpha计算器
+    │   │   ├── expression.py # 表达式定义与运算符
+    │   │   ├── tokens.py # token定义(BEG/SEP/算子等)
+    │   │   └── tree.py # 表达式树构建与校验
+    │   ├── models/ # alpha池模型
+    │   │   ├── alpha_pool.py # AlphaPool基础池实现
+    │   │   └── model.py # 模型定义
+    │   ├── rl/ # 强化学习模块
+    │   │   ├── env/ # RL环境
+    │   │   │   ├── core.py # AlphaEnvCore基础环境
+    │   │   │   └── wrapper.py # AlphaEnv封装与action2token
+    │   │   └── policy.py # LSTMSharedNet PPO策略网络
+    │   ├── trade/ # 交易策略
+    │   │   ├── base.py # 策略基类
+    │   │   └── strategy.py # 交易策略实现
+    │   └── utils/ # 工具函数
+    │       ├── __init__.py # 工具模块初始化
+    │       ├── correlation.py # 批量IC/RankIC/收益计算
+    │       ├── pytorch_utils.py # 掩码均值方差等张量工具
+    │       └── random.py # 随机种子重置工具
+    ├── alphagen_qlib/ # Qlib数据集成模块
+    │   ├── stock_data.py # StockData与FeatureType定义
+    │   ├── calculator.py # QLib股票数据计算器
+    │   ├── strategy.py # Qlib回测策略
+    │   └── utils.py # Qlib工具函数
+    ├── alphagen_generic/ # 通用特征与算子
+    │   ├── features.py # 标准特征别名与target定义
+    │   └── operators.py # 通用算子函数集
+    ├── fqf_iqn_qrdqn/ # 分布式RL(AlphaQCM基线)
+    │   ├── __init__.py # 模块初始化
+    │   ├── env.py # QCM训练环境
+    │   ├── network.py # QCM网络结构
+    │   ├── utils.py # QCM工具函数
+    │   ├── agent/ # RL智能体
+    │   │   ├── __init__.py # 智能体模块导出
+    │   │   ├── base_agent.py # 智能体基类
+    │   │   ├── fqf_agent.py # FQF智能体
+    │   │   ├── iqn_agent.py # IQN智能体
+    │   │   ├── qrdqn_agent.py # QRDQN智能体
+    │   │   ├── fqcm_agent.py # FQCM智能体
+    │   │   ├── iqcm_agent.py # IQCM智能体
+    │   │   └── qrqcm_agent.py # QRQCM智能体
+    │   ├── memory/ # 经验回放
+    │   │   ├── __init__.py # 回放模块导出
+    │   │   ├── base.py # 基础回放缓冲区
+    │   │   ├── per.py # 优先经验回放
+    │   │   └── segment_tree.py # 线段树实现
+    │   └── model/ # 分布式RL模型
+    │       ├── __init__.py # 模型导出
+    │       ├── base_model.py # 模型基类
+    │       ├── fqf.py # FQF分位数网络
+    │       ├── iqn.py # IQN隐式分位数网络
+    │       ├── qrdqn.py # QRDQN分位数回归网络
+    │       ├── alpha_fqf.py # alpha专用FQF
+    │       ├── alpha_iqn.py # alpha专用IQN
+    │       ├── alpha_qrdqn.py # alpha专用QRDQN
+    │       └── mean.py # 均值聚合网络
+    ├── gan/ # GAN生成网络(AlphaForge基线)
+    │   ├── __init__.py # GAN模块初始化
+    │   ├── dataset/ # 数据集
+    │   │   ├── __init__.py # 数据集模块导出
+    │   │   └── collector.py # 构建器token采集器
+    │   ├── network/ # 网络组件
+    │   │   ├── __init__.py # 网络模块导出
+    │   │   ├── generater.py # 生成器网络训练
+    │   │   ├── predictor.py # 预测器与回归模型
+    │   │   ├── masker.py # 掩码网络NetM
+    │   │   └── loss.py # GAN损失函数
+    │   └── utils/ # GAN工具
+    │       ├── __init__.py # 工具模块导出
+    │       ├── builder.py # 表达式构建器与张量转换
+    │       ├── data.py # 按年切分数据
+    │       ├── pool.py # alpha池工具
+    │       └── qlib.py # Qlib集成工具
+    ├── gplearn/ # 遗传编程库(gplearn分支)
+    │   ├── __init__.py # 模块初始化与版本声明
+    │   ├── _program.py # GP程序树个体表示
+    │   ├── fitness.py # 适应度函数构造
+    │   ├── functions.py # 函数集构造
+    │   ├── genetic.py # SymbolicRegressor符号回归
+    │   ├── utils.py # GP工具函数
+    │   └── tests/ # 单元测试
+    │       ├── __init__.py # 测试模块初始化
+    │       ├── test_estimator_checks.py # 估计器检查测试
+    │       ├── test_examples.py # 示例测试
+    │       ├── test_fitness.py # 适应度测试
+    │       ├── test_functions.py # 函数集测试
+    │       ├── test_genetic.py # 遗传算法测试
+    │       └── test_utils.py # 工具函数测试
+    └── data_collection/ # 数据采集与转换
+        ├── fetch_baostock_data.py # baostock行情数据下载
+        └── qlib_dump_bin.py # 转换为Qlib二进制格式</code></pre>
+<h3>3.3 数据流叙述</h3>
+<p>首先，train_gfn.py与run_adaptive_combination.py通过StockData从Qlib读取csi300或sp500行情，构造开高低收量及VWAP特征张量，并以Ref(close,-20)/close-1作为20日收益target。训练阶段，GFlowNet前向策略pf基于RGCN编码器输出的图嵌入逐token采样动作，环境GFNEnvCore按逆波兰(RPN)序列追加token并依据ExpressionBuilder校验合法性。当生成SEP终止token后，AlphaPoolGFN计算该表达式的IC收益奖励、与池内因子的互相关新颖度奖励，以及基于嵌入k近邻的SSL结构一致性奖励，三者加权形成稠密奖励信号。该奖励通过轨迹平衡(TB)损失配合熵正则项，驱动前向/后向策略与RGCN编码器的联合更新，WeightScheduler在训练过程中按线性/指数/多项式退火衰减SSL与新颖度权重。训练产出的alpha池以JSON checkpoint保存，进入第二阶段run_adaptive_combination.py按滚动窗口筛选RIC与RICIR达标的因子，并用最小二乘回归融合为单一预测。最终在验证集与测试集上计算IC、ICIR、Sharpe与最大回撤等指标，完成从因子挖掘到组合评估的闭环。</p>
+<h4>数据流转表</h4>
+<table>
+<thead><tr>
+<th>步骤</th>
+<th>输入</th>
+<th>处理模块</th>
+<th>输出</th>
+<th>关键文件</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Qlib行情数据(开高低收量VWAP)</td>
+<td>数据加载</td>
+<td>特征张量与20日收益target</td>
+<td><code>src/alphagen_qlib/stock_data.py</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>表达式token序列(RPN)</td>
+<td>RGCN结构感知编码器</td>
+<td>图嵌入向量</td>
+<td><code>src/alpha_gfn/modules.py</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>图嵌入</td>
+<td>GFlowNet前向/后向策略</td>
+<td>alpha表达式token序列</td>
+<td><code>src/alpha_gfn/gflownet.py</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>完整alpha表达式+嵌入</td>
+<td>GFN环境与多面奖励</td>
+<td>IC+SSL+新颖度奖励</td>
+<td><code>src/alpha_gfn/env/core.py</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>表达式与奖励</td>
+<td>AlphaPoolGFN池</td>
+<td>去相关候选alpha集合</td>
+<td><code>src/alpha_gfn/alpha_pool.py</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td>alpha池JSON快照</td>
+<td>自适应组合与回归融合</td>
+<td>最终组合预测与评估指标</td>
+<td><code>run_adaptive_combination.py</code></td>
+</tr>
+</tbody></table>
+<h4>关键状态点</h4>
+<ul>
+<li><strong>配置与超参加载</strong>：train_gfn.py通过argparse解析命令行参数，并from src.alpha_gfn.config导入算子/特征/常数/时间窗口等动作空间定义（<code>train_gfn.py:272</code>）</li>
+<li><strong>训练主循环</strong>：按episode采样轨迹、计算TB损失、累积梯度并按update_freq更新优化器，同时按log_freq记录与保存checkpoint（<code>train_gfn.py:230</code>）</li>
+<li><strong>权重退火调度</strong>：WeightScheduler利用PyTorch的LinearLR/ExponentialLR/PolynomialLR对SSL与新颖度权重按final_weight_ratio退火（<code>train_gfn.py:216</code>）</li>
+<li><strong>GFlowNet奖励计算</strong>：GFNEnvCore.reward()对终止状态重建表达式树，调用pool.try_new_expr_with_ssl得到IC、SSL、新颖度三项奖励并加权（<code>src/alpha_gfn/env/core.py:140</code>）</li>
+<li><strong>动作掩码与mask dropout</strong>：update_masks依据ExpressionBuilder校验合法动作，并按表达式长度提升mask dropout概率以鼓励简洁公式（<code>src/alpha_gfn/env/core.py:86</code>）</li>
+<li><strong>轨迹平衡损失</strong>：EntropyTBGFlowNet.loss()计算(scores+logZ)^2均值减去熵正则项，NaN时置inf以跳过该批次（<code>src/alpha_gfn/gflownet.py:81</code>）</li>
+<li><strong>alpha池更新与淘汰</strong>：AlphaPoolGFN.try_new_expr依据IC与互相关阈值决定加入/替换最差因子/拒绝，并在满池时_pop淘汰最低IC项（<code>src/alpha_gfn/alpha_pool.py:28</code>）</li>
+<li><strong>SSL结构一致性奖励</strong>：compute_ssl_reward基于嵌入k近邻与softmax相似度权重，用MSE一致性损失经exp变换得到SSL奖励（<code>src/alpha_gfn/alpha_pool.py:220</code>）</li>
+<li><strong>自适应组合滚动循环</strong>：run函数按滚动/扩展窗口预计算每日IC/RIC，筛选达标因子后做最小二乘回归预测，切换验证/测试集评估（<code>run_adaptive_combination.py:382</code>）</li>
+<li><strong>alpha池加载入口</strong>：load_alpha_pool_by_path支持JSON与CSV两种格式读入表达式与权重，作为第二阶段组合的输入（<code>run_adaptive_combination.py:218</code>）</li>
+</ul>
+<h3>3.4 关键设计决策</h3>
+<h4>用GFlowNet轨迹平衡(TB)替代PPO策略梯度作为生成范式</h4>
+<ul>
+<li><strong>证据</strong>：<code>src/alpha_gfn/gflownet.py实现EntropyTBGFlowNet继承自TBGFlowNet；train_gfn.py使用gfn库的Sampler与DiscretePolicyEstimator构建pf/pb双策略头</code></li>
+<li><strong>理由</strong>：GFlowNet按与奖励成比例的概率采样多样化解，天然支持多模态分布，能避免标准RL策略梯度驱向单一最优mode的mode collapse问题，更契合挖掘非相关alpha组合的目标</li>
+</ul>
+<h4>采用RGCN关系图卷积作为结构感知编码器</h4>
+<ul>
+<li><strong>证据</strong>：<code>src/alpha_gfn/modules.py的GNNEncoder使用RGCNConv，_build_graph_from_rpn按算子类型定义6种关系边(单目/交换/左/右/特征/时序)，并支持lstm/transformer/gnn三种encoder_type对比</code></li>
+<li><strong>理由</strong>：alpha表达式的数学结构(算子与操作数的语义关系)决定其行为，逆波兰序列丢失了树结构信息；关系图编码能保留操作数位置与算子类别语义，比纯序列编码更具表达力</li>
+</ul>
+<h4>设计稠密多面奖励(IC收益+SSL结构一致性+互相关新颖度)</h4>
+<ul>
+<li><strong>证据</strong>：<code>env/core.py的reward()返回ic_reward+ssl_weight*ssl_reward+nov_weight*nov_reward；alpha_pool.py分别实现try_new_expr的互相关新颖度与compute_ssl_reward的k近邻一致性</code></li>
+<li><strong>理由</strong>：仅最终IC的稀疏奖励导致探索低效且训练不稳定；SSL奖励利用嵌入空间的结构近邻提供中间监督，新颖度奖励通过互相关抑制重复因子，三者结合提供密集且多维的反馈信号</li>
+</ul>
+<h4>引入表达式长度相关的mask dropout机制</h4>
+<ul>
+<li><strong>证据</strong>：<code>env/core.py update_masks中length_based_dropout_prob=mask_dropout_prob*(expr_length/MAX_EXPR_LENGTH)，对已达合法长度的表达式按概率屏蔽所有非终止动作</code></li>
+<li><strong>理由</strong>：随表达式变长提升强制终止概率，鼓励生成更简洁的公式，避免过拟合冗长表达式，提升alpha的泛化性与可解释性</li>
+</ul>
+<h4>对SSL与新颖度辅助权重实施退火调度</h4>
+<ul>
+<li><strong>证据</strong>：<code>train_gfn.py的WeightScheduler借助PyTorch的LinearLR/ExponentialLR/PolynomialLR将辅助权重从初值衰减至final_weight_ratio倍，每episode调用step并更新env权重</code></li>
+<li><strong>理由</strong>：训练初期依赖SSL与新颖度辅助奖励促进结构感知与多样性探索，后期逐步衰减让模型聚焦于IC主奖励以提升预测力，实现探索到利用的平滑过渡</li>
+</ul>
+<hr>
+<h2>四、核心代码详解（卡片式）</h2>
+<blockquote>每个核心文件一张卡片：标题带一句话职责 → 类清单（行内）→ 函数签名+职责+参数+关键逻辑。<code>key_logic</code> 超 8 行自动截断。</blockquote>
+<h3><code>train_gfn.py</code> — AlphaSAGE GFlowNet 主训练入口，使用结构感知 RGCN 编码器 + 熵正则 TB 损失训练因子表达式生成器，并维护带 SSL 自监督奖励的因子池</h3>
+<blockquote>依赖：<code>torch</code>, <code>gfn</code>, <code>tensorboard</code>, <code>src.alpha_gfn</code>, <code>src.alphagen_qlib</code>, <code>src.alphagen_generic</code></blockquote>
+<p><strong>类</strong>：<code>GFNLogger</code> (L18) 核心类；<code>WeightScheduler</code> (L33) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>main()</code></h5>
+<ul>
+<li>职责：命令行入口，解析参数后调用 train(args)</li>
+<li>返回：无返回值，触发训练流程</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">if __name__ == '__main__':
+    args = parse_args()
+    train(args)</code></pre>
+<h5><code>log_rewards(self, logs)</code></h5>
+<ul>
+<li>职责：记录每轮 GFlowNet 采样的平均 reward 与因子池中最佳 IC</li>
+<li>参数：<code>logs</code> 包含训练统计的日志字典</li>
+<li>返回：无返回值，写入 TensorBoard</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">def log_rewards(self, logs):
+    super().log_rewards(logs)
+    self.logger.info('reward: ' + str(logs['reward']))
+    self.writer.add_scalar('train/reward', logs['reward'], self._step)</code></pre>
+<h5><code>__init__(self, weight_decay_type, initial_weight, final_weight_ratio, total_steps)</code></h5>
+<ul>
+<li>职责：根据衰减类型与初始/最终权重比例初始化权重调度器</li>
+<li>参数：<code>weight_decay_type</code> 衰减类型：linear/exponential/polynomial；<code>initial_weight</code> 初始权重值；<code>final_weight_ratio</code> 最终权重相对初始权重的比例；<code>total_steps</code> 总训练步数</li>
+<li>返回：无返回值，初始化调度器状态</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.weight_decay_type = weight_decay_type
+self.initial_weight = initial_weight
+self.final_weight = final_weight_ratio * initial_weight
+self.total_steps = total_steps</code></pre>
+<h5><code>get_weight(self, step)</code></h5>
+<ul>
+<li>职责：根据当前训练步数计算衰减后的奖励权重</li>
+<li>参数：<code>step</code> 当前训练步数</li>
+<li>返回：当前步的权重值</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">if self.weight_decay_type == 'linear':
+    ratio = 1.0 - step / self.total_steps
+elif self.weight_decay_type == 'exponential':
+    ratio = math.exp(-step / self.total_steps)
+return self.final_weight + (self.initial_weight - self.final_weight) * ratio</code></pre>
+<h5><code>train(args)</code></h5>
+<ul>
+<li>职责：GFlowNet 训练主循环：构建 StockData、AlphaPoolGFN、SequenceEncoder、EntropyTBGFlowNet，按 episode 采样并优化 TB 损失，定期保存因子池</li>
+<li>参数：<code>args</code> 命令行参数对象，含 instrument、pool_capacity、encoder_type 等</li>
+<li>返回：无返回值，训练完成后保存 pool.json 并退出</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">data = StockData(args.instrument, ...)
+calculator = QLibStockDataCalculator(data, target)
+pool = AlphaPoolGFN(args.pool_capacity, calculator, target)
+state = pool.state
+encoder = SequenceEncoder(...)
+gflownet = EntropyTBGFlowNet(...)
+trainer = FlatTrajectoryTB(...)
+trainer.train()</code></pre>
+<hr>
+<h3><code>train_ppo.py</code> — AlphaGen PPO 基线训练入口，使用 MaskablePPO + LSTM/Transformer 策略网络在 AlphaEnv 中生成因子并维护因子池</h3>
+<blockquote>依赖：<code>stable_baselines3</code>, <code>sb3_contrib</code>, <code>src.alphagen.models</code>, <code>src.alphagen.rl.env</code>, <code>src.alphagen_qlib</code></blockquote>
+<p><strong>类</strong>：<code>CustomCallback</code> (L14) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>main()</code></h5>
+<ul>
+<li>职责：命令行入口，解析参数后调用 run(args)</li>
+<li>返回：无返回值，触发训练流程</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">if __name__ == '__main__':
+    args = parse_args()
+    run(args)</code></pre>
+<h5><code>_on_step(self)</code></h5>
+<ul>
+<li>职责：每个训练步回调，按 log_freq 周期保存 checkpoint 与 pool.json</li>
+<li>返回：True 表示继续训练</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">if self.n_calls % self.freq == 0:
+    self.pool.save(os.path.join(save_dir, 'pool.json'))
+    self.model.save(os.path.join(save_dir, 'model.zip'))
+return True</code></pre>
+<h5><code>run(args)</code></h5>
+<ul>
+<li>职责：构建 StockData、AlphaPool、AlphaEnv、MaskablePPO 与 LSTMSharedNet 策略网络并启动训练</li>
+<li>参数：<code>args</code> 命令行参数对象，含 instruments、pool、seed 等</li>
+<li>返回：无返回值，训练完成后保存因子池</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">data = StockData(args.instruments, ...)
+calculator = QLibStockDataCalculator(data, target)
+pool = AlphaPool(args.pool, calculator)
+env = AlphaEnv(pool)
+model = MaskablePPO(LSTMSharedNet, env, ...)
+model.learn(total_timesteps=args.n_steps, callback=CustomCallback(pool, args.save_dir))</code></pre>
+<hr>
+<h3><code>train_qcm.py</code> — AlphaQCM 基线训练入口，按 yaml 配置创建 QRDQN/IQN/FQF + QCM 高阶矩（std/skewness/kurtosis）分位数强化学习 agent</h3>
+<blockquote>依赖：<code>yaml</code>, <code>src.fqf_iqn_qrdqn.agent</code>, <code>src.alphagen.models</code>, <code>src.alphagen.rl.env</code>, <code>src.alphagen_qlib</code></blockquote>
+<p><strong>函数</strong>：</p>
+<h5><code>main()</code></h5>
+<ul>
+<li>职责：命令行入口，解析参数后调用 run(args)</li>
+<li>返回：无返回值，触发训练流程</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">if __name__ == '__main__':
+    args = parse_args()
+    run(args)</code></pre>
+<h5><code>load_yaml(path)</code></h5>
+<ul>
+<li>职责：读取 qcm_config 下的 yaml 配置文件并返回 dict</li>
+<li>参数：<code>path</code> yaml 配置文件路径</li>
+<li>返回：配置字典</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">with open(path, 'r') as f:
+    cfg = yaml.safe_load(f)
+return cfg</code></pre>
+<h5><code>run(args)</code></h5>
+<ul>
+<li>职责：根据 args.algo 选择 QRQCMAgent/IQCMAgent/FQCMAgent，构建 AlphaEnv 与因子池后启动分位数 RL 训练</li>
+<li>参数：<code>args</code> 命令行参数对象，含 instruments、pool、algo、seed 等</li>
+<li>返回：无返回值，训练完成后保存因子表达式与 checkpoint</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">cfg = load_yaml(f'config/qcm_config/{args.algo}.yaml')
+agent_cls = {'qrdqn': QRQCMAgent, 'iqn': IQCMAgent, 'fqf': FQCMAgent}[args.algo]
+agent = agent_cls(env, data_valid, data_test, target, log_dir, **cfg)
+agent.run()</code></pre>
+<hr>
+<h3><code>train_AFF.py</code> — GAN 因子挖掘训练入口，训练 DCGAN/LSTM 生成器 + Masker 掩码器 + Predictor 评分器，循环生成并评估因子 zoo</h3>
+<blockquote>依赖：<code>torch</code>, <code>src.gan.network</code>, <code>src.gan.utils</code>, <code>src.gan.dataset</code>, <code>src.alphagen_qlib</code></blockquote>
+<p><strong>函数</strong>：</p>
+<h5><code>main()</code></h5>
+<ul>
+<li>职责：命令行入口，解析参数后调用 run(args)</li>
+<li>返回：无返回值，触发训练流程</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">if __name__ == '__main__':
+    args = parse_args()
+    run(args)</code></pre>
+<h5><code>pre_process_y(y)</code></h5>
+<ul>
+<li>职责：对目标收益率进行预处理（去除 NaN、归一化）</li>
+<li>参数：<code>y</code> 原始目标收益率张量</li>
+<li>返回：处理后的目标张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">y = y.flatten()
+mask = torch.isfinite(y)
+return y[mask], mask</code></pre>
+<h5><code>numpy2onehot(arr, n_classes)</code></h5>
+<ul>
+<li>职责：将 numpy 整数数组转为 one-hot 张量</li>
+<li>参数：<code>arr</code> 整数数组；<code>n_classes</code> 类别数</li>
+<li>返回：one-hot 张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">onehot = np.zeros((len(arr), n_classes))
+for i, a in enumerate(arr):
+    onehot[i, a] = 1
+return torch.from_numpy(onehot)</code></pre>
+<h5><code>blds_list_to_tensor(blds_list)</code></h5>
+<ul>
+<li>职责：将 Builders 列表转换为 one-hot 张量批次</li>
+<li>参数：<code>blds_list</code> Builders 对象列表</li>
+<li>返回：one-hot 张量批次</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">tensors = [numpy2onehot(b.to_numpy(), n_chars) for b in blds_list]
+return torch.stack(tensors)</code></pre>
+<h5><code>get_metric(data, target, threshold_ic, threshold_icir, mode)</code></h5>
+<ul>
+<li>职责：返回因子评估函数，计算 IC/ICIR 并按阈值过滤相关性</li>
+<li>参数：<code>data</code> StockData 对象；<code>target</code> 目标表达式；<code>threshold_ic</code> IC 阈值；<code>threshold_icir</code> ICIR 阈值；<code>mode</code> 评估模式</li>
+<li>返回：评估函数</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">def metric(expr):
+    ic, icir = calc_single_IC_ret(expr, data, target)
+    if abs(ic) &lt; threshold_ic or abs(icir) &lt; threshold_icir:
+        return 0
+    return ic
+return metric</code></pre>
+<h5><code>train_net_p_with_weight(cfg, net, x, y, weights, lr=0.001)</code></h5>
+<ul>
+<li>职责：带样本权重的 Predictor 网络训练，使用 weighted MSE loss 与早停</li>
+<li>参数：<code>cfg</code> 配置对象；<code>net</code> NetP 预测网络；<code>x</code> 输入特征；<code>y</code> 目标值；<code>weights</code> 样本权重；<code>lr</code> 学习率</li>
+<li>返回：无返回值，原地训练网络</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">loss_fn = lambda i,t,w: ((i-t)**2 * w).mean()
+optimizer = torch.optim.Adam(net.parameters(), lr=lr)
+train_regression_model_with_weight(...)</code></pre>
+<h5><code>run(args)</code></h5>
+<ul>
+<li>职责：GAN 主循环：交替训练 netG 生成器、netM 掩码器、netP 预测器，多轮采集因子并写入 zoo</li>
+<li>参数：<code>args</code> 命令行参数对象，含 instruments、num_rounds、n_samples 等</li>
+<li>返回：无返回值，训练完成后保存因子 zoo 与 checkpoint</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">for round_idx in range(args.num_rounds):
+    blds = train_network_generator(netG, netM, netP, cfg, data, target, round_idx, ...)
+    blds.evaluate(data, target, metric)
+    zooblds = zooblds + blds
+    train_net_p_with_weight(cfg, netP, ...)</code></pre>
+<hr>
+<h3><code>train_GP.py</code> — GP 符号回归训练入口，使用 gplearn SymbolicRegressor + 自定义 IC 适应度函数，遗传搜索因子表达式并维护因子池</h3>
+<blockquote>依赖：<code>src.gplearn</code>, <code>src.alphagen.models</code>, <code>src.alphagen_generic</code>, <code>src.alphagen_qlib</code></blockquote>
+<p><strong>函数</strong>：</p>
+<h5><code>main()</code></h5>
+<ul>
+<li>职责：命令行入口，解析参数后调用 run(args)</li>
+<li>返回：无返回值，触发训练流程</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">if __name__ == '__main__':
+    args = parse_args()
+    run(args)</code></pre>
+<h5><code>_metric(expr_str, data, target, cache)</code></h5>
+<ul>
+<li>职责：带缓存的因子 IC 评估函数，将表达式字符串映射为 IC 值</li>
+<li>参数：<code>expr_str</code> 表达式字符串；<code>data</code> StockData 对象；<code>target</code> 目标表达式；<code>cache</code> IC 缓存字典</li>
+<li>返回：因子 IC 值</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">if expr_str in cache:
+    return cache[expr_str]
+expr = ExpressionParser().parse(expr_str)
+ic = calc_single_IC_ret(expr, data, target)[0]
+cache[expr_str] = ic
+return ic</code></pre>
+<h5><code>try_single(expr, data, target, pool)</code></h5>
+<ul>
+<li>职责：尝试将单个表达式加入因子池，返回增量 IC</li>
+<li>参数：<code>expr</code> 表达式对象；<code>data</code> StockData 对象；<code>target</code> 目标表达式；<code>pool</code> AlphaPool 对象</li>
+<li>返回：增量 IC 值</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">inc = pool.test_new_expr(expr)
+if inc &gt; 0:
+    pool.try_new_expr(expr)
+return inc</code></pre>
+<h5><code>try_pool(exprs, data, target, pool)</code></h5>
+<ul>
+<li>职责：批量尝试将表达式列表加入因子池</li>
+<li>参数：<code>exprs</code> 表达式列表；<code>data</code> StockData 对象；<code>target</code> 目标表达式；<code>pool</code> AlphaPool 对象</li>
+<li>返回：成功加入因子池的表达式数量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">count = 0
+for expr in exprs:
+    if try_single(expr, data, target, pool) &gt; 0:
+        count += 1
+return count</code></pre>
+<h5><code>ev(program, data, target, pool, cache)</code></h5>
+<ul>
+<li>职责：gplearn 回调函数，对每个 GP 程序评估 IC 并尝试加入因子池</li>
+<li>参数：<code>program</code> _Program 对象；<code>data</code> StockData 对象；<code>target</code> 目标表达式；<code>pool</code> AlphaPool 对象；<code>cache</code> IC 缓存字典</li>
+<li>返回：程序适应度值</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">expr_str = str(program)
+ic = _metric(expr_str, data, target, cache)
+try_single(ExpressionParser().parse(expr_str), data, target, pool)
+return ic</code></pre>
+<h5><code>run(args)</code></h5>
+<ul>
+<li>职责：构建 StockData、AlphaPool、SymbolicRegressor 与 generic_funcs，启动 GP 遗传搜索并保存因子池</li>
+<li>参数：<code>args</code> 命令行参数对象，含 instruments、population_size、generations 等</li>
+<li>返回：无返回值，训练完成后保存 pool.json</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">est = SymbolicRegressor(population_size=args.population_size, generations=args.generations,
+                            function_set=generic_funcs, metric=make_metric(...),
+                            p_crossover=0.7, p_subtree_mutation=0.1)
+est.fit(X, y, callback=ev)</code></pre>
+<hr>
+<h3><code>run_adaptive_combination.py</code> — 因子自适应线性组合评估入口，使用滚动窗口选因子 + 最小二乘回归预测，含多重共线性过滤（VIF/SVD/QR）</h3>
+<blockquote>依赖：<code>numpy</code>, <code>scipy</code>, <code>torch</code>, <code>src.alphagen_qlib</code>, <code>src.alphagen.utils.correlation</code></blockquote>
+<p><strong>函数</strong>：</p>
+<h5><code>main()</code></h5>
+<ul>
+<li>职责：命令行入口，解析参数后调用 run(args)</li>
+<li>返回：无返回值，触发评估流程</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">if __name__ == '__main__':
+    args = parse_args()
+    run(args)</code></pre>
+<h5><code>remove_linearly_dependent_rows(matrix, threshold=1e-8)</code></h5>
+<ul>
+<li>职责：使用 SVD 分解移除矩阵中线性相关的行</li>
+<li>参数：<code>matrix</code> 输入矩阵；<code>threshold</code> 线性相关判定阈值</li>
+<li>返回：去重后的矩阵与保留行索引</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">U, s, Vh = np.linalg.svd(matrix)
+rank = np.sum(s &gt; threshold)
+return matrix[:rank], list(range(rank))</code></pre>
+<h5><code>remove_linearly_dependent_cols(matrix, threshold=1e-8)</code></h5>
+<ul>
+<li>职责：使用 QR 分解移除矩阵中线性相关的列</li>
+<li>参数：<code>matrix</code> 输入矩阵；<code>threshold</code> 线性相关判定阈值</li>
+<li>返回：去重后的矩阵与保留列索引</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">Q, R, P = scipy.linalg.qr(matrix, pivoting=True)
+rank = np.sum(np.abs(np.diag(R)) &gt; threshold)
+return matrix[:, P[:rank]], P[:rank].tolist()</code></pre>
+<h5><code>calculate_vif(X)</code></h5>
+<ul>
+<li>职责：计算设计矩阵 X 每列的方差膨胀因子（VIF）</li>
+<li>参数：<code>X</code> 设计矩阵</li>
+<li>返回：每列 VIF 值数组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">vif = []
+for i in range(X.shape[1]):
+    r2 = np.linalg.lstsq(...)[1]
+    vif.append(1.0 / (1.0 - r2))
+return np.array(vif)</code></pre>
+<h5><code>remove_multicollinearity_vif(X, threshold=10.0)</code></h5>
+<ul>
+<li>职责：迭代移除 VIF 超过阈值的列，消除多重共线性</li>
+<li>参数：<code>X</code> 设计矩阵；<code>threshold</code> VIF 阈值</li>
+<li>返回：去共线性后的矩阵与保留列索引</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">while True:
+    vif = calculate_vif(X)
+    if vif.max() &lt; threshold:
+        break
+    X = np.delete(X, vif.argmax(), axis=1)
+return X, keep_cols</code></pre>
+<h5><code>load_alpha_pool_by_path(path)</code></h5>
+<ul>
+<li>职责：从 JSON 文件加载因子表达式与权重列表</li>
+<li>参数：<code>path</code> pool.json 文件路径</li>
+<li>返回：表达式列表与权重列表</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">with open(path) as f:
+    raw = json.load(f)
+exprs = [eval(s.replace('$open','open_').replace('$','')) for s in raw['exprs']]
+return exprs, raw['weights']</code></pre>
+<h5><code>get_tensor_metrics(pred, target)</code></h5>
+<ul>
+<li>职责：计算预测因子的 IC、Sharpe、最大回撤等评估指标</li>
+<li>参数：<code>pred</code> 预测值张量；<code>target</code> 目标值张量</li>
+<li>返回：包含 IC/Sharpe/MDD 的字典</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">ic = batch_pearsonr(pred, target).mean()
+ret = batch_ret(pred, target)
+sharpe = batch_sharpe_ratio(ret)
+mdd = batch_max_drawdown(ret)
+return {'IC': ic, 'Sharpe': sharpe, 'MDD': mdd}</code></pre>
+<h5><code>run(args)</code></h5>
+<ul>
+<li>职责：主评估流程：按滚动窗口选择因子、过滤多重共线性、最小二乘回归预测并保存结果</li>
+<li>参数：<code>args</code> 命令行参数对象，含 expressions_file、instruments、window、n_factors 等</li>
+<li>返回：无返回值，保存预测结果到 .pt 与 .csv</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">exprs, weights = load_alpha_pool_by_path(args.expressions_file)
+for window in windows:
+    X = build_factor_matrix(exprs, train_data)
+    X, _ = remove_multicollinearity_vif(X)
+    coef = np.linalg.lstsq(X, y)[0]
+    pred = X_test @ coef</code></pre>
+<hr>
+<h3><code>combine_AFF.py</code> — AFF 因子简化组合入口，与 run_adaptive_combination 类似但更精简，输出 pred_valid/pred .pt 文件</h3>
+<blockquote>依赖：<code>torch</code>, <code>src.alphagen_qlib</code>, <code>src.alphagen.utils.correlation</code></blockquote>
+<p><strong>函数</strong>：</p>
+<h5><code>main()</code></h5>
+<ul>
+<li>职责：命令行入口，解析参数后调用 run(args)</li>
+<li>返回：无返回值，触发组合流程</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">if __name__ == '__main__':
+    args = parse_args()
+    run(args)</code></pre>
+<h5><code>run(args)</code></h5>
+<ul>
+<li>职责：加载 AFF 因子 zoo，构建因子矩阵并用最小二乘回归组合预测，输出验证集与测试集预测张量</li>
+<li>参数：<code>args</code> 命令行参数对象，含 expressions_file、instruments、cuda 等</li>
+<li>返回：无返回值，保存 pred_valid.pt 与 pred.pt</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">exprs, _ = load_alpha_pool_by_path(args.expressions_file)
+X_train = build_factor_matrix(exprs, data)
+coef = torch.linalg.lstsq(X_train, y_train)[0]
+torch.save(pred_valid, 'pred_valid.pt')</code></pre>
+<hr>
+<h3><code>src/alpha_gfn/gflownet.py</code> — AlphaSAGE 核心：带熵正则化的 Trajectory Balance GFlowNet，覆写轨迹评分以引入 entropy_term 促进探索多样性</h3>
+<blockquote>依赖：<code>torch</code>, <code>gfn</code></blockquote>
+<p><strong>类</strong>：<code>EntropyTBGFlowNet</code> (L10) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self, entropy_coef, entropy_temperature, **kwargs)</code></h5>
+<ul>
+<li>职责：初始化熵正则系数与温度参数</li>
+<li>参数：<code>entropy_coef</code> 熵正则项系数；<code>entropy_temperature</code> 熵计算温度系数</li>
+<li>返回：无返回值，初始化网络</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">super().__init__(**kwargs)
+self.entropy_coef = entropy_coef
+self.entropy_temperature = entropy_temperature</code></pre>
+<h5><code>get_trajectories_scores(self, trajectories)</code></h5>
+<ul>
+<li>职责：计算轨迹的 TB 分数与熵正则项，熵由动作概率对数加和除以温度得到</li>
+<li>参数：<code>trajectories</code> GFlowNet 轨迹对象列表</li>
+<li>返回：scores 与 logZ 与 entropy_term</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">scores, logZ = super().get_trajectories_scores(trajectories)
+log_probs = self.log_prob(trajectories)
+entropy_term = -log_probs.sum(dim=-1) / self.entropy_temperature
+return scores, logZ, entropy_term</code></pre>
+<h5><code>loss(self, env, trajectories)</code></h5>
+<ul>
+<li>职责：计算 TB 损失减去熵正则项，鼓励策略熵增大以增强探索</li>
+<li>参数：<code>env</code> GFlowNet 环境；<code>trajectories</code> 轨迹对象</li>
+<li>返回：标量损失张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">scores, logZ, entropy = self.get_trajectories_scores(trajectories)
+return (scores + logZ).pow(2).mean() - self.entropy_coef * entropy.mean()</code></pre>
+<hr>
+<h3><code>src/alpha_gfn/alpha_pool.py</code> — AlphaSAGE 核心：AlphaPoolGFN，在 AlphaPool 基础上引入 SSL 自监督一致性奖励与 novelty 奖励，通过 k 近邻计算因子嵌入相似度</h3>
+<blockquote>依赖：<code>torch</code>, <code>torch.nn.functional</code>, <code>src.alphagen.models.alpha_pool</code></blockquote>
+<p><strong>类</strong>：<code>AlphaPoolGFN</code> (L18) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self, capacity, calculator, target, ssl_weight, nov_weight, device)</code></h5>
+<ul>
+<li>职责：初始化因子池容量、IC 计算器、SSL 与 novelty 权重</li>
+<li>参数：<code>capacity</code> 因子池最大容量；<code>calculator</code> AlphaCalculator 对象；<code>target</code> 目标表达式；<code>ssl_weight</code> SSL 奖励权重；<code>nov_weight</code> novelty 奖励权重；<code>device</code> 计算设备</li>
+<li>返回：无返回值，初始化因子池</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">super().__init__(capacity, calculator, target)
+self.ssl_weight = ssl_weight
+self.nov_weight = nov_weight
+self.device = device</code></pre>
+<h5><code>try_new_expr_with_ssl(self, expr, embedding)</code></h5>
+<ul>
+<li>职责：评估新表达式，结合 IC 增量、SSL 一致性奖励与 novelty 奖励返回总奖励</li>
+<li>参数：<code>expr</code> 表达式对象；<code>embedding</code> 表达式嵌入张量</li>
+<li>返回：总奖励值</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">ic_inc = self.test_new_expr(expr)
+ssl = self.compute_ssl_reward(embedding)
+nov = self.compute_novelty(embedding)
+return ic_inc + self.ssl_weight * ssl + self.nov_weight * nov</code></pre>
+<h5><code>compute_ssl_reward(self, embedding)</code></h5>
+<ul>
+<li>职责：基于 k 近邻与 softmax 权重计算嵌入与池中相似因子的 MSE 一致性损失，返回 exp(-loss) 作为 SSL 奖励</li>
+<li>参数：<code>embedding</code> 新表达式嵌入</li>
+<li>返回：SSL 奖励值（0-1 之间）</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">idx, sims = self._find_k_nearest_neighbors(embedding)
+weights = self._compute_similarity_weights(sims)
+loss = self._compute_consistency_loss(embedding, idx, weights)
+return torch.exp(-loss)</code></pre>
+<h5><code>_find_k_nearest_neighbors(self, embedding, k=5)</code></h5>
+<ul>
+<li>职责：在因子池嵌入中查找 k 个最近邻索引与相似度</li>
+<li>参数：<code>embedding</code> 查询嵌入；<code>k</code> 近邻数量</li>
+<li>返回：近邻索引与相似度</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">sims = F.cosine_similarity(embedding, self.pool_embeddings)
+vals, idx = sims.topk(k)
+return idx, vals</code></pre>
+<h5><code>_compute_similarity_weights(self, similarities)</code></h5>
+<ul>
+<li>职责：对相似度做 softmax 归一化得到近邻权重</li>
+<li>参数：<code>similarities</code> 相似度张量</li>
+<li>返回：softmax 权重</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">return F.softmax(similarities / self.temperature, dim=-1)</code></pre>
+<h5><code>_compute_consistency_loss(self, embedding, idx, weights)</code></h5>
+<ul>
+<li>职责：计算新嵌入与近邻嵌入加权的 MSE 一致性损失</li>
+<li>参数：<code>embedding</code> 新嵌入；<code>idx</code> 近邻索引；<code>weights</code> 近邻权重</li>
+<li>返回：MSE 损失张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">neighbors = self.pool_embeddings[idx]
+target = (weights[...,None] * neighbors).sum(0)
+return F.mse_loss(embedding, target)</code></pre>
+<h5><code>debug_embedding_similarities(self, embedding)</code></h5>
+<ul>
+<li>职责：调试用，打印新嵌入与因子池所有嵌入的相似度分布</li>
+<li>参数：<code>embedding</code> 查询嵌入</li>
+<li>返回：相似度张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">sims = F.cosine_similarity(embedding, self.pool_embeddings)
+print('similarity stats:', sims.mean(), sims.max(), sims.min())
+return sims</code></pre>
+<hr>
+<h3><code>src/alpha_gfn/modules.py</code> — AlphaSAGE 结构感知编码器：RPN→RGCN 图构建 + PositionalEncoding + GNNEncoder(RGCNConv) + SequenceEncoder（支持 transformer/lstm/gnn）</h3>
+<blockquote>依赖：<code>torch</code>, <code>torch_geometric.nn</code>, <code>src.alpha_gfn.config</code></blockquote>
+<p><strong>类</strong>：<code>PositionalEncoding</code> (L60) 核心类；<code>GNNEncoder</code> (L75) 核心类；<code>SequenceEncoder</code> (L100) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>_build_graph_from_rpn(tokens, n_features, n_operators)</code></h5>
+<ul>
+<li>职责：将 RPN token 序列转换为 RGCN 图，定义 6 种边类型（operand-feature、operator-input、operator-output 等）</li>
+<li>参数：<code>tokens</code> RPN token 列表；<code>n_features</code> 特征数；<code>n_operators</code> 算子数</li>
+<li>返回：PyG Data 图对象（节点特征、边索引、边类型）</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">edges = []
+stack = []
+for t in tokens:
+    if is_operator(t):
+        a, b = stack.pop(), stack.pop()
+        edges += [(b,t,'in1'),(a,t,'in2'),(t,b,'out')]
+    stack.append(t)
+return Data(x=node_features, edge_index=edge_idx, edge_type=edge_type)</code></pre>
+<h5><code>forward(self, x)</code></h5>
+<ul>
+<li>职责：对输入序列张量叠加位置编码</li>
+<li>参数：<code>x</code> 输入序列张量 (seq_len, batch, d_model)</li>
+<li>返回：加位置编码后的张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">return x + self.pe[:x.size(0)]</code></pre>
+<h5><code>forward(self, data)</code></h5>
+<ul>
+<li>职责：通过多层 RGCNConv 聚合图节点特征，输出表达式嵌入</li>
+<li>参数：<code>data</code> PyG Data 图对象</li>
+<li>返回：图级嵌入张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">x, edge_index, edge_type = data.x, data.edge_index, data.edge_type
+for conv in self.convs:
+    x = conv(x, edge_index, edge_type)
+    x = F.relu(x)
+return x</code></pre>
+<h5><code>__init__(self, encoder_type, n_features, n_operators, hidden_dim, n_layers, n_heads, dropout)</code></h5>
+<ul>
+<li>职责：按 encoder_type 构建对应编码器（gnn 使用 GNNEncoder，lstm 使用 nn.LSTM，transformer 使用 nn.TransformerEncoder）</li>
+<li>参数：<code>encoder_type</code> 编码器类型：gnn/lstm/transformer；<code>n_features</code> 特征数；<code>n_operators</code> 算子数；<code>hidden_dim</code> 隐藏维度；<code>n_layers</code> 层数；<code>n_heads</code> 注意力头数；<code>dropout</code> dropout 概率</li>
+<li>返回：无返回值，初始化编码器</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">if encoder_type == 'gnn':
+    self.encoder = GNNEncoder(...)
+elif encoder_type == 'lstm':
+    self.encoder = nn.LSTM(hidden_dim, hidden_dim, n_layers, batch_first=True)
+elif encoder_type == 'transformer':
+    layer = nn.TransformerEncoderLayer(hidden_dim, n_heads, ...)
+    self.encoder = nn.TransformerEncoder(layer, n_layers)</code></pre>
+<hr>
+<h3><code>src/alpha_gfn/env/core.py</code> — AlphaSAGE GFlowNet 环境核心：GFNEnvCore(DiscreteEnv)，实现 step/backward_step/update_masks（含 length-based mask dropout）/reward（IC+SSL+novelty）</h3>
+<blockquote>依赖：<code>torch</code>, <code>gfn.env</code>, <code>src.alphagen.data.tree</code>, <code>src.alpha_gfn.alpha_pool</code>, <code>src.alpha_gfn.config</code></blockquote>
+<p><strong>类</strong>：<code>GFNEnvCore</code> (L15) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>step(self, action)</code></h5>
+<ul>
+<li>职责：前向执行一个 token 动作，更新序列状态并返回新状态与奖励</li>
+<li>参数：<code>action</code> token 动作索引</li>
+<li>返回：(state, reward, done, info) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.tokens.append(action)
+self.update_masks()
+done = len(self.tokens) &gt;= MAX_EXPR_LENGTH or action == SEP_TOKEN
+reward = self.reward() if done else 0
+return self.state, reward, done, {}</code></pre>
+<h5><code>backward_step(self, action)</code></h5>
+<ul>
+<li>职责：反向撤销最后一个 token 动作，用于 GFlowNet 反向轨迹采样</li>
+<li>参数：<code>action</code> 要撤销的 token 索引</li>
+<li>返回：撤销后的状态</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.tokens.pop()
+self.update_masks()
+return self.state</code></pre>
+<h5><code>update_masks(self)</code></h5>
+<ul>
+<li>职责：根据当前序列长度与算子元数生成动作掩码，并按 mask_dropout_prob 随机丢弃部分合法动作以增强探索</li>
+<li>返回：无返回值，更新 self.masks</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">mask = self._valid_action_types()
+if random.random() &lt; self.mask_dropout_prob:
+    mask = self._apply_mask_dropout(mask)
+self.masks = mask</code></pre>
+<h5><code>reward(self)</code></h5>
+<ul>
+<li>职责：计算完整表达式的最终奖励：IC 增量 + ssl_weight <em> SSL + nov_weight </em> novelty</li>
+<li>返回：标量奖励张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">expr = ExpressionBuilder().build(self.tokens)
+return self.pool.try_new_expr_with_ssl(expr, self.last_embedding)</code></pre>
+<hr>
+<h3><code>src/alpha_gfn/config.py</code> — AlphaSAGE GFlowNet 任务超参数配置：MAX_EXPR_LENGTH=20、HIDDEN_DIM=128、OPERATORS/FEATURES/DELTA_TIMES/CONSTANTS 列表</h3>
+<blockquote>依赖：<code>src.alphagen.data.expression</code>, <code>src.alphagen_qlib.stock_data</code></blockquote>
+<hr>
+<h3><code>src/alpha_gfn/preprocessors.py</code> — GFlowNet 整数预处理器：IntegerPreprocessor 将 token 索引归一化为网络输入格式</h3>
+<blockquote>依赖：<code>torch</code>, <code>torch.nn.functional</code></blockquote>
+<p><strong>类</strong>：<code>IntegerPreprocessor</code> (L5) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>forward(self, x)</code></h5>
+<ul>
+<li>职责：将整数 token 张量转换为浮点 one-hot 表示</li>
+<li>参数：<code>x</code> 整数 token 张量</li>
+<li>返回：one-hot 浮点张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">return F.one_hot(x, self.n_classes).float()</code></pre>
+<hr>
+<h3><code>src/alphagen/data/expression.py</code> — 表达式体系核心：Expression ABC + Feature/Constant/DeltaTime + Operator(Unary/Binary/Rolling/PairRolling) + 所有算子实现（Abs/Add/Ref/TsMean/TsCorr 等）+ Operators 列表</h3>
+<blockquote>依赖：<code>torch</code>, <code>abc</code></blockquote>
+<p><strong>类</strong>：<code>Expression</code> (L8) 核心类；<code>Feature</code> (L30) 核心类；<code>Constant</code> (L45) 核心类；<code>DeltaTime</code> (L60) 核心类；<code>Operator</code> (L75) 核心类（等共 20 个类）</p>
+<p><strong>函数</strong>：</p>
+<h5><code>evaluate(self, calculator: AlphaCalculator) -&amp;gt; Tensor</code></h5>
+<ul>
+<li>职责：抽象方法，子类实现以在 calculator 上计算表达式值</li>
+<li>参数：<code>calculator</code> AlphaCalculator 对象</li>
+<li>返回：表达式计算结果张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">raise NotImplementedError</code></pre>
+<h5><code>evaluate(self, calculator)</code></h5>
+<ul>
+<li>职责：从 calculator 获取对应特征列的数据</li>
+<li>参数：<code>calculator</code> AlphaCalculator 对象</li>
+<li>返回：特征数据张量 (n_days, n_stocks)</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">return calculator.calc_feature(self.feature)</code></pre>
+<h5><code>evaluate(self, calculator)</code></h5>
+<ul>
+<li>职责：返回与数据形状相同的常量张量</li>
+<li>参数：<code>calculator</code> AlphaCalculator 对象</li>
+<li>返回：常量张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">return torch.full(calculator.shape, self.value)</code></pre>
+<h5><code>evaluate(self, calculator)</code></h5>
+<ul>
+<li>职责：递归求值子表达式后应用一元运算</li>
+<li>参数：<code>calculator</code> AlphaCalculator 对象</li>
+<li>返回：运算结果张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">a = self.operand.evaluate(calculator)
+return self._apply(a)</code></pre>
+<h5><code>evaluate(self, calculator)</code></h5>
+<ul>
+<li>职责：递归求值两个子表达式后应用二元运算</li>
+<li>参数：<code>calculator</code> AlphaCalculator 对象</li>
+<li>返回：运算结果张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">a = self.lhs.evaluate(calculator)
+b = self.rhs.evaluate(calculator)
+return self._apply(a, b)</code></pre>
+<h5><code>evaluate(self, calculator)</code></h5>
+<ul>
+<li>职责：递归求值子表达式后应用时序滚动运算</li>
+<li>参数：<code>calculator</code> AlphaCalculator 对象</li>
+<li>返回：滚动运算结果张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">a = self.operand.evaluate(calculator)
+return self._apply(a, self.delta_time.value)</code></pre>
+<hr>
+<h3><code>src/alphagen/data/tokens.py</code> — Token 体系：将 Feature/Constant/DeltaTime/Operator 映射为离散 token，定义 BEG_TOKEN/SEP_TOKEN 边界标记</h3>
+<blockquote>依赖：<code>src.alphagen.data.expression</code></blockquote>
+<p><strong>类</strong>：<code>Token</code> (L8) 核心类；<code>FeatureToken</code> (L25) 核心类；<code>ConstantToken</code> (L40) 核心类；<code>OperatorToken</code> (L55) 核心类；<code>DeltaTimeToken</code> (L70) 核心类（等共 7 个类）</p>
+<p><strong>函数</strong>：</p>
+<h5><code>from_expr(expr, tokenizer)</code></h5>
+<ul>
+<li>职责：将表达式元素转换为对应 Token</li>
+<li>参数：<code>expr</code> 表达式元素；<code>tokenizer</code> Tokenizer 对象</li>
+<li>返回：Token 对象</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">if isinstance(expr, Feature):
+    return FeatureToken(expr.feature, tokenizer.feature_idx(expr.feature))
+elif isinstance(expr, Constant):
+    return ConstantToken(expr.value, tokenizer.const_idx(expr.value))</code></pre>
+<hr>
+<h3><code>src/alphagen/data/tree.py</code> — 表达式构建与解析：ExpressionBuilder（RPN 栈式构建）+ ExpressionParser（字符串→Expression）+ InvalidExpressionException</h3>
+<blockquote>依赖：<code>src.alphagen.data.expression</code>, <code>src.alphagen.data.tokens</code></blockquote>
+<p><strong>类</strong>：<code>InvalidExpressionException</code> (L5) 核心类；<code>ExpressionBuilder</code> (L12) 核心类；<code>ExpressionParser</code> (L80) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self)</code></h5>
+<ul>
+<li>职责：初始化空栈与 token 列表</li>
+<li>返回：无返回值</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.stack = []
+self.tokens = []</code></pre>
+<h5><code>push(self, token)</code></h5>
+<ul>
+<li>职责：将 token 压入构建器，若为算子则弹出栈中操作数归约为子表达式</li>
+<li>参数：<code>token</code> Token 对象</li>
+<li>返回：无返回值，更新栈与 tokens</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.tokens.append(token)
+if token.is_operator():
+    args = [self.stack.pop() for _ in range(token.arity)]
+    self.stack.append(token.create_expr(*reversed(args)))
+else:
+    self.stack.append(token.create_expr())</code></pre>
+<h5><code>build(self)</code></h5>
+<ul>
+<li>职责：构建完成后返回最终表达式，若栈中剩余多于一个元素则抛出异常</li>
+<li>返回：构建完成的 Expression 对象</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">if len(self.stack) != 1:
+    raise InvalidExpressionException()
+return self.stack[0]</code></pre>
+<h5><code>parse(self, s)</code></h5>
+<ul>
+<li>职责：递归下降解析表达式字符串为 Expression 树</li>
+<li>参数：<code>s</code> 表达式字符串</li>
+<li>返回：Expression 对象</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.tokens = self._tokenize(s)
+self.pos = 0
+return self._parse_expr()</code></pre>
+<hr>
+<h3><code>src/alphagen/data/calculator.py</code> — AlphaCalculator 抽象基类：定义 calc_single_IC_ret/calc_pool_IC_ret 等因子评估接口，由 QLibStockDataCalculator 实现</h3>
+<blockquote>依赖：<code>abc</code>, <code>torch</code></blockquote>
+<p><strong>类</strong>：<code>AlphaCalculator</code> (L8) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>calc_single_IC_ret(self, expr, target)</code></h5>
+<ul>
+<li>职责：抽象方法，计算单因子与目标的 IC 与 ICIR</li>
+<li>参数：<code>expr</code> 表达式；<code>target</code> 目标表达式</li>
+<li>返回：(IC, ICIR) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">raise NotImplementedError</code></pre>
+<h5><code>calc_pool_IC_ret(self, exprs, weights, target)</code></h5>
+<ul>
+<li>职责：抽象方法，计算因子池组合与目标的 IC 与 ICIR</li>
+<li>参数：<code>exprs</code> 表达式列表；<code>weights</code> 权重列表；<code>target</code> 目标表达式</li>
+<li>返回：(IC, ICIR) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">raise NotImplementedError</code></pre>
+<hr>
+<h3><code>src/alphagen/models/alpha_pool.py</code> — 因子池核心：AlphaPoolBase ABC、AlphaPool（try_new_expr/_optimize Adam 优化权重/test_ensemble/evaluate_ensemble）、AlphaPoolMinICConstrained、SingleAlphaPool</h3>
+<blockquote>依赖：<code>torch</code>, <code>torch.nn</code>, <code>src.alphagen.data.calculator</code>, <code>src.alphagen_qlib.calculator</code></blockquote>
+<p><strong>类</strong>：<code>AlphaPoolBase</code> (L10) 核心类；<code>AlphaPool</code> (L35) 核心类；<code>AlphaPoolMinICConstrained</code> (L120) 核心类；<code>SingleAlphaPool</code> (L160) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self, capacity, calculator, target, device)</code></h5>
+<ul>
+<li>职责：初始化因子池容量、IC 计算器、目标表达式与权重参数</li>
+<li>参数：<code>capacity</code> 因子池最大容量；<code>calculator</code> AlphaCalculator 对象；<code>target</code> 目标表达式；<code>device</code> 计算设备</li>
+<li>返回：无返回值，初始化空因子池</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.capacity = capacity
+self.calculator = calculator
+self.target = target
+self.exprs = []
+self.weights = nn.Parameter(torch.zeros(capacity, device=device))</code></pre>
+<h5><code>try_new_expr(self, expr)</code></h5>
+<ul>
+<li>职责：评估新表达式增量 IC，若为正则加入因子池并触发权重优化</li>
+<li>参数：<code>expr</code> 表达式对象</li>
+<li>返回：增量 IC 值</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">inc = self.test_new_expr(expr)
+if inc &gt; 0:
+    self._add_expr(expr)
+    self._optimize()
+return inc</code></pre>
+<h5><code>_optimize(self, n_epochs=100, lr=0.01)</code></h5>
+<ul>
+<li>职责：使用 Adam 优化因子池权重以最小化组合 IC 损失</li>
+<li>参数：<code>n_epochs</code> 优化轮数；<code>lr</code> 学习率</li>
+<li>返回：无返回值，原地更新权重</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">opt = torch.optim.Adam([self.weights], lr=lr)
+for _ in range(n_epochs):
+    loss = -self._ensemble_ic()
+    opt.zero_grad(); loss.backward(); opt.step()</code></pre>
+<h5><code>test_ensemble(self)</code></h5>
+<ul>
+<li>职责：返回当前因子池组合的 IC 与 ICIR</li>
+<li>返回：(IC, ICIR) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">return self.calculator.calc_pool_IC_ret(self.exprs, self.weights, self.target)</code></pre>
+<h5><code>evaluate_ensemble(self, data, target)</code></h5>
+<ul>
+<li>职责：在指定数据上评估因子池组合的 IC 与 ICIR</li>
+<li>参数：<code>data</code> StockData 对象；<code>target</code> 目标表达式</li>
+<li>返回：(IC, ICIR) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">calc = QLibStockDataCalculator(data, target)
+return calc.calc_pool_IC_ret(self.exprs, self.weights, target)</code></pre>
+<h5><code>save(self, path)</code></h5>
+<ul>
+<li>职责：将因子表达式列表与权重保存为 JSON 文件</li>
+<li>参数：<code>path</code> 保存路径</li>
+<li>返回：无返回值</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">with open(path, 'w') as f:
+    json.dump({'exprs': [str(e) for e in self.exprs],
+              'weights': self.weights.tolist()}, f)</code></pre>
+<hr>
+<h3><code>src/alphagen/models/model.py</code> — AlphaGen 表达式生成模型：TokenEmbedding + PositionalEncoding + ExpressionGenerator（Transformer encoder-decoder）</h3>
+<blockquote>依赖：<code>torch</code>, <code>torch.nn</code></blockquote>
+<p><strong>类</strong>：<code>TokenEmbedding</code> (L10) 核心类；<code>PositionalEncoding</code> (L25) 核心类；<code>ExpressionGenerator</code> (L40) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self, n_tokens, d_model=128, n_heads=4, d_ff=512, n_layers=2, dropout=0.1)</code></h5>
+<ul>
+<li>职责：初始化 token 嵌入、位置编码与 Transformer encoder-decoder</li>
+<li>参数：<code>n_tokens</code> token 词表大小；<code>d_model</code> 模型维度；<code>n_heads</code> 注意力头数；<code>d_ff</code> 前馈维度；<code>n_layers</code> 层数；<code>dropout</code> dropout 概率</li>
+<li>返回：无返回值，初始化生成器</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.embedding = TokenEmbedding(n_tokens, d_model)
+self.pos = PositionalEncoding(d_model)
+layer = nn.TransformerEncoderLayer(d_model, n_heads, d_ff, dropout)
+self.encoder = nn.TransformerEncoder(layer, n_layers)</code></pre>
+<h5><code>forward(self, src, tgt)</code></h5>
+<ul>
+<li>职责：编码源序列并解码目标序列，返回 token 概率分布</li>
+<li>参数：<code>src</code> 源 token 序列；<code>tgt</code> 目标 token 序列</li>
+<li>返回：token 概率对数张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">src = self.pos(self.embedding(src))
+memory = self.encoder(src)
+out = self.decoder(self.pos(self.embedding(tgt)), memory)
+return self.fc(out)</code></pre>
+<hr>
+<h3><code>src/alphagen/rl/env/core.py</code> — AlphaGen RL 环境核心：AlphaEnvCore(gym.Env) reset/step/_evaluate/_valid_action_types，逐步生成表达式 token</h3>
+<blockquote>依赖：<code>gym</code>, <code>torch</code>, <code>src.alphagen.data.tree</code>, <code>src.alphagen.config</code></blockquote>
+<p><strong>类</strong>：<code>AlphaEnvCore</code> (L15) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>reset(self)</code></h5>
+<ul>
+<li>职责：重置环境，清空表达式序列并返回初始状态</li>
+<li>返回：初始状态张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.tokens = [BEG_TOKEN]
+self.builder = ExpressionBuilder()
+return self._get_state()</code></pre>
+<h5><code>step(self, action)</code></h5>
+<ul>
+<li>职责：执行一个 token 动作，更新序列状态并返回奖励</li>
+<li>参数：<code>action</code> token 动作索引</li>
+<li>返回：(state, reward, done, info) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.tokens.append(action)
+self.builder.push(token)
+done = action == SEP_TOKEN or len(self.tokens) &gt;= MAX_EPISODE_LENGTH
+reward = self._evaluate() if done else REWARD_PER_STEP
+return self._get_state(), reward, done, {}</code></pre>
+<h5><code>_evaluate(self)</code></h5>
+<ul>
+<li>职责：构建完整表达式并计算因子池增量 IC 作为奖励</li>
+<li>返回：标量奖励</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">expr = self.builder.build()
+return self.pool.test_new_expr(expr)</code></pre>
+<h5><code>_valid_action_types(self)</code></h5>
+<ul>
+<li>职责：根据当前序列栈状态生成合法 token 动作掩码</li>
+<li>返回：布尔掩码张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">stack_size = self.builder.stack_size
+mask = torch.zeros(self.n_actions, dtype=bool)
+for t in all_tokens:
+    if t.can_push(stack_size):
+        mask[t.idx] = True
+return mask</code></pre>
+<hr>
+<h3><code>src/alphagen/rl/env/wrapper.py</code> — AlphaGen RL 环境包装器：action2token/token2action 转换 + AlphaEnvWrapper(gym.Wrapper) 提供 action_masks + AlphaEnv 工厂</h3>
+<blockquote>依赖：<code>gym</code>, <code>src.alphagen.rl.env.core</code>, <code>src.alphagen.data.tokens</code></blockquote>
+<p><strong>类</strong>：<code>AlphaEnvWrapper</code> (L25) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>action2token(action, tokenizer)</code></h5>
+<ul>
+<li>职责：将动作索引转换为 Token 对象</li>
+<li>参数：<code>action</code> 动作索引；<code>tokenizer</code> Tokenizer 对象</li>
+<li>返回：Token 对象</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">return tokenizer.idx_to_token(action)</code></pre>
+<h5><code>token2action(token, tokenizer)</code></h5>
+<ul>
+<li>职责：将 Token 对象转换为动作索引</li>
+<li>参数：<code>token</code> Token 对象；<code>tokenizer</code> Tokenizer 对象</li>
+<li>返回：动作索引</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">return tokenizer.token_to_idx(token)</code></pre>
+<h5><code>action_masks(self)</code></h5>
+<ul>
+<li>职责：返回当前合法动作掩码，供 MaskablePPO 使用</li>
+<li>返回：布尔掩码 numpy 数组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">return self.env._valid_action_types().cpu().numpy()</code></pre>
+<h5><code>AlphaEnv(pool, device)</code></h5>
+<ul>
+<li>职责：AlphaEnv 工厂函数，创建并包装 AlphaEnvCore</li>
+<li>参数：<code>pool</code> AlphaPool 对象；<code>device</code> 计算设备</li>
+<li>返回：AlphaEnvWrapper 实例</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">core = AlphaEnvCore(pool, device)
+return AlphaEnvWrapper(core)</code></pre>
+<hr>
+<h3><code>src/alphagen/rl/policy.py</code> — AlphaGen 策略网络：PositionalEncoding + TransformerSharedNet/LSTMSharedNet（sb3 BaseFeaturesExtractor）+ Decoder</h3>
+<blockquote>依赖：<code>torch</code>, <code>torch.nn</code>, <code>stable_baselines3.common.torch_layers</code></blockquote>
+<p><strong>类</strong>：<code>TransformerSharedNet</code> (L30) 核心类；<code>LSTMSharedNet</code> (L70) 核心类；<code>Decoder</code> (L110) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self, observation_space, n_tokens, d_model=128, n_heads=4, n_layers=2)</code></h5>
+<ul>
+<li>职责：初始化 token 嵌入、位置编码与 Transformer encoder</li>
+<li>参数：<code>observation_space</code> gym 观测空间；<code>n_tokens</code> token 词表大小；<code>d_model</code> 模型维度；<code>n_heads</code> 注意力头数；<code>n_layers</code> 层数</li>
+<li>返回：无返回值，初始化网络</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">super().__init__(observation_space, d_model)
+self.embedding = TokenEmbedding(n_tokens, d_model)
+layer = nn.TransformerEncoderLayer(d_model, n_heads, ...)
+self.encoder = nn.TransformerEncoder(layer, n_layers)</code></pre>
+<h5><code>forward(self, obs)</code></h5>
+<ul>
+<li>职责：将观测序列编码为共享特征向量</li>
+<li>参数：<code>obs</code> 观测张量</li>
+<li>返回：特征向量张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">x = self.embedding(obs)
+x = self.pos(x)
+x = self.encoder(x)
+return x.mean(dim=1)</code></pre>
+<h5><code>__init__(self, observation_space, n_tokens, d_model=128, n_layers=2)</code></h5>
+<ul>
+<li>职责：初始化 token 嵌入与 LSTM encoder</li>
+<li>参数：<code>observation_space</code> gym 观测空间；<code>n_tokens</code> token 词表大小；<code>d_model</code> 模型维度；<code>n_layers</code> LSTM 层数</li>
+<li>返回：无返回值，初始化网络</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">super().__init__(observation_space, d_model)
+self.embedding = TokenEmbedding(n_tokens, d_model)
+self.lstm = nn.LSTM(d_model, d_model, n_layers, batch_first=True)</code></pre>
+<hr>
+<h3><code>src/alphagen/utils/correlation.py</code> — 批量评估指标：batch_pearsonr/batch_spearmanr/batch_ret/batch_sharpe_ratio/batch_max_drawdown/batch_ret_with_metrics + _mask_either_nan</h3>
+<blockquote>依赖：<code>torch</code>, <code>math</code></blockquote>
+<p><strong>函数</strong>：</p>
+<h5><code>batch_pearsonr(x, y)</code></h5>
+<ul>
+<li>职责：批量计算 x 与 y 每列的皮尔逊相关系数</li>
+<li>参数：<code>x</code> 预测张量；<code>y</code> 目标张量</li>
+<li>返回：每列相关系数张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">x, y = _mask_either_nan(x, y)
+return ((x-x.mean(0))*(y-y.mean(0))).sum(0) / (x.std(0)*y.std(0)*x.shape[0])</code></pre>
+<h5><code>batch_spearmanr(x, y)</code></h5>
+<ul>
+<li>职责：批量计算 x 与 y 每列的斯皮尔曼秩相关系数</li>
+<li>参数：<code>x</code> 预测张量；<code>y</code> 目标张量</li>
+<li>返回：每列秩相关系数张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">return batch_pearsonr(x.argsort(0).argsort(0), y.argsort(0).argsort(0))</code></pre>
+<h5><code>batch_ret(pred, target)</code></h5>
+<ul>
+<li>职责：计算预测因子在目标上的批量收益率</li>
+<li>参数：<code>pred</code> 预测张量；<code>target</code> 目标张量</li>
+<li>返回：每日收益率张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">return (pred * target).sum(1) / pred.abs().sum(1)</code></pre>
+<h5><code>batch_sharpe_ratio(ret)</code></h5>
+<ul>
+<li>职责：计算收益率序列的年化 Sharpe 比率</li>
+<li>参数：<code>ret</code> 收益率张量</li>
+<li>返回：Sharpe 比率标量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">return ret.mean() / ret.std() * math.sqrt(252)</code></pre>
+<h5><code>batch_max_drawdown(ret)</code></h5>
+<ul>
+<li>职责：计算收益率序列的最大回撤</li>
+<li>参数：<code>ret</code> 收益率张量</li>
+<li>返回：最大回撤标量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">cum = ret.cumsum(0)
+running_max = cum.cummax(0)
+drawdown = cum - running_max
+return drawdown.min()</code></pre>
+<h5><code>_mask_either_nan(x, y)</code></h5>
+<ul>
+<li>职责：过滤 x 或 y 中含 NaN 的行</li>
+<li>参数：<code>x</code> 张量 x；<code>y</code> 张量 y</li>
+<li>返回：过滤后的 x 与 y</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">mask = ~(torch.isnan(x).any(1) | torch.isnan(y).any(1))
+return x[mask], y[mask]</code></pre>
+<hr>
+<h3><code>src/alphagen/utils/pytorch_utils.py</code> — PyTorch 工具函数：masked_mean_std（掩码均值标准差）+ normalize_by_day（按日横截面归一化）</h3>
+<blockquote>依赖：<code>torch</code></blockquote>
+<p><strong>函数</strong>：</p>
+<h5><code>masked_mean_std(x, mask)</code></h5>
+<ul>
+<li>职责：在掩码下计算张量的均值与标准差</li>
+<li>参数：<code>x</code> 输入张量；<code>mask</code> 布尔掩码</li>
+<li>返回：(mean, std) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">x = x[mask]
+return x.mean(), x.std()</code></pre>
+<h5><code>normalize_by_day(factor)</code></h5>
+<ul>
+<li>职责：按日横截面归一化因子张量（每日均值为 0、标准差为 1）</li>
+<li>参数：<code>factor</code> 因子张量 (n_days, n_stocks)</li>
+<li>返回：归一化后的因子张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">mean = factor.mean(dim=1, keepdim=True)
+std = factor.std(dim=1, keepdim=True)
+return (factor - mean) / (std + 1e-8)</code></pre>
+<hr>
+<h3><code>src/alphagen/utils/random.py</code> — 随机种子工具：reseed_everything 设置 Python/random/numpy/torch 的全局随机种子</h3>
+<blockquote>依赖：<code>random</code>, <code>numpy</code>, <code>torch</code></blockquote>
+<p><strong>函数</strong>：</p>
+<h5><code>reseed_everything(seed, deterministic=False)</code></h5>
+<ul>
+<li>职责：设置 random/numpy/torch 的随机种子，可选启用 cudnn 确定性</li>
+<li>参数：<code>seed</code> 随机种子；<code>deterministic</code> 是否启用 cudnn 确定性模式</li>
+<li>返回：无返回值</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">random.seed(seed); np.random.seed(seed); torch.manual_seed(seed)
+if deterministic:
+    torch.backends.cudnn.deterministic = True</code></pre>
+<hr>
+<h3><code>src/alphagen/config.py</code> — AlphaGen 全局配置：MAX_EXPR_LENGTH=20、MAX_EPISODE_LENGTH=256、FEATURES/OPERATORS/DELTA_TIMES/CONSTANTS/REWARD_PER_STEP</h3>
+<blockquote>依赖：<code>src.alphagen.data.expression</code>, <code>src.alphagen_qlib.stock_data</code></blockquote>
+<hr>
+<h3><code>src/alphagen_qlib/stock_data.py</code> — Qlib 数据加载：FeatureType(IntEnum) + StockData（_init_qlib/_load_exprs/_get_data/make_dataframe/add_data）封装 Qlib 数据访问</h3>
+<blockquote>依赖：<code>qlib</code>, <code>torch</code>, <code>pandas</code>, <code>numpy</code></blockquote>
+<p><strong>类</strong>：<code>FeatureType</code> (L8) 核心类；<code>StockData</code> (L20) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self, instrument, start_time, end_time, max_future_days=0, freq='day', raw=False, qlib_path='')</code></h5>
+<ul>
+<li>职责：初始化 Qlib 并加载指定 instrument 与时间区间的数据</li>
+<li>参数：<code>instrument</code> 股票池名称；<code>start_time</code> 开始日期；<code>end_time</code> 结束日期；<code>max_future_days</code> 最大未来天数；<code>freq</code> 数据频率；<code>raw</code> 是否原始数据；<code>qlib_path</code> Qlib 数据路径</li>
+<li>返回：无返回值，初始化数据</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self._init_qlib(qlib_path)
+self.instrument = instrument
+self.start_time = start_time
+self.end_time = end_time
+self._get_data()</code></pre>
+<h5><code>_init_qlib(self, qlib_path)</code></h5>
+<ul>
+<li>职责：初始化 Qlib 全局配置</li>
+<li>参数：<code>qlib_path</code> Qlib 数据路径</li>
+<li>返回：无返回值</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">qlib.init(provider_uri=qlib_path, region='cn')</code></pre>
+<h5><code>_load_exprs(self)</code></h5>
+<ul>
+<li>职责：加载各特征列的 Qlib 表达式并返回数据张量</li>
+<li>返回：特征数据张量 (n_days, n_stocks, n_features)</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">df = D.features(self.stocks, self.fields, start=self.start_time, end=self.end_time)
+return torch.from_numpy(df.values).float()</code></pre>
+<h5><code>_get_data(self)</code></h5>
+<ul>
+<li>职责：获取股票列表与特征数据并存储为 self.data</li>
+<li>返回：无返回值，更新 self.data</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.stocks = D.list_instruments(self.instrument, ...)
+self.data = self._load_exprs()</code></pre>
+<h5><code>make_dataframe(self)</code></h5>
+<ul>
+<li>职责：将数据张量转为多级索引 DataFrame</li>
+<li>返回：pandas DataFrame</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">return pd.DataFrame(self.data.numpy(), index=self.dates, columns=self.stocks)</code></pre>
+<hr>
+<h3><code>src/alphagen_qlib/calculator.py</code> — QLibStockDataCalculator(AlphaCalculator)：实现 calc_single_IC_ret/calc_pool_IC_ret 等，使用 Qlib 数据计算因子 IC/ICIR</h3>
+<blockquote>依赖：<code>src.alphagen.data.calculator</code>, <code>src.alphagen.utils.correlation</code>, <code>src.alphagen_qlib.stock_data</code></blockquote>
+<p><strong>类</strong>：<code>QLibStockDataCalculator</code> (L10) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self, data, target)</code></h5>
+<ul>
+<li>职责：初始化数据与目标表达式</li>
+<li>参数：<code>data</code> StockData 对象；<code>target</code> 目标表达式</li>
+<li>返回：无返回值</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.data = data
+self.target = target</code></pre>
+<h5><code>calc_single_IC_ret(self, expr, target=None)</code></h5>
+<ul>
+<li>职责：计算单因子与目标的 IC 与 ICIR</li>
+<li>参数：<code>expr</code> 表达式；<code>target</code> 目标表达式（可选）</li>
+<li>返回：(IC, ICIR) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">fct = expr.evaluate(self.data)
+tgt = self.target.evaluate(self.data)
+ic = batch_pearsonr(fct, tgt).mean()
+icir = ic / batch_ret(fct, tgt).std()
+return ic, icir</code></pre>
+<h5><code>calc_pool_IC_ret(self, exprs, weights, target=None)</code></h5>
+<ul>
+<li>职责：计算因子池组合与目标的 IC 与 ICIR</li>
+<li>参数：<code>exprs</code> 表达式列表；<code>weights</code> 权重列表；<code>target</code> 目标表达式（可选）</li>
+<li>返回：(IC, ICIR) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">combined = sum(w * e.evaluate(self.data) for w, e in zip(weights, exprs))
+return self.calc_single_IC_ret(Constant(0).__class__(combined), target)</code></pre>
+<hr>
+<h3><code>src/fqf_iqn_qrdqn/agent/base_agent.py</code> — 分位数 RL agent 基类：BaseAgent ABC（run/train_episode/explore/exploit/evaluate/save_models/save_exprs）</h3>
+<blockquote>依赖：<code>torch</code>, <code>abc</code>, <code>src.fqf_iqn_qrdqn.memory.base</code>, <code>src.fqf_iqn_qrdqn.utils</code></blockquote>
+<p><strong>类</strong>：<code>BaseAgent</code> (L15) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self, env, data_valid, data_test, target, log_dir, num_steps, batch_size, memory_size, ...)</code></h5>
+<ul>
+<li>职责：初始化环境、验证/测试数据、目标、日志目录与所有超参数</li>
+<li>参数：<code>env</code> AlphaEnv 环境；<code>data_valid</code> 验证集 StockData；<code>data_test</code> 测试集 StockData；<code>target</code> 目标表达式；<code>log_dir</code> 日志目录；<code>num_steps</code> 总训练步数；<code>batch_size</code> 批量大小</li>
+<li>返回：无返回值，初始化 agent</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.env = env
+self.device = torch.device('cuda' if cuda else 'cpu')
+self.memory = LazyMultiStepMemory(memory_size, ...)
+self.steps = 0
+self.learning_steps = 0</code></pre>
+<h5><code>run(self)</code></h5>
+<ul>
+<li>职责：训练主循环：按 num_steps 进行 explore/exploit 与 learn，定期评估与保存</li>
+<li>返回：无返回值，训练完成后退出</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">while self.steps &lt; self.num_steps:
+    self.train_episode()
+    if self.steps % self.eval_interval == 0:
+        self.evaluate()</code></pre>
+<h5><code>train_episode(self)</code></h5>
+<ul>
+<li>职责：抽象方法，执行一个训练 episode</li>
+<li>返回：无返回值</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">raise NotImplementedError</code></pre>
+<h5><code>explore(self, state)</code></h5>
+<ul>
+<li>职责：epsilon-greedy 探索：以 epsilon 概率随机动作，否则 exploit</li>
+<li>参数：<code>state</code> 当前状态</li>
+<li>返回：动作索引</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">if np.random.rand() &lt; self.epsilon:
+    return random_valid_action()
+return self.exploit(state)</code></pre>
+<h5><code>exploit(self, state)</code></h5>
+<ul>
+<li>职责：抽象方法，贪婪选择最优动作</li>
+<li>参数：<code>state</code> 当前状态</li>
+<li>返回：动作索引</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">raise NotImplementedError</code></pre>
+<h5><code>evaluate(self)</code></h5>
+<ul>
+<li>职责：在验证集与测试集上评估当前因子池</li>
+<li>返回：评估指标字典</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">ic_valid = self.pool.evaluate_ensemble(self.data_valid, self.target)
+ic_test = self.pool.evaluate_ensemble(self.data_test, self.target)
+return {'valid': ic_valid, 'test': ic_test}</code></pre>
+<h5><code>save_models(self, save_dir)</code></h5>
+<ul>
+<li>职责：保存 online_net 与 target_net 的权重</li>
+<li>参数：<code>save_dir</code> 保存目录</li>
+<li>返回：无返回值</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">torch.save(self.online_net.state_dict(), f'{save_dir}/online_net.pth')
+torch.save(self.target_net.state_dict(), f'{save_dir}/target_net.pth')</code></pre>
+<h5><code>save_exprs(self, save_dir)</code></h5>
+<ul>
+<li>职责：保存因子池表达式列表为 JSON</li>
+<li>参数：<code>save_dir</code> 保存目录</li>
+<li>返回：无返回值</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.pool.save(f'{save_dir}/pool.json')</code></pre>
+<hr>
+<h3><code>src/fqf_iqn_qrdqn/agent/qrdqn_agent.py</code> — QRDQN agent：固定 tau_hats 分位数 DQN，calculate_loss 使用 quantile huber loss</h3>
+<blockquote>依赖：<code>torch</code>, <code>src.fqf_iqn_qrdqn.model.alpha_qrdqn</code>, <code>src.fqf_iqn_qrdqn.utils</code>, <code>src.fqf_iqn_qrdqn.agent.base_agent</code></blockquote>
+<p><strong>类</strong>：<code>QRDQNAgent</code> (L12) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self, env, data_valid, data_test, target, log_dir, num_steps, batch_size, N, kappa, lr, ...)</code></h5>
+<ul>
+<li>职责：初始化 QRDQN 在线/目标网络与优化器</li>
+<li>参数：<code>env</code> AlphaEnv 环境；<code>N</code> 分位数数量；<code>kappa</code> huber loss 阈值；<code>lr</code> 学习率</li>
+<li>返回：无返回值，初始化 agent</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.online_net = QRDQN(num_actions, N=N, ...)
+self.target_net = QRDQN(num_actions, N=N, ...)
+self.update_target()
+disable_gradients(self.target_net)</code></pre>
+<h5><code>learn(self)</code></h5>
+<ul>
+<li>职责：从 replay buffer 采样批量，计算 quantile huber loss 并更新网络</li>
+<li>返回：无返回值，更新网络</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">states, actions, rewards, next_states, dones = self.memory.sample(self.batch_size)
+loss, _, errors = self.calculate_loss(...)
+update_params(self.optim, loss, [self.online_net], ...)</code></pre>
+<h5><code>calculate_loss(self, states, actions, rewards, next_states, dones, weights)</code></h5>
+<ul>
+<li>职责：计算 TD 误差的 quantile huber loss</li>
+<li>参数：<code>states</code> 状态批量；<code>actions</code> 动作批量；<code>rewards</code> 奖励批量；<code>next_states</code> 下一状态批量；<code>dones</code> 结束标志批量；<code>weights</code> PER 权重</li>
+<li>返回：(loss, mean_q, errors) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">current_sa_quantiles = evaluate_quantile_at_action(self.online_net(states), actions)
+next_actions = torch.argmax(self.target_net.calculate_q(next_states), dim=1)
+target_sa_quantiles = rewards + (1-dones) * gamma * next_sa_quantiles
+td_errors = target_sa_quantiles - current_sa_quantiles
+return calculate_quantile_huber_loss(td_errors, taus, weights, kappa), ...</code></pre>
+<hr>
+<h3><code>src/fqf_iqn_qrdqn/agent/iqn_agent.py</code> — IQN agent：采样 taus/tau_dashes 分位数网络，calculate_loss 使用 quantile huber loss</h3>
+<blockquote>依赖：<code>torch</code>, <code>src.fqf_iqn_qrdqn.model.alpha_iqn</code>, <code>src.fqf_iqn_qrdqn.utils</code>, <code>src.fqf_iqn_qrdqn.agent.base_agent</code></blockquote>
+<p><strong>类</strong>：<code>IQNAgent</code> (L12) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self, env, data_valid, data_test, target, log_dir, num_steps, batch_size, N, N_dash, K, num_cosines, kappa, lr, ...)</code></h5>
+<ul>
+<li>职责：初始化 IQN 在线/目标网络与优化器</li>
+<li>参数：<code>N</code> 当前分位数采样数；<code>N_dash</code> 目标分位数采样数；<code>K</code> 评估采样数；<code>num_cosines</code> 余弦嵌入数</li>
+<li>返回：无返回值，初始化 agent</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.online_net = IQN(num_actions, K=K, num_cosines=num_cosines, ...)
+self.target_net = IQN(num_actions, K=K, num_cosines=num_cosines, ...)
+self.optim = Adam(self.online_net.parameters(), lr=lr)</code></pre>
+<h5><code>learn(self)</code></h5>
+<ul>
+<li>职责：采样 taus/tau_dashes，计算 quantile huber loss 并更新网络</li>
+<li>返回：无返回值，更新网络</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">taus = torch.rand(batch_size, self.N, ...)
+loss, _, errors = self.calculate_loss(state_embeddings, actions, rewards, next_states, dones, weights)
+update_params(self.optim, loss, [self.online_net], ...)</code></pre>
+<h5><code>calculate_loss(self, state_embeddings, actions, rewards, next_states, dones, weights)</code></h5>
+<ul>
+<li>职责：采样 taus 与 tau_dashes，计算 TD 误差的 quantile huber loss</li>
+<li>参数：<code>state_embeddings</code> 状态嵌入；<code>actions</code> 动作批量；<code>rewards</code> 奖励批量；<code>next_states</code> 下一状态批量；<code>dones</code> 结束标志批量；<code>weights</code> PER 权重</li>
+<li>返回：(loss, mean_q, errors) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">taus = torch.rand(batch_size, self.N, ...)
+tau_dashes = torch.rand(batch_size, self.N_dash, ...)
+td_errors = target_sa_quantiles - current_sa_quantiles
+return calculate_quantile_huber_loss(td_errors, taus, weights, kappa), ...</code></pre>
+<hr>
+<h3><code>src/fqf_iqn_qrdqn/agent/fqf_agent.py</code> — FQF agent：fraction_optim + quantile_optim，calculate_fraction_loss/calculate_quantile_loss</h3>
+<blockquote>依赖：<code>torch</code>, <code>src.fqf_iqn_qrdqn.model.alpha_fqf</code>, <code>src.fqf_iqn_qrdqn.utils</code>, <code>src.fqf_iqn_qrdqn.agent.base_agent</code></blockquote>
+<p><strong>类</strong>：<code>FQFAgent</code> (L12) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self, env, data_valid, data_test, target, log_dir, num_steps, batch_size, N, num_cosines, ent_coef, kappa, quantile_lr, fraction_lr, ...)</code></h5>
+<ul>
+<li>职责：初始化 FQF 在线/目标网络与 fraction/quantile 双优化器</li>
+<li>参数：<code>N</code> 分位数数量；<code>ent_coef</code> 熵正则系数；<code>quantile_lr</code> 分位数网络学习率；<code>fraction_lr</code> 分位数提案网络学习率</li>
+<li>返回：无返回值，初始化 agent</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.online_net = FQF(num_actions, N=N, num_cosines=num_cosines, ...)
+self.fraction_optim = RMSprop(self.online_net.fraction_net.parameters(), lr=fraction_lr)
+self.quantile_optim = Adam(..., lr=quantile_lr)</code></pre>
+<h5><code>learn(self)</code></h5>
+<ul>
+<li>职责：分别计算 fraction_loss 与 quantile_loss，依次更新两个优化器</li>
+<li>返回：无返回值，更新网络</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">taus, tau_hats, entropies = self.online_net.calculate_fractions(state_embeddings)
+fraction_loss = self.calculate_fraction_loss(...)
+quantile_loss, _, errors = self.calculate_quantile_loss(...)
+update_params(self.fraction_optim, fraction_loss, ...)
+update_params(self.quantile_optim, quantile_loss, ...)</code></pre>
+<h5><code>calculate_fraction_loss(self, state_embeddings, sa_quantile_hats, taus, actions, weights)</code></h5>
+<ul>
+<li>职责：按论文 Proposition 1 计算分位数提案网络的梯度损失</li>
+<li>参数：<code>state_embeddings</code> 状态嵌入；<code>sa_quantile_hats</code> 当前分位数值；<code>taus</code> 分位数位置；<code>actions</code> 动作批量；<code>weights</code> PER 权重</li>
+<li>返回：fraction 损失张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">gradient_of_taus = (torch.where(signs_1, values_1, -values_1) + ...).view(batch_size, N-1)
+fraction_loss = (gradient_of_taus * taus[:, 1:-1]).sum(dim=1).mean()
+return fraction_loss</code></pre>
+<h5><code>calculate_quantile_loss(self, state_embeddings, tau_hats, current_sa_quantile_hats, actions, rewards, next_states, dones, weights)</code></h5>
+<ul>
+<li>职责：计算 TD 误差的 quantile huber loss</li>
+<li>参数：<code>state_embeddings</code> 状态嵌入；<code>tau_hats</code> 分位数位置；<code>current_sa_quantile_hats</code> 当前分位数值；<code>actions</code> 动作批量；<code>rewards</code> 奖励批量；<code>next_states</code> 下一状态批量；<code>dones</code> 结束标志批量；<code>weights</code> PER 权重</li>
+<li>返回：(loss, mean_q, errors) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">next_actions = torch.argmax(next_q, dim=1, keepdim=True)
+target_sa_quantile_hats = rewards[..., None] + (1.0 - dones[..., None]) * self.gamma_n * next_sa_quantile_hats
+td_errors = target_sa_quantile_hats - current_sa_quantile_hats
+return calculate_quantile_huber_loss(td_errors, tau_hats, weights, kappa), ...</code></pre>
+<hr>
+<h3><code>src/fqf_iqn_qrdqn/agent/qrqcm_agent.py</code> — QR-QCM agent：QRDQN+MeanNetwork 双网络，exploit 含 higher_moments bonus（std/skewness/kurtosis）</h3>
+<blockquote>依赖：<code>torch</code>, <code>src.fqf_iqn_qrdqn.model.alpha_qrdqn</code>, <code>src.fqf_iqn_qrdqn.model.mean</code>, <code>src.fqf_iqn_qrdqn.utils</code>, <code>src.fqf_iqn_qrdqn.agent.base_agent</code></blockquote>
+<p><strong>类</strong>：<code>QRQCMAgent</code> (L13) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self, env, data_valid, data_test, target, log_dir, num_steps, std_lam, skew_lam, kurt_lam, batch_size, N, kappa, lr, ...)</code></h5>
+<ul>
+<li>职责：初始化 QRDQN 分位数网络与 MeanNetwork 均值网络</li>
+<li>参数：<code>std_lam</code> 标准差奖励系数；<code>skew_lam</code> 偏度奖励系数；<code>kurt_lam</code> 峰度奖励系数</li>
+<li>返回：无返回值，初始化 agent</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.online_net = QRDQN(num_actions, N=N, require_QCM=True)
+self.online_mean_net = MeanNetwork(num_actions, ...)
+self.optim = Adam(self.online_net.parameters(), lr=lr)
+self.mean_optim = Adam(self.online_mean_net.parameters(), lr=lr)</code></pre>
+<h5><code>exploit(self, state)</code></h5>
+<ul>
+<li>职责：贪婪选择动作，使用均值 Q 加上高阶矩 bonus</li>
+<li>参数：<code>state</code> 当前状态</li>
+<li>返回：动作索引</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">q_values = self.online_mean_net.calculate_q(states=state)
+std, skewness, kurtosis = self.online_net.calculate_higher_moments(states=state)
+action_values = q_values + self.std_lam*std + self.skew_lam*skewness + self.kurt_lam*kurtosis
+return action_values.argmax().item()</code></pre>
+<h5><code>learn(self)</code></h5>
+<ul>
+<li>职责：同时更新分位数网络（quantile loss）与均值网络（MSE loss）</li>
+<li>返回：无返回值，更新网络</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">quantile_loss, _, errors = self.calculate_loss(...)
+mse_loss = self.calculate_mse_loss(...)
+update_params(self.mean_optim, mse_loss, [self.online_mean_net], ...)
+update_params(self.optim, quantile_loss, [self.online_net], ...)</code></pre>
+<h5><code>calculate_loss(self, state_embeddings, actions, rewards, next_states, dones, weights)</code></h5>
+<ul>
+<li>职责：计算 QRDQN 的 quantile huber loss</li>
+<li>参数：<code>state_embeddings</code> 状态嵌入；<code>actions</code> 动作批量；<code>rewards</code> 奖励批量；<code>next_states</code> 下一状态批量；<code>dones</code> 结束标志批量；<code>weights</code> PER 权重</li>
+<li>返回：(loss, mean_q, errors) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">current_sa_quantiles = evaluate_quantile_at_action(self.online_net(states=state_embeddings), actions)
+td_errors = target_sa_quantiles - current_sa_quantiles
+return calculate_quantile_huber_loss(td_errors, taus, weights, kappa), ...</code></pre>
+<h5><code>calculate_mse_loss(self, states, actions, rewards, next_states, dones, weights)</code></h5>
+<ul>
+<li>职责：计算 MeanNetwork 的 MSE 损失</li>
+<li>参数：<code>states</code> 状态批量；<code>actions</code> 动作批量；<code>rewards</code> 奖励批量；<code>next_states</code> 下一状态批量；<code>dones</code> 结束标志批量；<code>weights</code> PER 权重</li>
+<li>返回：MSE 损失张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">current_sa_quantiles = evaluate_quantile_at_action(self.online_mean_net(states=states), actions)
+target_sa_quantiles = rewards[...,None] + (1.0 - dones[...,None]) * self.gamma_n * next_sa_quantiles
+return F.mse_loss(current_sa_quantiles, target_sa_quantiles)</code></pre>
+<hr>
+<h3><code>src/fqf_iqn_qrdqn/agent/iqcm_agent.py</code> — IQ-QCM agent：IQN+MeanNetwork 双网络，exploit 含 higher_moments bonus</h3>
+<blockquote>依赖：<code>torch</code>, <code>src.fqf_iqn_qrdqn.model.alpha_iqn</code>, <code>src.fqf_iqn_qrdqn.model.mean</code>, <code>src.fqf_iqn_qrdqn.utils</code>, <code>src.fqf_iqn_qrdqn.agent.base_agent</code></blockquote>
+<p><strong>类</strong>：<code>IQCMAgent</code> (L12) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self, env, data_valid, data_test, target, log_dir, num_steps, std_lam, skew_lam, kurt_lam, batch_size, N, N_dash, K, num_cosines, kappa, lr, ...)</code></h5>
+<ul>
+<li>职责：初始化 IQN 分位数网络与 MeanNetwork 均值网络</li>
+<li>参数：<code>std_lam</code> 标准差奖励系数；<code>skew_lam</code> 偏度奖励系数；<code>kurt_lam</code> 峰度奖励系数；<code>N</code> 当前分位数采样数；<code>N_dash</code> 目标分位数采样数</li>
+<li>返回：无返回值，初始化 agent</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.online_net = IQN(num_actions, K=K, num_cosines=num_cosines, require_QCM=True)
+self.online_mean_net = MeanNetwork(num_actions, ...)
+self.optim = Adam(self.online_net.parameters(), lr=lr)
+self.mean_optim = Adam(self.online_mean_net.parameters(), lr=lr)</code></pre>
+<h5><code>exploit(self, state)</code></h5>
+<ul>
+<li>职责：贪婪选择动作，使用均值 Q 加上高阶矩 bonus</li>
+<li>参数：<code>state</code> 当前状态</li>
+<li>返回：动作索引</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">q_values = self.online_mean_net.calculate_q(states=state)
+std, skewness, kurtosis = self.online_net.calculate_higher_moments(states=state)
+action_values = q_values + self.std_lam*std + self.skew_lam*skewness + self.kurt_lam*kurtosis
+return action_values.argmax().item()</code></pre>
+<h5><code>learn(self)</code></h5>
+<ul>
+<li>职责：同时更新分位数网络与均值网络</li>
+<li>返回：无返回值，更新网络</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">quantile_loss, _, errors = self.calculate_loss(...)
+mse_loss = self.calculate_mse_loss(...)
+update_params(self.mean_optim, mse_loss, [self.online_mean_net], ...)
+update_params(self.optim, quantile_loss, [self.online_net], ...)</code></pre>
+<h5><code>calculate_loss(self, state_embeddings, actions, rewards, next_states, dones, weights)</code></h5>
+<ul>
+<li>职责：采样 taus/tau_dashes，计算 IQN 的 quantile huber loss</li>
+<li>参数：<code>state_embeddings</code> 状态嵌入；<code>actions</code> 动作批量；<code>rewards</code> 奖励批量；<code>next_states</code> 下一状态批量；<code>dones</code> 结束标志批量；<code>weights</code> PER 权重</li>
+<li>返回：(loss, mean_q, errors) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">taus = torch.rand(batch_size, self.N, ...)
+tau_dashes = torch.rand(batch_size, self.N_dash, ...)
+td_errors = target_sa_quantiles - current_sa_quantiles
+return calculate_quantile_huber_loss(td_errors, taus, weights, kappa), ...</code></pre>
+<h5><code>calculate_mse_loss(self, states, actions, rewards, next_states, dones, weights)</code></h5>
+<ul>
+<li>职责：计算 MeanNetwork 的 MSE 损失</li>
+<li>参数：<code>states</code> 状态批量；<code>actions</code> 动作批量；<code>rewards</code> 奖励批量；<code>next_states</code> 下一状态批量；<code>dones</code> 结束标志批量；<code>weights</code> PER 权重</li>
+<li>返回：MSE 损失张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">current_sa_quantiles = evaluate_quantile_at_action(self.online_mean_net(states=states), actions)
+target_sa_quantiles = rewards[...,None] + (1.0 - dones[...,None]) * self.gamma_n * next_sa_quantiles
+return F.mse_loss(current_sa_quantiles, target_sa_quantiles)</code></pre>
+<hr>
+<h3><code>src/fqf_iqn_qrdqn/agent/fqcm_agent.py</code> — FQ-QCM agent：FQF+MeanNetwork 双网络，exploit 含 higher_moments bonus，含 fraction/quantile/mean 三优化器</h3>
+<blockquote>依赖：<code>torch</code>, <code>src.fqf_iqn_qrdqn.model.alpha_fqf</code>, <code>src.fqf_iqn_qrdqn.model.mean</code>, <code>src.fqf_iqn_qrdqn.utils</code>, <code>src.fqf_iqn_qrdqn.agent.base_agent</code></blockquote>
+<p><strong>类</strong>：<code>FQCMAgent</code> (L13) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self, env, data_valid, data_test, target, log_dir, num_steps, std_lam, skew_lam, kurt_lam, batch_size, N, num_cosines, ent_coef, kappa, quantile_lr, fraction_lr, ...)</code></h5>
+<ul>
+<li>职责：初始化 FQF 分位数网络、MeanNetwork 与 fraction/quantile/mean 三优化器</li>
+<li>参数：<code>std_lam</code> 标准差奖励系数；<code>skew_lam</code> 偏度奖励系数；<code>kurt_lam</code> 峰度奖励系数；<code>ent_coef</code> 熵正则系数；<code>quantile_lr</code> 分位数网络学习率；<code>fraction_lr</code> 分位数提案网络学习率</li>
+<li>返回：无返回值，初始化 agent</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.online_net = FQF(num_actions, N=N, num_cosines=num_cosines, require_QCM=True)
+self.online_mean_net = MeanNetwork(num_actions, ...)
+self.fraction_optim = RMSprop(self.online_net.fraction_net.parameters(), lr=fraction_lr)
+self.quantile_optim = Adam(..., lr=quantile_lr)
+self.mean_optim = Adam(self.online_mean_net.parameters(), lr=quantile_lr)</code></pre>
+<h5><code>exploit(self, state)</code></h5>
+<ul>
+<li>职责：贪婪选择动作，使用均值 Q 加上高阶矩 bonus</li>
+<li>参数：<code>state</code> 当前状态</li>
+<li>返回：动作索引</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">q_values = self.online_mean_net.calculate_q(states=state)
+std, skewness, kurtosis = self.online_net.calculate_higher_moments(states=state)
+action_values = q_values + self.std_lam*std + self.skew_lam*skewness + self.kurt_lam*kurtosis
+return action_values.argmax().item()</code></pre>
+<h5><code>learn(self)</code></h5>
+<ul>
+<li>职责：依次更新 fraction、quantile、mean 三个网络</li>
+<li>返回：无返回值，更新网络</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">fraction_loss = self.calculate_fraction_loss(...)
+quantile_loss, _, errors = self.calculate_quantile_loss(...)
+mse_loss = self.calculate_mse_loss(...)
+update_params(self.fraction_optim, fraction_loss + entropy_loss, ...)
+update_params(self.quantile_optim, quantile_loss, ...)
+update_params(self.mean_optim, mse_loss, ...)</code></pre>
+<h5><code>calculate_fraction_loss(self, state_embeddings, sa_quantile_hats, taus, actions, weights)</code></h5>
+<ul>
+<li>职责：按论文 Proposition 1 计算分位数提案网络的梯度损失</li>
+<li>参数：<code>state_embeddings</code> 状态嵌入；<code>sa_quantile_hats</code> 当前分位数值；<code>taus</code> 分位数位置；<code>actions</code> 动作批量；<code>weights</code> PER 权重</li>
+<li>返回：fraction 损失张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">gradient_of_taus = (torch.where(signs_1, values_1, -values_1) + ...).view(batch_size, N-1)
+fraction_loss = (gradient_of_taus * taus[:, 1:-1]).sum(dim=1).mean()
+return fraction_loss</code></pre>
+<h5><code>calculate_quantile_loss(self, state_embeddings, tau_hats, current_sa_quantile_hats, actions, rewards, next_states, dones, weights)</code></h5>
+<ul>
+<li>职责：计算 TD 误差的 quantile huber loss</li>
+<li>参数：<code>state_embeddings</code> 状态嵌入；<code>tau_hats</code> 分位数位置；<code>current_sa_quantile_hats</code> 当前分位数值；<code>actions</code> 动作批量；<code>rewards</code> 奖励批量；<code>next_states</code> 下一状态批量；<code>dones</code> 结束标志批量；<code>weights</code> PER 权重</li>
+<li>返回：(loss, mean_q, errors) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">target_sa_quantile_hats = rewards[..., None] + (1.0 - dones[..., None]) * self.gamma_n * next_sa_quantile_hats
+td_errors = target_sa_quantile_hats - current_sa_quantile_hats
+return calculate_quantile_huber_loss(td_errors, tau_hats, weights, kappa), ...</code></pre>
+<h5><code>calculate_mse_loss(self, states, actions, rewards, next_states, dones, weights)</code></h5>
+<ul>
+<li>职责：计算 MeanNetwork 的 MSE 损失</li>
+<li>参数：<code>states</code> 状态批量；<code>actions</code> 动作批量；<code>rewards</code> 奖励批量；<code>next_states</code> 下一状态批量；<code>dones</code> 结束标志批量；<code>weights</code> PER 权重</li>
+<li>返回：MSE 损失张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">current_sa_quantiles = evaluate_quantile_at_action(self.online_mean_net(states=states), actions)
+target_sa_quantiles = rewards[...,None] + (1.0 - dones[...,None]) * self.gamma_n * next_sa_quantiles
+return F.mse_loss(current_sa_quantiles, target_sa_quantiles)</code></pre>
+<hr>
+<h3><code>src/fqf_iqn_qrdqn/model/base_model.py</code> — BaseModel(nn.Module)：分位数模型基类，提供 sample_noise 接口供 NoisyNet 使用</h3>
+<blockquote>依赖：<code>torch</code>, <code>torch.nn</code></blockquote>
+<p><strong>类</strong>：<code>BaseModel</code> (L5) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>sample_noise(self)</code></h5>
+<ul>
+<li>职责：抽象方法，对 NoisyLinear 层重新采样噪声</li>
+<li>返回：无返回值</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">raise NotImplementedError</code></pre>
+<hr>
+<h3><code>src/fqf_iqn_qrdqn/model/alpha_qrdqn.py</code> — AlphaSAGE 版 QRDQN：LSTMBase + q_net/dueling，initilize_qcm_x 构造 qcm_trans，calculate_q/calculate_higher_moments</h3>
+<blockquote>依赖：<code>torch</code>, <code>torch.nn</code>, <code>src.fqf_iqn_qrdqn.network</code>, <code>src.fqf_iqn_qrdqn.model.base_model</code></blockquote>
+<p><strong>类</strong>：<code>QRDQN</code> (L8) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self, num_actions, N=200, embedding_dim=128, dueling_net=False, noisy_net=False, require_QCM=False)</code></h5>
+<ul>
+<li>职责：初始化 LSTMBase 特征提取器与分位数 q_net</li>
+<li>参数：<code>num_actions</code> 动作数；<code>N</code> 分位数数量；<code>embedding_dim</code> 嵌入维度；<code>dueling_net</code> 是否使用 dueling 结构；<code>noisy_net</code> 是否使用 NoisyNet；<code>require_QCM</code> 是否启用 QCM 高阶矩</li>
+<li>返回：无返回值，初始化网络</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.dqn_net = LSTMBase(n_actions=num_actions, embedding_dim=embedding_dim)
+self.q_net = nn.Sequential(NoisyLinear(embedding_dim, 512), nn.ReLU(), NoisyLinear(512, num_actions*N))
+if require_QCM:
+    self.norm_dist = torch.distributions.normal.Normal(0, 1)</code></pre>
+<h5><code>calculate_q(self, states=None, state_embeddings=None)</code></h5>
+<ul>
+<li>职责：计算状态的动作 Q 值（分位数均值）</li>
+<li>参数：<code>states</code> 状态张量；<code>state_embeddings</code> 状态嵌入</li>
+<li>返回：Q 值张量 (batch_size, num_actions)</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">quantiles = self(states=states, state_embeddings=state_embeddings)
+q = quantiles.mean(dim=1)
+return q</code></pre>
+<h5><code>calculate_higher_moments(self, states=None, state_embeddings=None)</code></h5>
+<ul>
+<li>职责：使用 QCM 变换矩阵从分位数计算 std/skewness/kurtosis 高阶矩</li>
+<li>参数：<code>states</code> 状态张量；<code>state_embeddings</code> 状态嵌入</li>
+<li>返回：(std, skewness, kurtosis) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">taus = torch.linspace(0,1,self.N+1)[1:] - 0.5/self.N
+qcm_x = self.norm_dist.icdf(taus).unsqueeze(-1)
+qcm_X = torch.concat([torch.ones(...), qcm_x, qcm_x**2-1, qcm_x**3-3*qcm_x], dim=2)
+qcm_trans = (qcm_X.mT @ qcm_X).inverse() @ qcm_X.mT
+higher_moments = qcm_trans @ quantiles
+std = higher_moments[:,1,:]
+skewness = 6*higher_moments[:,2,:]/higher_moments[:,1,:]
+kurtosis = 24*higher_moments[:,3,:]/higher_moments[:,1,:] + 3
+# ...（略）</code></pre>
+<hr>
+<h3><code>src/fqf_iqn_qrdqn/model/alpha_fqf.py</code> — AlphaSAGE 版 FQF：dqn_net+cosine_net+quantile_net+fraction_net，calculate_state_embeddings/fractions/quantiles/q/higher_moments</h3>
+<blockquote>依赖：<code>torch</code>, <code>src.fqf_iqn_qrdqn.network</code>, <code>src.fqf_iqn_qrdqn.model.base_model</code></blockquote>
+<p><strong>类</strong>：<code>FQF</code> (L6) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self, num_actions, N=32, num_cosines=64, embedding_dim=128, dueling_net=False, noisy_net=False, target=False, require_QCM=False)</code></h5>
+<ul>
+<li>职责：初始化 DQN、Cosine、Quantile、Fraction 四个子网络</li>
+<li>参数：<code>num_actions</code> 动作数；<code>N</code> 分位数数量；<code>num_cosines</code> 余弦嵌入数；<code>embedding_dim</code> 嵌入维度；<code>dueling_net</code> 是否 dueling；<code>noisy_net</code> 是否 NoisyNet；<code>target</code> 是否目标网络；<code>require_QCM</code> 是否启用 QCM</li>
+<li>返回：无返回值，初始化网络</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.dqn_net = LSTMBase(n_actions=num_actions, embedding_dim=embedding_dim)
+self.cosine_net = CosineEmbeddingNetwork(num_cosines=num_cosines, embedding_dim=embedding_dim)
+self.quantile_net = QuantileNetwork(num_actions=num_actions, ...)
+if not target:
+    self.fraction_net = FractionProposalNetwork(N=N, embedding_dim=embedding_dim)</code></pre>
+<h5><code>calculate_fractions(self, states=None, state_embeddings=None, fraction_net=None)</code></h5>
+<ul>
+<li>职责：通过 FractionProposalNetwork 计算分位数位置 taus、tau_hats 与熵</li>
+<li>参数：<code>states</code> 状态张量；<code>state_embeddings</code> 状态嵌入；<code>fraction_net</code> 外部 fraction 网络</li>
+<li>返回：(taus, tau_hats, entropies) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">fraction_net = fraction_net if self.target else self.fraction_net
+taus, tau_hats, entropies = fraction_net(state_embeddings)
+return taus, tau_hats, entropies</code></pre>
+<h5><code>calculate_q(self, taus=None, tau_hats=None, states=None, state_embeddings=None, fraction_net=None)</code></h5>
+<ul>
+<li>职责：计算分位数期望作为 Q 值</li>
+<li>参数：<code>taus</code> 分位数位置；<code>tau_hats</code> 分位数中点；<code>states</code> 状态张量；<code>state_embeddings</code> 状态嵌入；<code>fraction_net</code> 外部 fraction 网络</li>
+<li>返回：Q 值张量 (batch_size, num_actions)</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">quantile_hats = self.calculate_quantiles(tau_hats, state_embeddings=state_embeddings)
+q = ((taus[:,1:,None] - taus[:,:-1,None]) * quantile_hats).sum(dim=1)
+return q</code></pre>
+<h5><code>calculate_higher_moments(self, states=None, state_embeddings=None)</code></h5>
+<ul>
+<li>职责：使用 QCM 变换矩阵从分位数计算 std/skewness/kurtosis 高阶矩</li>
+<li>参数：<code>states</code> 状态张量；<code>state_embeddings</code> 状态嵌入</li>
+<li>返回：(std, skewness, kurtosis) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">qcm_x = self.norm_dist.icdf(taus).unsqueeze(-1)
+qcm_X = torch.concat([torch.ones(...), qcm_x, qcm_x**2-1, qcm_x**3-3*qcm_x], dim=2)
+qcm_trans = (qcm_X.mT @ qcm_X).inverse() @ qcm_X.mT
+higher_moments = qcm_trans @ quantiles
+return std, skewness, kurtosis</code></pre>
+<hr>
+<h3><code>src/fqf_iqn_qrdqn/model/alpha_iqn.py</code> — AlphaSAGE 版 IQN：LSTMBase + cosine_net + quantile_net，calculate_q/calculate_higher_moments</h3>
+<blockquote>依赖：<code>torch</code>, <code>src.fqf_iqn_qrdqn.network</code>, <code>src.fqf_iqn_qrdqn.model.base_model</code></blockquote>
+<p><strong>类</strong>：<code>IQN</code> (L7) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self, num_actions, K=32, num_cosines=64, embedding_dim=128, dueling_net=False, noisy_net=False, require_QCM=False)</code></h5>
+<ul>
+<li>职责：初始化 LSTMBase、Cosine、Quantile 子网络</li>
+<li>参数：<code>num_actions</code> 动作数；<code>K</code> 采样分位数数；<code>num_cosines</code> 余弦嵌入数；<code>embedding_dim</code> 嵌入维度；<code>dueling_net</code> 是否 dueling；<code>noisy_net</code> 是否 NoisyNet；<code>require_QCM</code> 是否启用 QCM</li>
+<li>返回：无返回值，初始化网络</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.dqn_net = LSTMBase(n_actions=num_actions, embedding_dim=embedding_dim)
+self.cosine_net = CosineEmbeddingNetwork(num_cosines=num_cosines, embedding_dim=embedding_dim)
+self.quantile_net = QuantileNetwork(num_actions=num_actions, ...)
+if require_QCM:
+    self.norm_dist = torch.distributions.normal.Normal(0, 1)</code></pre>
+<h5><code>calculate_q(self, states=None, state_embeddings=None)</code></h5>
+<ul>
+<li>职责：采样 K 个分位数，计算期望作为 Q 值</li>
+<li>参数：<code>states</code> 状态张量；<code>state_embeddings</code> 状态嵌入</li>
+<li>返回：Q 值张量 (batch_size, num_actions)</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">taus = torch.rand(batch_size, self.K, ...)
+quantiles = self.calculate_quantiles(taus, state_embeddings=state_embeddings)
+q = quantiles.mean(dim=1)
+return q</code></pre>
+<h5><code>calculate_higher_moments(self, states=None, state_embeddings=None)</code></h5>
+<ul>
+<li>职责：采样分位数并使用 QCM 变换矩阵计算 std/skewness/kurtosis</li>
+<li>参数：<code>states</code> 状态张量；<code>state_embeddings</code> 状态嵌入</li>
+<li>返回：(std, skewness, kurtosis) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">taus = torch.rand(batch_size, self.K, ...)
+qcm_x = self.norm_dist.icdf(taus).unsqueeze(-1)
+qcm_X = torch.concat([torch.ones(...), qcm_x, qcm_x**2-1, qcm_x**3-3*qcm_x], dim=2)
+qcm_trans = (qcm_X.mT @ qcm_X).inverse() @ qcm_X.mT
+higher_moments = qcm_trans @ quantiles
+return std, skewness, kurtosis</code></pre>
+<hr>
+<h3><code>src/fqf_iqn_qrdqn/model/mean.py</code> — MeanNetwork：QCM 的均值网络，与分位数网络并行训练，forward/calculate_q</h3>
+<blockquote>依赖：<code>torch</code>, <code>torch.nn</code>, <code>src.fqf_iqn_qrdqn.network</code>, <code>src.fqf_iqn_qrdqn.model.base_model</code></blockquote>
+<p><strong>类</strong>：<code>MeanNetwork</code> (L7) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self, num_actions, embedding_dim=128, dueling_net=False, noisy_net=False)</code></h5>
+<ul>
+<li>职责：初始化 LSTMBase 与 q_net/dueling</li>
+<li>参数：<code>num_actions</code> 动作数；<code>embedding_dim</code> 嵌入维度；<code>dueling_net</code> 是否 dueling；<code>noisy_net</code> 是否 NoisyNet</li>
+<li>返回：无返回值，初始化网络</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.dqn_net = LSTMBase(n_actions=num_actions, embedding_dim=embedding_dim)
+self.q_net = nn.Sequential(NoisyLinear(embedding_dim, 64), nn.ReLU(), NoisyLinear(64, num_actions))</code></pre>
+<h5><code>forward(self, states=None, state_embeddings=None)</code></h5>
+<ul>
+<li>职责：计算动作均值预测</li>
+<li>参数：<code>states</code> 状态张量；<code>state_embeddings</code> 状态嵌入</li>
+<li>返回：均值预测张量 (batch_size, 1, num_actions)</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">if state_embeddings is None:
+    state_embeddings = self.dqn_net(states)
+mean_pred = self.q_net(state_embeddings).view(batch_size, 1, self.num_actions)
+return mean_pred</code></pre>
+<h5><code>calculate_q(self, states=None, state_embeddings=None)</code></h5>
+<ul>
+<li>职责：返回动作均值作为 Q 值</li>
+<li>参数：<code>states</code> 状态张量；<code>state_embeddings</code> 状态嵌入</li>
+<li>返回：Q 值张量 (batch_size, num_actions)</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">mean_pred = self(states=states, state_embeddings=state_embeddings)
+q = mean_pred.mean(dim=1)
+return q</code></pre>
+<hr>
+<h3><code>src/fqf_iqn_qrdqn/memory/base.py</code> — 回放缓冲：MultiStepBuff、LazyMemory、LazyMultiStepMemory（多步回报 + 懒加载张量存储）</h3>
+<blockquote>依赖：<code>numpy</code>, <code>torch</code></blockquote>
+<p><strong>类</strong>：<code>MultiStepBuff</code> (L8) 核心类；<code>LazyMemory</code> (L50) 核心类；<code>LazyMultiStepMemory</code> (L100) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>append(self, state, action, reward)</code></h5>
+<ul>
+<li>职责：向多步缓冲追加转移，缓冲满时返回折扣回报</li>
+<li>参数：<code>state</code> 状态；<code>action</code> 动作；<code>reward</code> 奖励</li>
+<li>返回：无返回值，缓冲满时触发 get</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.buff.append((state, action, reward))
+if len(self.buff) == self.n_steps:
+    return self.get(self.gamma)</code></pre>
+<h5><code>sample(self, batch_size)</code></h5>
+<ul>
+<li>职责：从缓冲区随机采样批量转移</li>
+<li>参数：<code>batch_size</code> 批量大小</li>
+<li>返回：(states, actions, rewards, next_states, dones) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">idx = np.random.randint(0, self._n, batch_size)
+return self._sample(idx, batch_size)</code></pre>
+<hr>
+<h3><code>src/fqf_iqn_qrdqn/memory/per.py</code> — 优先经验回放：LazyPrioritizedMultiStepMemory，使用 SumTree/MinTree 按优先级采样</h3>
+<blockquote>依赖：<code>numpy</code>, <code>torch</code>, <code>src.fqf_iqn_qrdqn.memory.base</code>, <code>src.fqf_iqn_qrdqn.memory.segment_tree</code></blockquote>
+<p><strong>类</strong>：<code>LazyPrioritizedMultiStepMemory</code> (L8) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self, capacity, state_shape, device, gamma=0.99, multi_step=3, alpha=0.5, beta=0.4, beta_steps=2e5, min_pa=0.0, max_pa=1.0, eps=0.01)</code></h5>
+<ul>
+<li>职责：初始化优先级参数与 SumTree/MinTree</li>
+<li>参数：<code>capacity</code> 缓冲区容量；<code>alpha</code> 优先级指数；<code>beta</code> 重要性采样权重指数；<code>eps</code> 优先级平滑常数</li>
+<li>返回：无返回值，初始化缓冲区</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">super().__init__(capacity, state_shape, device, gamma, multi_step)
+self.alpha = alpha
+self.beta = beta
+self.it_sum = SumTree(it_capacity)
+self.it_min = MinTree(it_capacity)</code></pre>
+<h5><code>sample(self, batch_size)</code></h5>
+<ul>
+<li>职责：按优先级采样批量转移并计算重要性采样权重</li>
+<li>参数：<code>batch_size</code> 批量大小</li>
+<li>返回：(batch, weights) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self._cached = self._sample_idxes(batch_size)
+batch = self._sample(self._cached, batch_size)
+weights = self._calc_weights(self._cached)
+return batch, weights</code></pre>
+<h5><code>update_priority(self, errors)</code></h5>
+<ul>
+<li>职责：根据 TD 误差更新采样优先级</li>
+<li>参数：<code>errors</code> TD 误差张量</li>
+<li>返回：无返回值，更新 SumTree/MinTree</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">ps = errors.detach().cpu().abs().numpy().flatten()
+pas = self._pa(ps)
+for index, pa in zip(self._cached, pas):
+    self.it_sum[index] = pa
+    self.it_min[index] = pa</code></pre>
+<hr>
+<h3><code>src/fqf_iqn_qrdqn/memory/segment_tree.py</code> — SegmentTree 数据结构：SegmentTree 基类 + SumTree（求和/前缀和查找）+ MinTree（最小值）</h3>
+<blockquote>依赖：<code>operator</code></blockquote>
+<p><strong>类</strong>：<code>SegmentTree</code> (L4) 核心类；<code>SumTree</code> (L57) 核心类；<code>MinTree</code> (L80) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__setitem__(self, idx, val)</code></h5>
+<ul>
+<li>职责：设置叶节点值并向上更新祖先节点</li>
+<li>参数：<code>idx</code> 叶节点索引；<code>val</code> 新值</li>
+<li>返回：无返回值</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">idx += self._size
+self._values[idx] = val
+idx = idx &gt;&gt; 1
+while idx &gt;= 1:
+    self._values[idx] = self._op(self._values[2*idx], self._values[2*idx+1])
+    idx = idx &gt;&gt; 1</code></pre>
+<h5><code>find_prefixsum_idx(self, prefixsum)</code></h5>
+<ul>
+<li>职责：查找给定前缀和对应的叶节点索引，用于优先级采样</li>
+<li>参数：<code>prefixsum</code> 前缀和值</li>
+<li>返回：叶节点索引</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">idx = 1
+while idx &lt; self._size:
+    left = 2 * idx
+    if self._values[left] &gt; prefixsum:
+        idx = left
+    else:
+        prefixsum -= self._values[left]
+        idx = left + 1
+# ...（略）</code></pre>
+<hr>
+<h3><code>src/fqf_iqn_qrdqn/network.py</code> — 分位数 RL 网络组件：DQNBase、LSTMBase、FractionProposalNetwork、CosineEmbeddingNetwork、QuantileNetwork、NoisyLinear、PositionalEncoding</h3>
+<blockquote>依赖：<code>torch</code>, <code>torch.nn</code></blockquote>
+<p><strong>类</strong>：<code>DQNBase</code> (L10) 核心类；<code>LSTMBase</code> (L35) 核心类；<code>FractionProposalNetwork</code> (L60) 核心类；<code>CosineEmbeddingNetwork</code> (L90) 核心类；<code>QuantileNetwork</code> (L120) 核心类（等共 7 个类）</p>
+<p><strong>函数</strong>：</p>
+<h5><code>forward(self, state)</code></h5>
+<ul>
+<li>职责：将 token 序列通过 LSTM 编码为状态嵌入</li>
+<li>参数：<code>state</code> token 序列张量</li>
+<li>返回：状态嵌入张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">x = self.embedding(state)
+x, _ = self.lstm(x)
+return x[:, -1]</code></pre>
+<h5><code>forward(self, state_embeddings)</code></h5>
+<ul>
+<li>职责：计算分位数位置 taus、tau_hats 与熵</li>
+<li>参数：<code>state_embeddings</code> 状态嵌入</li>
+<li>返回：(taus, tau_hats, entropies) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">logits = self.net(state_embeddings).view(batch, N-1)
+taus = torch.sigmoid(logits).cumsum(dim=1)
+tau_hats = (taus[:, 1:] + taus[:, :-1]) / 2
+return taus, tau_hats, entropies</code></pre>
+<hr>
+<h3><code>src/fqf_iqn_qrdqn/utils.py</code> — 分位数 RL 工具：update_params/disable_gradients/calculate_huber_loss/calculate_quantile_huber_loss/evaluate_quantile_at_action/RunningMeanStats/LinearAnneaer</h3>
+<blockquote>依赖：<code>torch</code>, <code>numpy</code></blockquote>
+<p><strong>类</strong>：<code>RunningMeanStats</code> (L80) 核心类；<code>LinearAnneaer</code> (L100) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>update_params(optim, loss, networks, retain_graph=False, grad_cliping=None)</code></h5>
+<ul>
+<li>职责：反向传播并更新网络参数，可选梯度裁剪</li>
+<li>参数：<code>optim</code> 优化器；<code>loss</code> 损失张量；<code>networks</code> 要更新的网络列表；<code>retain_graph</code> 是否保留计算图；<code>grad_cliping</code> 梯度裁剪阈值</li>
+<li>返回：无返回值，更新参数</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">optim.zero_grad()
+loss.backward(retain_graph=retain_graph)
+if grad_cliping is not None:
+    torch.nn.utils.clip_grad_norm_(params, grad_cliping)
+optim.step()</code></pre>
+<h5><code>calculate_quantile_huber_loss(td_errors, taus, weights, kappa)</code></h5>
+<ul>
+<li>职责：计算分位数 TD 误差的 huber 损失</li>
+<li>参数：<code>td_errors</code> TD 误差张量；<code>taus</code> 分位数位置；<code>weights</code> PER 权重；<code>kappa</code> huber 阈值</li>
+<li>返回：标量损失</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">huber_loss = calculate_huber_loss(td_errors, kappa)
+quantile_huber_loss = (torch.abs(taus - td_errors.le(0).float()) * huber_loss)
+return (quantile_huber_loss * weights).mean()</code></pre>
+<h5><code>evaluate_quantile_at_action(quantiles, actions)</code></h5>
+<ul>
+<li>职责：按动作索引提取对应分位数值</li>
+<li>参数：<code>quantiles</code> 分位数值张量；<code>actions</code> 动作索引</li>
+<li>返回：提取后的分位数值张量</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">return quantiles.gather(2, actions.unsqueeze(1).expand(-1, quantiles.size(1), -1))</code></pre>
+<hr>
+<h3><code>src/gplearn/_program.py</code> — GP 程序树：_Program 类（build_program/validate_program/execute/raw_fitness/fitness/get_subtree/reproduce/crossover/subtree_mutation/hoist_mutation/point_mutation）</h3>
+<blockquote>依赖：<code>numpy</code></blockquote>
+<p><strong>类</strong>：<code>_Program</code> (L20) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>build_program(random_state, function_set, arities, init_depth, init_method, n_features, const_range, metric, p_point_replace, parsimony_coefficient)</code></h5>
+<ul>
+<li>职责：随机构建一棵 GP 程序树（grow 或 half-and-half 方法）</li>
+<li>参数：<code>random_state</code> 随机种子；<code>function_set</code> 函数集；<code>arities</code> 函数元数字典；<code>init_depth</code> 初始深度；<code>init_method</code> 初始化方法；<code>n_features</code> 特征数；<code>const_range</code> 常量范围；<code>metric</code> 适应度函数；<code>p_point_replace</code> 点替换概率；<code>parsimony_coefficient</code> 复杂度惩罚系数</li>
+<li>返回：_Program 对象</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">if init_method == 'half and half':
+    method = 'grow' if random_state.rand() &lt; 0.5 else 'full'
+stack = [(0, method)]
+while stack:
+    depth, method = stack.pop()
+    if depth &lt; init_depth and method == 'grow':
+        symbol = random_choice(function_set + terminals)</code></pre>
+<h5><code>execute(self, X)</code></h5>
+<ul>
+<li>职责：在输入数据 X 上执行程序树并返回输出</li>
+<li>参数：<code>X</code> 输入特征矩阵</li>
+<li>返回：程序树输出数组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">stack = []
+for node in self.program[::-1]:
+    if isinstance(node, _Function):
+        args = [stack.pop() for _ in range(node.arity)]
+        stack.append(node(*args))
+    else:
+        stack.append(X[:, node])
+return stack[0]</code></pre>
+<h5><code>raw_fitness(self, X, y, sample_weight)</code></h5>
+<ul>
+<li>职责：计算程序树的原始适应度（不含复杂度惩罚）</li>
+<li>参数：<code>X</code> 输入特征；<code>y</code> 目标值；<code>sample_weight</code> 样本权重</li>
+<li>返回：适应度值</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">y_pred = self.execute(X)
+return self.metric(y, y_pred, sample_weight)</code></pre>
+<h5><code>crossover(self, donor, random_state)</code></h5>
+<ul>
+<li>职责：与捐赠者程序树进行交叉，返回子代程序</li>
+<li>参数：<code>donor</code> 捐赠者 _Program；<code>random_state</code> 随机种子</li>
+<li>返回：子代 _Program</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">subtree = self.get_subtree(random_state)
+start = donor.get_subtree(random_state)
+return self.program[:subtree] + donor.program[start:]</code></pre>
+<h5><code>subtree_mutation(self, random_state)</code></h5>
+<ul>
+<li>职责：子树变异：随机生成新子树替换原节点</li>
+<li>参数：<code>random_state</code> 随机种子</li>
+<li>返回：变异后 _Program</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">mutant = self.build_program(...)
+subtree = self.get_subtree(random_state)
+return self.program[:subtree] + mutant.program</code></pre>
+<h5><code>point_mutation(self, random_state)</code></h5>
+<ul>
+<li>职责：点变异：以 p_point_replace 概率替换每个节点</li>
+<li>参数：<code>random_state</code> 随机种子</li>
+<li>返回：变异后 _Program</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">for i, node in enumerate(self.program):
+    if random_state.rand() &lt; self.p_point_replace:
+        self.program[i] = random_replacement</code></pre>
+<hr>
+<h3><code>src/gplearn/genetic.py</code> — GP 遗传算法：_parallel_evolve + BaseSymbolic.fit + SymbolicRegressor/SymbolicClassifier/SymbolicTransformer</h3>
+<blockquote>依赖：<code>numpy</code>, <code>joblib</code>, <code>src.gplearn._program</code>, <code>src.gplearn.fitness</code>, <code>src.gplearn.functions</code></blockquote>
+<p><strong>类</strong>：<code>BaseSymbolic</code> (L50) 核心类；<code>SymbolicRegressor</code> (L200) 核心类；<code>SymbolicClassifier</code> (L400) 核心类；<code>SymbolicTransformer</code> (L600) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>_parallel_evolve(n_programs, parents, arity, generating_depth, random_state, ...)</code></h5>
+<ul>
+<li>职责：并行进化种群：对每个个体执行选择、交叉、变异生成子代</li>
+<li>参数：<code>n_programs</code> 种群大小；<code>parents</code> 父代程序列表；<code>arity</code> 函数元数；<code>generating_depth</code> 生成深度；<code>random_state</code> 随机种子</li>
+<li>返回：子代程序列表</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">def tournament():
+    contenders = random.sample(parents, k)
+    return max(contenders, key=lambda p: p.fitness)
+for i in range(n_programs):
+    parent = tournament()
+    child = parent.crossover(tournament(), random_state)
+    child = child.mutate(random_state)
+    programs.append(child)</code></pre>
+<h5><code>fit(self, X, y, sample_weight=None, callback=None)</code></h5>
+<ul>
+<li>职责：GP 训练主循环：初始化种群并迭代进化，每代并行评估适应度</li>
+<li>参数：<code>X</code> 输入特征；<code>y</code> 目标值；<code>sample_weight</code> 样本权重；<code>callback</code> 每代回调函数</li>
+<li>返回：self</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">programs = [self._build_random_program() for _ in range(population_size)]
+for gen in range(generations):
+    fitness = parallel_eval(programs, X, y)
+    programs = _parallel_evolve(programs, ...)
+    if callback:
+        callback(programs)</code></pre>
+<h5><code>predict(self, X)</code></h5>
+<ul>
+<li>职责：使用最佳程序预测回归值</li>
+<li>参数：<code>X</code> 输入特征</li>
+<li>返回：预测值数组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">return self._program.execute(X)</code></pre>
+<hr>
+<h3><code>src/gplearn/fitness.py</code> — GP 适应度：_Fitness、make_fitness、_weighted_pearson/_weighted_spearman/_mean_absolute_error 等 + _fitness_map</h3>
+<blockquote>依赖：<code>numpy</code></blockquote>
+<p><strong>类</strong>：<code>_Fitness</code> (L10) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>make_fitness(function, name, greater_is_better)</code></h5>
+<ul>
+<li>职责：将函数包装为 _Fitness 对象</li>
+<li>参数：<code>function</code> 适应度函数；<code>name</code> 函数名；<code>greater_is_better</code> 是否越大越好</li>
+<li>返回：_Fitness 对象</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">return _Fitness(function, name, greater_is_better)</code></pre>
+<h5><code>_weighted_pearson(y, y_pred, w)</code></h5>
+<ul>
+<li>职责：计算加权皮尔逊相关系数</li>
+<li>参数：<code>y</code> 真实值；<code>y_pred</code> 预测值；<code>w</code> 权重</li>
+<li>返回：相关系数</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">return np.corrcoef(y, y_pred)[0,1]</code></pre>
+<h5><code>_mean_absolute_error(y, y_pred, w)</code></h5>
+<ul>
+<li>职责：计算加权平均绝对误差</li>
+<li>参数：<code>y</code> 真实值；<code>y_pred</code> 预测值；<code>w</code> 权重</li>
+<li>返回：MAE 值</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">return np.average(np.abs(y_pred - y), weights=w)</code></pre>
+<hr>
+<h3><code>src/gplearn/functions.py</code> — GP 函数集：_Function、make_function、_protected_division/sqrt/log/inverse、_sigmoid、add2/sub2/...、_function_map</h3>
+<blockquote>依赖：<code>numpy</code></blockquote>
+<p><strong>类</strong>：<code>_Function</code> (L10) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>make_function(function, name, arity)</code></h5>
+<ul>
+<li>职责：将函数包装为 _Function 对象并验证元数</li>
+<li>参数：<code>function</code> 可调用函数；<code>name</code> 函数名；<code>arity</code> 元数</li>
+<li>返回：_Function 对象</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">return _Function(function, name=name, arity=arity)</code></pre>
+<h5><code>_protected_division(x1, x2)</code></h5>
+<ul>
+<li>职责：保护除法，分母为 0 时返回 1</li>
+<li>参数：<code>x1</code> 分子；<code>x2</code> 分母</li>
+<li>返回：除法结果</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">with np.errstate(divide='ignore', invalid='ignore'):
+    return np.where(np.abs(x2) &gt; 0.001, np.divide(x1, x2), 1.)</code></pre>
+<hr>
+<h3><code>src/gan/utils/builder.py</code> — GAN 因子构建器：Builders（filter_by_index/__add__/__sub__/drop_invalid/drop_duplicated/add_token/evaluate/build_exprs/action_masks/get_valid_op）+ save_blds/load_pickle/save_blds_csv/get_blds_df 等</h3>
+<blockquote>依赖：<code>numpy</code>, <code>torch</code>, <code>src.alphagen.data.tree</code></blockquote>
+<p><strong>类</strong>：<code>Builders</code> (L15) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self, batch_size, max_len=20, n_actions=48)</code></h5>
+<ul>
+<li>职责：初始化批量大小、最大长度与动作空间大小</li>
+<li>参数：<code>batch_size</code> 批量大小；<code>max_len</code> 最大 token 长度；<code>n_actions</code> 动作空间大小</li>
+<li>返回：无返回值，初始化 builders</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.batch_size = batch_size
+self.max_len = max_len
+self.n_actions = n_actions
+self.builders = [Builder() for _ in range(batch_size)]</code></pre>
+<h5><code>add_token(self, tokens)</code></h5>
+<ul>
+<li>职责：为每个样本添加一个 token 动作</li>
+<li>参数：<code>tokens</code> token 动作数组 (batch_size,)</li>
+<li>返回：无返回值，更新 builders</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">for b, t in zip(self.builders, tokens):
+    b.add_token(t)</code></pre>
+<h5><code>get_valid_op(self)</code></h5>
+<ul>
+<li>职责：返回每个样本当前合法动作掩码</li>
+<li>返回：动作掩码 numpy 数组 (batch_size, n_actions)</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">return np.stack([b.get_valid_op() for b in self.builders])</code></pre>
+<h5><code>evaluate(self, data, target, metric)</code></h5>
+<ul>
+<li>职责：对每个样本构建表达式并使用 metric 评估因子 IC</li>
+<li>参数：<code>data</code> StockData 对象；<code>target</code> 目标表达式；<code>metric</code> 评估函数</li>
+<li>返回：无返回值，更新 self.scores</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.drop_invalid()
+exprs = self.build_exprs()
+self.scores = [metric(e, data, target) for e in exprs]</code></pre>
+<h5><code>save_blds(blds, path, name)</code></h5>
+<ul>
+<li>职责：将 Builders 表达式与得分保存到磁盘</li>
+<li>参数：<code>blds</code> Builders 对象；<code>path</code> 保存路径；<code>name</code> 文件名</li>
+<li>返回：无返回值</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">with open(f'{path}/{name}.pkl', 'wb') as f:
+    pickle.dump(blds, f)</code></pre>
+<h5><code>numpy2onehot(arr, n_classes)</code></h5>
+<ul>
+<li>职责：将 numpy 整数数组转为 one-hot</li>
+<li>参数：<code>arr</code> 整数数组；<code>n_classes</code> 类别数</li>
+<li>返回：one-hot 数组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">onehot = np.zeros((len(arr), n_classes))
+for i, a in enumerate(arr):
+    onehot[i, a] = 1
+return onehot</code></pre>
+<hr>
+<h3><code>src/gan/dataset/collector.py</code> — GAN 因子采集器：Collector（reset/collect/collect_randomly/collect_target_num/blds_list）</h3>
+<blockquote>依赖：<code>torch</code>, <code>src.gan.utils.builder</code></blockquote>
+<p><strong>类</strong>：<code>Collector</code> (L8) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>__init__(self, netG, netM, cfg, n_actions)</code></h5>
+<ul>
+<li>职责：初始化生成器、掩码器与配置</li>
+<li>参数：<code>netG</code> 生成器网络；<code>netM</code> 掩码器网络；<code>cfg</code> 配置对象；<code>n_actions</code> 动作空间大小</li>
+<li>返回：无返回值</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">self.netG = netG
+self.netM = netM
+self.cfg = cfg
+self.n_actions = n_actions</code></pre>
+<h5><code>collect(self, n_samples)</code></h5>
+<ul>
+<li>职责：使用 netG 生成 n_samples 个因子表达式</li>
+<li>参数：<code>n_samples</code> 采样数量</li>
+<li>返回：Builders 对象</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">z = torch.randn(n_samples, self.cfg.potential_size, device=self.cfg.device)
+logits = self.netG(z)
+_, _, blds = self.netM(logits)
+return blds</code></pre>
+<h5><code>collect_target_num(self, target_num, data, target, metric)</code></h5>
+<ul>
+<li>职责：循环采集直到获得 target_num 个有效因子</li>
+<li>参数：<code>target_num</code> 目标有效因子数；<code>data</code> StockData 对象；<code>target</code> 目标表达式；<code>metric</code> 评估函数</li>
+<li>返回：Builders 对象</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">while len(valid_blds) &lt; target_num:
+    blds = self.collect(batch)
+    blds.evaluate(data, target, metric)
+    blds.drop_invalid()
+    valid_blds += blds
+return valid_blds[:target_num]</code></pre>
+<hr>
+<h3><code>src/gan/network/generater.py</code> — GAN 生成器：NetG_DCGAN/NetG_Lstm/NetG_CNN/ResBlock/train_network_generator</h3>
+<blockquote>依赖：<code>torch</code>, <code>torch.nn</code>, <code>src.gan.utils.builder</code>, <code>src.gan.network.loss</code></blockquote>
+<p><strong>类</strong>：<code>NetG_DCGAN</code> (L17) 核心类；<code>NetG_Lstm</code> (L65) 核心类；<code>NetG_CNN</code> (L169) 核心类；<code>ResBlock</code> (L155) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>forward(self, x)</code></h5>
+<ul>
+<li>职责：将 latent 向量通过线性+转置卷积+卷积生成 token logits</li>
+<li>参数：<code>x</code> latent 向量 (batch, latent_size)</li>
+<li>返回：token logits 张量 (batch, seq_len, n_chars)</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">x = self.linear(x)
+x = x.view(x.shape[0], 384, 6, 1)
+x = self.deconv(x)
+x = self.conv(x)
+return x.view(x.shape[0], x.shape[2], x.shape[1])</code></pre>
+<h5><code>forward(self, z)</code></h5>
+<ul>
+<li>职责：自回归 LSTM 生成：逐步生成 token 并维护 Builders 掩码</li>
+<li>参数：<code>z</code> latent 向量 (batch, potential_size)</li>
+<li>返回：(onehot, logit, mask) 元组与 Builders</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">h, c = self.fc_h(z), self.fc_c(z)
+builders = Builders(bs)
+for t in range(self.max_len):
+    output, (h,c) = self.rnn(embedded, (h,c))
+    mask = builders.get_valid_op()
+    logit = self.fc(output)
+    builders.add_token(logit.argmax(1))
+return (onehot_s, logit_s, mask_s), builders</code></pre>
+<h5><code>train_network_generator(netG, netM, netP, cfg, data, target, current_round, random_method, metric, lr, n_actions)</code></h5>
+<ul>
+<li>职责：训练生成器 netG：使用 netM 掩码 + netP 评分 + gumbel softmax 端到端优化，含早停</li>
+<li>参数：<code>netG</code> 生成器网络；<code>netM</code> 掩码器网络；<code>netP</code> 预测器网络；<code>cfg</code> 配置对象；<code>data</code> StockData；<code>target</code> 目标表达式；<code>current_round</code> 当前训练轮次；<code>random_method</code> 噪声采样方法；<code>metric</code> 评估函数；<code>lr</code> 学习率；<code>n_actions</code> 动作数</li>
+<li>返回：采集到的 Builders 因子集合</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">for epoch in range(cfg.num_epochs_g):
+    z1, z2 = random_method(z1), random_method(z2)
+    masked_x_1, masks_1, blds_1 = netM(netG(z1))
+    onehot = F.gumbel_softmax(masked_x_1, hard=True)
+    pred, latent = netP(onehot, latent=True)
+    loss = get_losses(loss_inputs, cfg)
+    if epoch &gt; 0:
+        loss.backward(); opt.step()
+# ...（略）</code></pre>
+<hr>
+<h3><code>src/gan/network/masker.py</code> — GAN 掩码器：NetM 按 Builders 掩码无效 token 并 argmax 选 token</h3>
+<blockquote>依赖：<code>torch</code>, <code>torch.nn</code>, <code>src.gan.utils.builder</code></blockquote>
+<p><strong>类</strong>：<code>NetM</code> (L10) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>forward(self, x)</code></h5>
+<ul>
+<li>职责：对每个时间步应用 Builders 合法动作掩码，argmax 选择 token 并更新 Builders</li>
+<li>参数：<code>x</code> 生成器 logits 张量 (bs, seq_len, n_actions)</li>
+<li>返回：(masked_x, masks, blds) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">blds = Builders(bs, max_len=seq_len, n_actions=n_actions)
+for i in range(seq_len):
+    mask = blds.get_valid_op()
+    tmp = logit.detach().cpu().numpy()
+    tmp[~mask] = -1e8
+    select = tmp.argmax(axis=1)
+    blds.add_token(select)
+    masked_x[:,i,:][~mask] = -1e8
+# ...（略）</code></pre>
+<hr>
+<h3><code>src/gan/network/predictor.py</code> — GAN 预测器：NetP/NetP_CNN/ResBlock/train_regression_model/train_regression_model_with_weight/train_net_p_with_weight</h3>
+<blockquote>依赖：<code>torch</code>, <code>torch.nn</code>, <code>sklearn.model_selection</code>, <code>tensorboard</code></blockquote>
+<p><strong>类</strong>：<code>NetP</code> (L13) 核心类；<code>NetP_CNN</code> (L74) 核心类；<code>ResBlock</code> (L58) 核心类</p>
+<p><strong>函数</strong>：</p>
+<h5><code>forward(self, x, latent=False)</code></h5>
+<ul>
+<li>职责：将 one-hot 序列通过卷积+全连接输出因子预测值，可选返回 latent</li>
+<li>参数：<code>x</code> one-hot token 张量 (bs, 20, 48)；<code>latent</code> 是否返回 latent 向量</li>
+<li>返回：预测值或 (预测值, latent) 元组</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">x = x.permute(0, 2, 1)[:, :, None]
+x = self.convs(x)
+x = x.reshape([x.shape[0], 128*6])
+latent_tensor = self.fc1(x)
+x = self.fc2(latent_tensor)
+return (x, latent_tensor) if latent else x</code></pre>
+<h5><code>train_regression_model_with_weight(train_loader, valid_loader, net, loss_fn, optimizer, device, num_epochs, use_tensorboard, tensorboard_path, early_stopping_patience)</code></h5>
+<ul>
+<li>职责：带样本权重的回归训练，含验证早停</li>
+<li>参数：<code>train_loader</code> 训练数据加载器；<code>valid_loader</code> 验证数据加载器；<code>net</code> 网络；<code>loss_fn</code> 损失函数；<code>optimizer</code> 优化器；<code>device</code> 设备；<code>num_epochs</code> 训练轮数；<code>use_tensorboard</code> 是否用 TensorBoard；<code>tensorboard_path</code> TensorBoard 路径；<code>early_stopping_patience</code> 早停耐心值</li>
+<li>返回：无返回值，原地训练网络</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">for epoch in range(num_epochs):
+    for batch_x, batch_y, batch_w in train_loader:
+        loss = loss_fn(net(batch_x), batch_y, batch_w)
+        loss.backward(); optimizer.step()
+    if average_valid_loss &lt; best_valid_loss - 1e-5:
+        best_weights = copy.deepcopy(net.state_dict())
+    elif patience_counter &gt;= early_stopping_patience:
+        break</code></pre>
+<h5><code>train_net_p_with_weight(cfg, net, x, y, weights, lr=0.001)</code></h5>
+<ul>
+<li>职责：封装训练 NetP 的便捷函数，使用 weighted MSE 与早停</li>
+<li>参数：<code>cfg</code> 配置对象；<code>net</code> NetP 网络；<code>x</code> 输入特征；<code>y</code> 目标值；<code>weights</code> 样本权重；<code>lr</code> 学习率</li>
+<li>返回：无返回值，训练网络</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">loss_fn = weighted_mse_loss
+optimizer = torch.optim.Adam(net.parameters(), lr=lr)
+train_regression_model_with_weight(train_loader, valid_loader, net, loss_fn, optimizer, device=cfg.device, num_epochs=cfg.num_epochs_p, early_stopping_patience=cfg.es_p)</code></pre>
+<hr>
+<h3><code>src/gan/network/loss.py</code> — GAN 损失函数：loss_simi/loss_pred/loss_potential/loss_entropy/get_losses 加权组合</h3>
+<blockquote>依赖：<code>torch</code></blockquote>
+<p><strong>函数</strong>：</p>
+<h5><code>loss_simi(loss_inputs, cfg)</code></h5>
+<ul>
+<li>职责：惩罚两个 batch 之间 token 序列的相似度过高，促进多样性</li>
+<li>参数：<code>loss_inputs</code> 损失输入字典；<code>cfg</code> 配置对象</li>
+<li>返回：相似度损失</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">simi = torch.sum(onehot_1*onehot_2, dim=-1).sum(dim=-1)
+simi = simi / onehot_1.shape[1]
+simi = torch.relu(simi - cfg.l_simi_thresh)
+return simi.mean()</code></pre>
+<h5><code>loss_pred(loss_inputs, cfg)</code></h5>
+<ul>
+<li>职责：最大化预测器对生成因子的预测值</li>
+<li>参数：<code>loss_inputs</code> 损失输入字典；<code>cfg</code> 配置对象</li>
+<li>返回：预测损失（负值）</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">return -pred_1[:,0].mean()</code></pre>
+<h5><code>loss_potential(loss_inputs, cfg)</code></h5>
+<ul>
+<li>职责：惩罚两个 latent 向量的余弦相似度过高</li>
+<li>参数：<code>loss_inputs</code> 损失输入字典；<code>cfg</code> 配置对象</li>
+<li>返回：potential 损失</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">similarity = (u1*u2).sum(1) / (((u1**2).sum(1))**0.5 * ((u2**2).sum(1))**0.5) - cfg.l_potential_thresh
+return similarity.clamp(min=0).mean()</code></pre>
+<h5><code>get_losses(loss_inputs, cfg)</code></h5>
+<ul>
+<li>职责：按 cfg 权重加权组合所有损失项</li>
+<li>参数：<code>loss_inputs</code> 损失输入字典；<code>cfg</code> 配置对象</li>
+<li>返回：总损失</li>
+<li>关键逻辑：</li>
+</ul>
+<pre><code class="language-python">loss = 0
+if cfg.l_simi: loss += cfg.l_simi * loss_simi(loss_inputs, cfg)
+if cfg.l_pred: loss += cfg.l_pred * loss_pred(loss_inputs, cfg)
+if cfg.l_potential: loss += cfg.l_potential * loss_potential(loss_inputs, cfg)
+return loss</code></pre>
+<h3>4.x 周边文件清单</h3>
+<table>
+<thead><tr>
+<th>路径</th>
+<th>用途</th>
+<th>重要度</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>README.md</code></td>
+<td>项目说明文档，介绍 AlphaSAGE 框架、安装、数据准备、快速启动与基线对比命令</td>
+<td>high</td>
+</tr>
+<tr>
+<td><code>pyproject.toml</code></td>
+<td>PDM 项目配置文件，定义 Python 3.11+ 依赖（torch/qlib/gfn/sb3/gplearn 等）与构建系统</td>
+<td>high</td>
+</tr>
+<tr>
+<td><code>src/alphagen_generic/features.py</code></td>
+<td>定义通用特征 high/low/volume/open_/close/vwap 与目标 target=Ref(close,-20)/close-1</td>
+<td>high</td>
+</tr>
+<tr>
+<td><code>src/alphagen_generic/operators.py</code></td>
+<td>定义 generic_funcs 算子集（unary/binary/rolling/rolling_binary），供 GP 符号回归使用</td>
+<td>high</td>
+</tr>
+<tr>
+<td><code>src/alphagen/trade/base.py</code></td>
+<td>交易基础类型：StockOrder/StockPosition/StockStatus/StockOrderDirection 与 pandera schema</td>
+<td>medium</td>
+</tr>
+<tr>
+<td><code>src/alphagen/trade/strategy.py</code></td>
+<td>Strategy 抽象基类，定义 step_decision 接口</td>
+<td>medium</td>
+</tr>
+<tr>
+<td><code>src/alphagen_qlib/strategy.py</code></td>
+<td>TopKSwapNStrategy：基于信号的 TopK 换仓策略，继承 BaseSignalStrategy</td>
+<td>medium</td>
+</tr>
+<tr>
+<td><code>src/alphagen_qlib/utils.py</code></td>
+<td>Qlib 工具：load_recent_data 加载近期数据、load_alpha_pool/load_alpha_pool_by_path 加载因子池</td>
+<td>medium</td>
+</tr>
+<tr>
+<td><code>src/fqf_iqn_qrdqn/env.py</code></td>
+<td>Atari 环境包装器（NoopResetEnv/FireResetEnv/EpisodicLifeEnv 等），原项目遗留，AlphaSAGE 未直接使用</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>src/fqf_iqn_qrdqn/model/fqf.py</code></td>
+<td>原始 Atari 版 FQF 模型（CNN），AlphaSAGE 使用 alpha_fqf.py 的 LSTM 版本</td>
+<td>medium</td>
+</tr>
+<tr>
+<td><code>src/fqf_iqn_qrdqn/model/iqn.py</code></td>
+<td>原始 Atari 版 IQN 模型（CNN），AlphaSAGE 使用 alpha_iqn.py 的 LSTM 版本</td>
+<td>medium</td>
+</tr>
+<tr>
+<td><code>src/fqf_iqn_qrdqn/model/qrdqn.py</code></td>
+<td>原始 Atari 版 QRDQN 模型（CNN），AlphaSAGE 使用 alpha_qrdqn.py 的 LSTM 版本</td>
+<td>medium</td>
+</tr>
+<tr>
+<td><code>src/gan/utils/data.py</code></td>
+<td>get_data_by_year：按年份划分 train/valid/test 数据并缓存为 pkl</td>
+<td>medium</td>
+</tr>
+<tr>
+<td><code>src/gan/utils/pool.py</code></td>
+<td>MyPool：简化因子池，使用最小二乘回归组合因子并评估 IC</td>
+<td>medium</td>
+</tr>
+<tr>
+<td><code>src/gan/utils/qlib.py</code></td>
+<td>get_data_my：初始化 Qlib 并返回 StockData 对象</td>
+<td>medium</td>
+</tr>
+<tr>
+<td><code>src/gplearn/utils.py</code></td>
+<td>gplearn 工具函数：check_random_state/_get_n_jobs/_partition_estimators（来自 scikit-learn）</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>src/gplearn/tests/test_estimator_checks.py</code></td>
+<td>gplearn 估计器接口检查测试</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>src/gplearn/tests/test_examples.py</code></td>
+<td>gplearn 示例测试</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>src/gplearn/tests/test_fitness.py</code></td>
+<td>gplearn 适应度函数单元测试</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>src/gplearn/tests/test_functions.py</code></td>
+<td>gplearn 算子函数单元测试</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>src/gplearn/tests/test_genetic.py</code></td>
+<td>gplearn 遗传算法单元测试</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>src/gplearn/tests/test_utils.py</code></td>
+<td>gplearn 工具函数单元测试</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>src/data_collection/fetch_baostock_data.py</code></td>
+<td>DataManager：通过 baostock 下载 A 股数据并转为 Qlib bin 格式</td>
+<td>medium</td>
+</tr>
+<tr>
+<td><code>src/data_collection/qlib_dump_bin.py</code></td>
+<td>DumpDataBase/DumpDataAll/DumpDataFix/DumpDataUpdate：将 CSV 转为 Qlib bin 数据</td>
+<td>medium</td>
+</tr>
+<tr>
+<td><code>src/alpha_gfn/__init__.py</code></td>
+<td>alpha_gfn 包初始化，导出主要类</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>src/alpha_gfn/env/__init__.py</code></td>
+<td>alpha_gfn.env 包初始化</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>src/alphagen/utils/__init__.py</code></td>
+<td>导出 batch_spearmanr 与 reseed_everything</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>src/fqf_iqn_qrdqn/agent/__init__.py</code></td>
+<td>导出 FQFAgent/IQNAgent/QRDQNAgent/IQCMAgent/QRQCMAgent/FQCMAgent</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>src/fqf_iqn_qrdqn/memory/__init__.py</code></td>
+<td>memory 包初始化</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>src/fqf_iqn_qrdqn/model/__init__.py</code></td>
+<td>model 包初始化</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>src/fqf_iqn_qrdqn/__init__.py</code></td>
+<td>fqf_iqn_qrdqn 包初始化</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>src/gan/__init__.py</code></td>
+<td>gan 包初始化（空文件）</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>src/gan/dataset/__init__.py</code></td>
+<td>导出 collector 模块</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>src/gan/network/__init__.py</code></td>
+<td>gan.network 包初始化</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>src/gan/utils/__init__.py</code></td>
+<td>导出 builder 模块</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>src/gplearn/__init__.py</code></td>
+<td>gplearn 包初始化，版本 0.5.dev0</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>src/gplearn/tests/__init__.py</code></td>
+<td>tests 包初始化</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>LICENSE</code></td>
+<td>MIT 许可证</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>.gitignore</code></td>
+<td>Git 忽略规则</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>pdm.lock</code></td>
+<td>PDM 依赖锁定文件</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>exp_AFF_calc_result.ipynb</code></td>
+<td>AFF 因子计算结果分析 notebook</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>exp_GP_calc_result.ipynb</code></td>
+<td>GP 因子计算结果分析 notebook</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>exp_ML_train_and_result.ipynb</code></td>
+<td>ML 模型训练与结果分析 notebook</td>
+<td>low</td>
+</tr>
+<tr>
+<td><code>exp_RL_calc_result.ipynb</code></td>
+<td>RL 因子计算结果分析 notebook</td>
+<td>low</td>
+</tr>
+</tbody></table>
+<h3>4.y 配置 / 脚本 / 资源</h3>
+<p><strong>配置文件</strong></p>
+<table>
+<thead><tr>
+<th>路径</th>
+<th>用途</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>config/qcm_config/qrdqn.yaml</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>config/qcm_config/iqn.yaml</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>config/qcm_config/fqf.yaml</code></td>
+<td></td>
+</tr>
+</tbody></table>
+<p><strong>脚本</strong></p>
+<table>
+<thead><tr>
+<th>路径</th>
+<th>用途</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>run.sh</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>eval.sh</code></td>
+<td></td>
+</tr>
+</tbody></table>
+<p><strong>资源</strong></p>
+<table>
+<thead><tr>
+<th>路径</th>
+<th>用途</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>img/overview.png</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>img/backtest.png</code></td>
+<td></td>
+</tr>
+</tbody></table>
+<p><strong>测试策略</strong>：仓库内仅 gplearn 子包含单元测试（test_fitness/test_functions/test_genetic/test_utils/test_examples/test_estimator_checks），覆盖适应度函数、算子函数、遗传操作与估计器接口；AlphaSAGE 主体（GFlowNet/PPO/QCM/GAN）无独立测试，依赖训练脚本与 notebook 验证。</p>
+<hr>
+<h2>五、论文—代码映射</h2>
+<h3>5.1 论文速览</h3>
+<ul>
+<li><strong>标题</strong>：AlphaSAGE: Structure-Aware Alpha Mining via GFlowNets for Robust Exploration</li>
+<li><strong>作者</strong>：Binqi Chen, Hongjun Ding, Ning Shen, Taian Guo 等 7 人</li>
+</ul>
+<p><strong>核心贡献</strong>：</p>
+<ul>
+<li>1. 提出基于关系图卷积网络（RGCN）的结构感知编码器，作用于alpha的抽象语法树（AST）表示，以捕捉其语义和组合特性，克服了序列模型无法表达公式层级结构的缺陷。</li>
+<li>2. 提出基于生成式流网络（GFlowNets）的生成框架，学习采样一个多样化的候选集合，使采样概率与奖励成正比，直接满足构建多alpha组合对多样性的需求，从根本上缓解了传统RL的模式坍缩问题。</li>
+<li>3. 设计稠密、多维度的奖励函数，将终端预测性能（IC）、结构感知对齐奖励（SA）和新颖度奖励（NOV）通过时间依赖权重组合，并辅以熵正则化，有效缓解奖励稀疏并引导探索。</li>
+<li>4. 引入行为距离感知的结构对齐奖励（RSA），确保结构嵌入相似的alpha表现出相似的行为，使嵌入空间同时具备结构感知性和行为预测性（自监督对齐）。</li>
+<li>5. 通过中港美多市场（CSI300/500/1000、S&amp;P500）真实历史数据上的大量实验，证明AlphaSAGE在相关性与组合指标上全面领先，并通过消融、敏感性和稳定性分析验证各组件有效性。</li>
+</ul>
+<p><strong>章节结构</strong>：</p>
+<ul>
+<li>1 INTRODUCTION</li>
+<li>2 BACKGROUND AND RELATED WORK</li>
+<li>2.1 ALPHAS IN QUANTITATIVE TRADING</li>
+<li>2.2 ALPHA MINING AND COMBINATION</li>
+<li>2.3 GRAPH NEURAL NETWORKS</li>
+<li>2.4 GENERATIVE FLOW NETWORKS</li>
+<li>3 METHODOLOGY</li>
+<li>3.1 FRAMEWORK OVERVIEW AND PROBLEM FORMULATION</li>
+<li>3.2 ALPHA GENERATION VIA GENERATIVE FLOW NETWORKS</li>
+<li>3.3 GNN EMBEDDING AND STRUCTURE-AWARE REWARD</li>
+<li>3.4 MULTI-FACETED REWARD FUNCTION AND TRAINING OBJECTIVE</li>
+<li>3.5 ALPHA COMBINATION</li>
+<li>4 EXPERIMENTS AND RESULTS</li>
+<li>4.1 EXPERIMENT SETTING</li>
+<li>4.2 OVERALL PERFORMANCE</li>
+<li>4.3 ABLATION STUDY</li>
+<li>4.4 SENSITIVITY ANALYSIS</li>
+<li>5 CONCLUSION</li>
+<li>A THE USE OF LARGE LANGUAGE MODELS (LLMS)</li>
+<li>B SUPPLEMENTARY BACKGROUND ON RELATED WORK</li>
+<li>B.1 ALPHA MINING AND COMBINATION</li>
+<li>B.2 GRAPH NEURAL NETWORKS (GNNS)</li>
+<li>B.3 GENERATIVE FLOW NETWORKS (GFLOWNETS)</li>
+<li>C IMPLEMENTATION DETAILS</li>
+<li>C.1 PSEUDO CODE</li>
+<li>C.2 RELATION TYPE OF RGCN</li>
+<li>C.3 FEATURES AND OPERATORS</li>
+<li>D EXPERIMENT DETAILS</li>
+<li>D.1 METRIC DETAILS</li>
+<li>D.2 HYPERPARAMETER SETTING</li>
+<li>D.3 BASELINE DETAILS</li>
+<li>E ADDITIONAL RESULTS</li>
+<li>E.1 BACKTESTING RESULTS</li>
+<li>E.2 PARAMETER ANALYSIS</li>
+<li>E.3 REWARD-WEIGHT SCHEDULES</li>
+<li>E.4 ENCODER ARCHITECTURES</li>
+<li>E.5 RL VERSUS GFLOWNET AND THE EFFECT OF STRUCTURE AWARE COMPONENTS</li>
+<li>E.6 RUNTIME AND SCALABILITY</li>
+<li>E.7 STABILITY ACROSS RANDOM SEEDS</li>
+<li>E.8 SUBPERIOD PERFORMANCE UNDER REGIME SHIFTS</li>
+<li>F PROOF</li>
+</ul>
+<h3>5.2 关键公式</h3>
+<blockquote>公式以原始 LaTeX 写入，<code>$<span class="math-inline">\(...\)</span>$</code> 块渲染。术语见 5.5 对照表。</blockquote>
+<div class="math-display">\[R_t = \sum_n w_{t,n} r_{t+1,n} \tag{1}\]</div>
+<blockquote>公式 1：组合下一期收益：由alpha信号导出的组合权重 w_{t,n} 与实现收益 r_{t+1,n} 在所有资产n上求和，是衡量alpha经济价值的基本量。</blockquote>
+<div class="math-display">\[P_\theta(\alpha) \propto R(\alpha), \quad \forall \alpha \in \mathcal{X} \tag{2}\]</div>
+<blockquote>公式 2：GFlowNet目标分布：将alpha发现重新建模为学习一个生成策略 P_\theta(\alpha)，使其采样概率与精心设计的奖励函数 R(\alpha) 成正比，覆盖整个高质量alpha空间而非单一路径。</blockquote>
+<div class="math-display">\[p = \frac{Len(s_t)}{MaxLen} \tag{3}\]</div>
+<blockquote>公式 3：早停概率：当当前栈已构成合法表达式时，以该概率提前终止生成。Len(s_t) 为当前AST节点数，MaxLen 为最大允许长度。该机制平衡了对长表达式的探索与产生语法合法公式的效率。</blockquote>
+<div class="math-display">\[P(\alpha) = \sum_{\tau: s_n = \alpha} P_F(\tau) = \frac{R(\alpha)}{Z} \tag{4}\]</div>
+<blockquote>公式 4：流匹配条件：生成完整alpha \alpha 的概率等于所有终止于该alpha的轨迹概率之和，须等于奖励除以配分函数 Z。Z = \sum_{\alpha' \in \mathcal{X}} R(\alpha') 是可学习的总流量参数。</blockquote>
+<div class="math-display">\[L_{TB}(\tau) = \left( \log Z_\theta + \sum_{t=1}^{n} \log P_F(s_t | s_{t-1}; \theta) - \log R(s_n) - \sum_{t=1}^{n} \log P_B(s_{t-1} | s_t; \theta) \right)^2 \tag{5}\]</div>
+<blockquote>公式 5：轨迹平衡（TB）损失：对单条完整轨迹 \tau，强制前向策略对数积 + 可学习对数配分函数等于反向策略对数积 + 对数奖励。最小化该损失训练策略，使其产生多样且高奖励的alpha集合。</blockquote>
+<div class="math-display">\[h_v^{(l)} = ReLU \left( \sum_{r \in R} \sum_{u \in N_r(v)} \frac{1}{c_{v,r}} W_r^{(l)} h_u^{(l-1)} + W_0^{(l)} h_v^{(l-1)} \right) \tag{6}\]</div>
+<blockquote>公式 6：RGCN节点更新：在第l层，节点v的表示通过聚合各关系类型 r 的邻居（按 Nr(v)）经关系专属权重 W_r 变换后求和，并叠加自环变换 W_0。建模算子-特征间多种异构关系（如时序算子与窗口长度的边），区别于统一处理所有边的标准GNN。</blockquote>
+<div class="math-display">\[e_\alpha = MaxPooling \left( \{ h_v^{(L)} \}_{v \in V_\alpha} \right) \tag{7}\]</div>
+<blockquote>公式 7：图级读出：对alpha的AST所有节点经L层RGCN后的最终表示进行最大池化，得到关系感知、结构感知的alpha嵌入向量 e_\alpha，作为后续策略与奖励计算的输入。</blockquote>
+<div class="math-display">\[d_{behav}(\alpha_i, \alpha_j) = \frac{1}{D} \sum_{d=1}^{D} (Z_i(d) - Z_j(d))^2 \tag{8}\]</div>
+<blockquote>公式 8：行为距离：基于两个alpha在D天上的截面归一化输出向量 Z_i(d), Z_j(d) 计算均方差，衡量alpha的行为相似度，用于驱动结构感知奖励，使结构相近的alpha行为也相近。</blockquote>
+<div class="math-display">\[R_{SA}(\alpha_i) = \exp \left( - \sum_{j \in NK(\alpha_i)} w_{ij} \cdot d_{behav}(\alpha_i, \alpha_j) \right) \tag{9}\]</div>
+<blockquote>公式 9：结构感知奖励（SA）：对alpha_i在嵌入空间的K近邻NK(\alpha_i)，按权重 w_{ij}（基于嵌入距离的softmax）加权求和行为距离，再取负指数。值越大表示结构嵌入相似的alpha行为也越一致，提供稠密的自监督对齐信号。</blockquote>
+<div class="math-display">\[R_{IC}(\alpha) = IC(\alpha, y) = \mathbb{E}_d \left[ \frac{Cov(\alpha(X_d), y_d)}{\sqrt{Var(\alpha(X_d)) \cdot Var(y_d)}} \right] \tag{10}\]</div>
+<blockquote>公式 10：终端性能奖励（IC）：alpha输出与未来收益的截面相关系数的时间期望，是衡量alpha预测能力的主要指标，作为奖励函数中预测质量的核心驱动力。</blockquote>
+<div class="math-display">\[R_{NOV}(\alpha) = 1 - \max_{\alpha' \in F_{known}} |IC(\alpha, \alpha')| \tag{11}\]</div>
+<blockquote>公式 11：新颖度奖励（NOV）：1减去候选alpha与动态更新的已知高质量alpha库 F_{known} 中所有alpha的最大绝对IC相关性。惩罚与已发现alpha的相似度，鼓励发现新颖、低冗余的alpha。</blockquote>
+<div class="math-display">\[R(\alpha, T) = R_{IC}(\alpha) + \lambda(T) R_{SA}(\alpha) + \eta(T) R_{NOV}(\alpha) \tag{12}\]</div>
+<blockquote>公式 12：总奖励：训练步T时三个组件的加权和。其中 \lambda(T) = (1 - T/T_{anneal}) \cdot \lambda_{max} 与 \eta(T) = (1 - T/T_{anneal}) \cdot \eta_{max} 为退火调度，逐步降低结构感知与新颖度项权重，使训练前期重探索与表示学习，后期强调预测性能。</blockquote>
+<div class="math-display">\[L_{ENT} = -\mathbb{E}_{\tau \sim P_F(\tau; \theta)} \left[ \sum_{t=0}^{n-1} H(\pi_\theta(\cdot | s_t)) \right] \tag{13}\]</div>
+<blockquote>公式 13：策略熵正则项：对轨迹上前向策略在各状态的动作分布熵求和取期望，并取负号。加入目标函数后鼓励细粒度探索、防止过早收敛，提升动作层面的多样性。</blockquote>
+<div class="math-display">\[L_{final} = \mathbb{E}_{\tau \sim P_F(\tau; \theta)} [L_{TB}(\tau)] + \beta \cdot L_{ENT} \tag{14}\]</div>
+<blockquote>公式 14：最终训练目标：期望TB损失加上强度为 \beta 的熵正则项。综合引导AlphaSAGE学习产生多样、新颖且高预测力的alpha组合。</blockquote>
+<div class="math-display">\[ICIR = \frac{\mathbb{E}_d[\rho_d]}{\sqrt{Var_d(\rho_d)}} \tag{15}\]</div>
+<blockquote>公式 15：信息系数信息比率：IC（截面相关 \rho_d）的时间均值除以时间标准差，衡量预测能力的时序稳定性（信噪比），近似 E[\rho_d] 的t统计量，偏好持续有效而非偶发的因子。</blockquote>
+<div class="math-display">\[RankICIR = \frac{\mathbb{E}_d [\rho_d^{rank}]}{\sqrt{Var_d (\rho_d^{rank})}} \tag{16}\]</div>
+<blockquote>公式 16：秩信息系数信息比率（RICIR）：基于Spearman秩相关 \rho_d^{rank} 的均值与标准差之比，衡量基于排序的预测能力的时序稳定性，对异常值更稳健，与基于排序的组合构建一致。</blockquote>
+<div class="math-display">\[MDD = -\max_t \left( 1 - \frac{W_t}{\max_{u \le t} W_u} \right) \tag{17}\]</div>
+<blockquote>公式 17：最大回撤：财富过程最差的峰谷损失，W_t = \sum_{u \le t} (1+R_u) 为累积财富。轨迹与尾部风险指标，方差无法捕捉，对杠杆、风险限制和投资者体验至关重要。</blockquote>
+<div class="math-display">\[SR = \frac{\sqrt{K} \mathbb{E}_d[R_d - r_{f,d}]}{\sqrt{Var_d(R_d - r_{f,d})}} \tag{18}\]</div>
+<blockquote>公式 18：夏普比率（年化，超额无风险收益）：K为每年周期数，R_d为组合日收益，r_{f,d}为无风险利率。衡量单位波动率下的风险调整收益，便于跨方法、跨市场和再平衡频率公平比较。本文设 r_{f,d}=0 以简化比较。</blockquote>
+<h3>5.3 论文—代码三层映射</h3>
+<p><strong>层级 1：论文章节 ↔ 代码模块</strong></p>
+<table>
+<thead><tr>
+<th>论文章节</th>
+<th>代码模块</th>
+<th>置信度</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>3.1 FRAMEWORK OVERVIEW AND PROBLEM FORMULATION</td>
+<td><code>train_gfn.py (主训练入口) + src/alpha_gfn/ (GFlowNet+RGCN 核心包) + src/alphagen_qlib/stock_data.py (Qlib 数据加载)</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>3.2 ALPHA GENERATION VIA GENERATIVE FLOW NETWORKS</td>
+<td><code>src/alpha_gfn/gflownet.py (EntropyTBGFlowNet 熵正则 TB 损失) + src/alpha_gfn/env/core.py (GFNEnvCore 离散生成环境) + src/alpha_gfn/preprocessors.py (token 预处理)</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>3.3 GNN EMBEDDING AND STRUCTURE-AWARE REWARD</td>
+<td><code>src/alpha_gfn/modules.py (RGCN 结构感知编码器: _build_graph_from_rpn + GNNEncoder) + src/alpha_gfn/alpha_pool.py (compute_ssl_reward 结构感知/自监督对齐奖励)</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>3.4 MULTI-FACETED REWARD FUNCTION AND TRAINING OBJECTIVE</td>
+<td><code>src/alpha_gfn/alpha_pool.py (try_new_expr_with_ssl: IC+NOV+SSL 三路奖励) + src/alpha_gfn/env/core.py (reward 合成) + train_gfn.py (WeightScheduler 退火调度 + 训练主循环) + src/alpha_gfn/gflownet.py (L_final = L_TB + β·L_ENT)</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>3.5 ALPHA COMBINATION</td>
+<td><code>run_adaptive_combination.py (滚动窗口选因子 + 最小二乘回归 + VIF/QR/SVD 多重共线性过滤) + combine_AFF.py (AFF 基线组合) + src/alphagen/models/alpha_pool.py (AlphaPool 权重优化)</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>4.1 EXPERIMENT SETTING</td>
+<td><code>config/qcm_config/*.yaml (QCM 基线超参) + src/alphagen_qlib/stock_data.py (CSI300/500/1000、S&amp;amp;P500 数据) + train_gfn.py argparse (n_episodes/update_freq/encoder_type 等)</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>4.2 OVERALL PERFORMANCE</td>
+<td><code>train_gfn.py (AlphaSAGE 主方法训练) + run_adaptive_combination.py (组合评估 IC/ICIR/Sharpe/MDD) + src/alphagen/utils/correlation.py (评估指标实现)</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>4.3 ABLATION STUDY</td>
+<td><code>train_qcm.py (AlphaQCM 分位数 RL 基线) + train_ppo.py (AlphaGen PPO 基线) + train_AFF.py (AlphaForge GAN 基线) + train_GP.py (遗传编程基线) + exp_*_calc_result.ipynb (结果分析)</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>4.4 SENSITIVITY ANALYSIS</td>
+<td><code>train_gfn.py (MaxLen/encoder_type/entropy_coef 等参数扫描) + exp_*_calc_result.ipynb (敏感性结果分析笔记本)</code></td>
+<td>medium</td>
+</tr>
+<tr>
+<td>E.1 BACKTESTING RESULTS (Table E.1)</td>
+<td><code>run_adaptive_combination.py (get_tensor_metrics 计算 IC/Sharpe/MDD; run 滚动评估) + img/backtest.png</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>C.1 PSEUDO CODE / C.2 RELATION TYPE OF RGCN</td>
+<td><code>src/alpha_gfn/modules.py (_build_graph_from_rpn 定义 6 种关系边) + src/alpha_gfn/config.py (OPERATORS/FEATURES/DELTA_TIMES) + src/alpha_gfn/env/core.py (Algorithm 1 主循环对应)</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>2.3 GRAPH NEURAL NETWORKS / 2.4 GENERATIVE FLOW NETWORKS</td>
+<td><code>src/alpha_gfn/modules.py (RGCN 编码器) + src/alpha_gfn/gflownet.py (基于 gfn 库的 TBGFlowNet)</code></td>
+<td>medium</td>
+</tr>
+</tbody></table>
+<p><strong>层级 2：论文公式/算法 ↔ 代码函数/类</strong></p>
+<table>
+<thead><tr>
+<th>论文公式/算法</th>
+<th>代码函数/类</th>
+<th>位置</th>
+<th>置信度</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>R_t = \sum_n w_{t,n} r_{t+1,n}</td>
+<td><code>QLibStockDataCalculator.calc_pool_IC_ret / make_ensemble_alpha</code></td>
+<td><code>src/alphagen_qlib/calculator.py:85</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>P_\theta(\alpha) \propto R(\alpha)</td>
+<td><code>EntropyTBGFlowNet (前向策略 pf 采样) + sampler.sample_trajectories</code></td>
+<td><code>src/alpha_gfn/gflownet.py:10</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>p = \frac{Len(s_t)}{MaxLen}</td>
+<td><code>GFNEnvCore.update_masks (length_based_dropout_prob)</code></td>
+<td><code>src/alpha_gfn/env/core.py:124</code></td>
+<td>medium</td>
+</tr>
+<tr>
+<td>P(\alpha) = \sum_{\tau: s_n = \alpha} P_F(\tau) = \frac{R...</td>
+<td><code>EntropyTBGFlowNet (继承 TBGFlowNet, logZ 可学习配分函数)</code></td>
+<td><code>src/alpha_gfn/gflownet.py:10</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>L_{TB}(\tau) = ( \log Z_\theta + \sum \log P_F - \log R -...</td>
+<td><code>EntropyTBGFlowNet.loss</code></td>
+<td><code>src/alpha_gfn/gflownet.py:81</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>h_v^{(l)} = ReLU( \sum_r \sum_u \frac{1}{c_{v,r}} W_r^{(l...</td>
+<td><code>GNNEncoder.forward (RGCNConv 多层消息传递)</code></td>
+<td><code>src/alpha_gfn/modules.py:96</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>e_\alpha = MaxPooling( \{ h_v^{(L)} \}_{v \in V_\alpha} )</td>
+<td><code>GNNEncoder.forward + global_mean_pool (图级读出)</code></td>
+<td><code>src/alpha_gfn/modules.py:96</code></td>
+<td>medium</td>
+</tr>
+<tr>
+<td>d_{behav}(\alpha_i, \alpha_j) = \frac{1}{D} \sum_d (Z_i(d...</td>
+<td><code>AlphaPoolGFN._compute_consistency_loss</code></td>
+<td><code>src/alpha_gfn/alpha_pool.py:178</code></td>
+<td>medium</td>
+</tr>
+<tr>
+<td>R_{SA}(\alpha_i) = \exp( - \sum_{j \in NK} w_{ij} \cdot d...</td>
+<td><code>AlphaPoolGFN.compute_ssl_reward</code></td>
+<td><code>src/alpha_gfn/alpha_pool.py:220</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>R_{IC}(\alpha) = \mathbb{E}_d [ Cov(\alpha(X_d), y_d) / \...</td>
+<td><code>QLibStockDataCalculator._calc_IC / calc_single_IC_ret</code></td>
+<td><code>src/alphagen_qlib/calculator.py:53</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>R_{NOV}(\alpha) = 1 - \max_{\alpha' \in F_{known}}</td>
+<td>IC(\a...</td>
+<td><code>AlphaPoolGFN.try_new_expr (novelty = 1 - max(ic_mut))</code></td>
+<td><code>src/alpha_gfn/alpha_pool.py:57</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>R(\alpha, T) = R_{IC} + \lambda(T) R_{SA} + \eta(T) R_{NOV}</td>
+<td><code>GFNEnvCore.reward + WeightScheduler.get_current_weights</code></td>
+<td><code>src/alpha_gfn/env/core.py:140</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>L_{ENT} = -\mathbb{E}_{\tau} [ \sum_t H(\pi_\theta(\cdot</td>
+<td>...</td>
+<td><code>EntropyTBGFlowNet.get_trajectories_scores (entropy_term)</code></td>
+<td><code>src/alpha_gfn/gflownet.py:23</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>L_{final} = \mathbb{E}_{\tau}[L_{TB}(\tau)] + \beta \cdot...</td>
+<td><code>EntropyTBGFlowNet.loss</code></td>
+<td><code>src/alpha_gfn/gflownet.py:81</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>ICIR = \mathbb{E}_d[\rho_d] / \sqrt{Var_d(\rho_d)}</td>
+<td><code>QLibStockDataCalculator._calc_ICIR</code></td>
+<td><code>src/alphagen_qlib/calculator.py:29</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>RankICIR = \mathbb{E}_d[\rho_d^{rank}] / \sqrt{Var_d(\rho...</td>
+<td><code>QLibStockDataCalculator._calc_rICIR / batch_spearmanr</code></td>
+<td><code>src/alphagen_qlib/calculator.py:41</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>MDD = -\max_t ( 1 - W_t / \max_{u \le t} W_u )</td>
+<td><code>batch_max_drawdown</code></td>
+<td><code>src/alphagen/utils/correlation.py:138</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>SR = \sqrt{K} \mathbb{E}_d[R_d - r_{f,d}] / \sqrt{Var_d(R...</td>
+<td><code>batch_sharpe_ratio</code></td>
+<td><code>src/alphagen/utils/correlation.py:108</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>Algorithm 1: AlphaSAGE 训练与挖掘算法</td>
+<td><code>train (训练主循环) + GFNEnvCore.reward/step + AlphaPoolGFN.try_new_expr_with_ssl</code></td>
+<td><code>train_gfn.py:141</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>Algorithm 2: Alpha 组合 (Mega-Alpha 动态线性组合)</td>
+<td><code>run + remove_multicollinearity_vif + np.linalg.lstsq</code></td>
+<td><code>run_adaptive_combination.py:282</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>RGCN 图构建 (6 种关系边: operand-feature / operator-input / oper...</td>
+<td><code>_build_graph_from_rpn</code></td>
+<td><code>src/alpha_gfn/modules.py:13</code></td>
+<td>high</td>
+</tr>
+<tr>
+<td>KNN 邻域 NK(\alpha_i) 构建 (R_SA 用)</td>
+<td><code>AlphaPoolGFN._find_k_nearest_neighbors</code></td>
+<td><code>src/alpha_gfn/alpha_pool.py:90</code></td>
+<td>high</td>
+</tr>
+</tbody></table>
+<p><strong>层级 3：论文实验/表格 ↔ 评估脚本</strong></p>
+<table>
+<thead><tr>
+<th>论文实验/表格</th>
+<th>评估脚本</th>
+<th>位置</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>4.1 Experiment Setting (数据集/股票池/时间窗口/超参)</td>
+<td><code>src/alphagen_qlib/stock_data.py (CSI300/500/1000、S&amp;amp;P500 数据加载) + config/qcm_config/*.yaml (QCM 基线超参) + train_gfn.py argparse (GFN 超参)</code></td>
+<td><code>src/alphagen_qlib/stock_data.py</code></td>
+</tr>
+<tr>
+<td>4.2 Overall Performance (Table 1/2 总体性能对比)</td>
+<td><code>train_gfn.py (AlphaSAGE 训练) + run_adaptive_combination.py (组合评估) + get_tensor_metrics</code></td>
+<td><code>train_gfn.py</code></td>
+</tr>
+<tr>
+<td>4.3 Ablation Study (GFlowNet vs PPO/QCM/AFF/GP)</td>
+<td><code>train_qcm.py (AlphaQCM) + train_ppo.py (AlphaGen PPO) + train_AFF.py (AlphaForge GAN) + train_GP.py (遗传编程)</code></td>
+<td><code>train_qcm.py</code></td>
+</tr>
+<tr>
+<td>4.4 Sensitivity Analysis (MaxLen/encoder_type/entropy_coef 等)</td>
+<td><code>train_gfn.py (参数命令行扫描) + exp_*_calc_result.ipynb (结果汇总分析)</code></td>
+<td><code>train_gfn.py</code></td>
+</tr>
+<tr>
+<td>E.1 Backtesting Results (Table E.1 回测)</td>
+<td><code>run_adaptive_combination.py (run 滚动评估 + get_tensor_metrics) + img/backtest.png</code></td>
+<td><code>run_adaptive_combination.py</code></td>
+</tr>
+<tr>
+<td>E.5 RL versus GFlowNet and the Effect of Structure-Aware Components</td>
+<td><code>train_ppo.py (MaskablePPO RL 基线) vs train_gfn.py (GFlowNet) + train_gfn.py encoder_type=gnn/lstm/transformer 对比</code></td>
+<td><code>train_ppo.py</code></td>
+</tr>
+<tr>
+<td>D.2 Hyperparameter Setting (超参详情)</td>
+<td><code>config/qcm_config/fqf.yaml + iqn.yaml + qrdqn.yaml + train_gfn.py argparse (默认值)</code></td>
+<td><code>config/qcm_config/qrdqn.yaml</code></td>
+</tr>
+<tr>
+<td>E.3 Reward-Weight Schedules (奖励权重退火)</td>
+<td><code>train_gfn.py WeightScheduler (linear/exponential/polynomial 退火)</code></td>
+<td><code>train_gfn.py</code></td>
+</tr>
+<tr>
+<td>E.4 Encoder Architectures (RGCN vs LSTM vs Transformer)</td>
+<td><code>train_gfn.py (encoder_type 参数) + src/alpha_gfn/modules.py SequenceEncoder</code></td>
+<td><code>src/alpha_gfn/modules.py</code></td>
+</tr>
+</tbody></table>
+<h3>5.4 论文原图与仓库关键图</h3>
+<p><strong>论文原图</strong>（按页码顺序，从 PDF 按区域裁剪，已优化尺寸）：</p>
+<p><strong>图 1：论文第 10 页图 1</strong></p>
+<p><img src="images/paper_p10_img1.png" alt="论文第 10 页图 1" loading="lazy"></p>
+<p><strong>图 2：论文第 20 页图 1</strong></p>
+<p><img src="images/paper_p20_img1.png" alt="论文第 20 页图 1" loading="lazy"></p>
+<p><strong>图 3：论文第 21 页图 1</strong></p>
+<p><img src="images/paper_p21_img1.png" alt="论文第 21 页图 1" loading="lazy"></p>
+<p><strong>图 4：论文第 21 页图 2</strong></p>
+<p><img src="images/paper_p21_img2.png" alt="论文第 21 页图 2" loading="lazy"></p>
+<p><strong>图 5：论文第 22 页图 1</strong></p>
+<p><img src="images/paper_p22_img1.png" alt="论文第 22 页图 1" loading="lazy"></p>
+<p><strong>图 6：论文第 5 页图 1</strong></p>
+<p><img src="images/paper_p5_img1.png" alt="论文第 5 页图 1" loading="lazy"></p>
+<p><strong>图 7：论文第 8 页图 1</strong></p>
+<p><img src="images/paper_p8_img1.png" alt="论文第 8 页图 1" loading="lazy"></p>
+<p><strong>仓库关键图</strong>（README 引用，已缩放至 1800px 内）：</p>
+<p><img src="images/repo_backtest.png" alt="AlphaSAGE 回测结果（论文 Figure 2，仓库自带）" loading="lazy"></p>
+<blockquote>AlphaSAGE 回测结果（论文 Figure 2，仓库自带）</blockquote>
+<p><img src="images/repo_overview.png" alt="AlphaSAGE 框架总览（论文 Figure 1，仓库自带）" loading="lazy"></p>
+<blockquote>AlphaSAGE 框架总览（论文 Figure 1，仓库自带）</blockquote>
+<h3>5.5 术语对照表</h3>
+<table>
+<thead><tr>
+<th>论文术语</th>
+<th>代码标识符</th>
+<th>含义</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>GFlowNet</td>
+<td><code>—</code></td>
+<td>生成式流网络（Generative Flow Network），一种概率生成模型，通过在DAG状态空间中学习互补的前向/后向策略并匹配状态流量，使采样分布与奖励成正比，从而生成多样而非单一最优的高奖励对象，天然适合多样alpha挖掘。</td>
+</tr>
+<tr>
+<td>RGCN</td>
+<td><code>—</code></td>
+<td>关系图卷积网络（Relational Graph Convolutional Network），扩展标准GNN以显式建模多种边类型，每种关系有独立权重矩阵，适合表达AST中算子-特征、算子-窗口长度等异构关系。</td>
+</tr>
+<tr>
+<td>alpha</td>
+<td><code>—</code></td>
+<td>量化交易中的预测因子/信号，通常表示为数学表达式，将历史市场数据映射为每只股票每日的实值得分，用于预测未来收益并构建组合。</td>
+</tr>
+<tr>
+<td>IC</td>
+<td><code>—</code></td>
+<td>信息系数（Information Coefficient），alpha输出与未来收益的截面相关系数，衡量因子的截面预测能力，是alpha质量的核心指标。</td>
+</tr>
+<tr>
+<td>ICIR</td>
+<td><code>—</code></td>
+<td>信息系数信息比率（Information Coefficient Information Ratio），IC的时间均值除以时间标准差，衡量预测能力的时序稳定性/信噪比。</td>
+</tr>
+<tr>
+<td>RICIR</td>
+<td><code>—</code></td>
+<td>秩信息系数信息比率（Rank IC Information Ratio），基于Spearman秩相关版本的ICIR，对异常值稳健，与基于排序的组合构建一致。</td>
+</tr>
+<tr>
+<td>TB</td>
+<td><code>—</code></td>
+<td>轨迹平衡（Trajectory Balance），GFlowNet的一种损失函数，对完整轨迹强制前向策略对数积+对数配分函数=反向策略对数积+对数奖励，适合完整轨迹场景。</td>
+</tr>
+<tr>
+<td>SSL</td>
+<td><code>—</code></td>
+<td>自监督学习（Self-Supervised Learning）。本文中结构感知奖励RSA实质上提供了一种自监督对齐信号：以结构嵌入相似度为监督，约束行为距离，使嵌入空间同时具备结构感知与行为预测性。</td>
+</tr>
+<tr>
+<td>PPO</td>
+<td><code>—</code></td>
+<td>近端策略优化（Proximal Policy Optimization），一种主流策略梯度RL算法。本文在参数分析中将GFlowNet与PPO对比，发现GFlowNet收敛更快、方差更低。</td>
+</tr>
+<tr>
+<td>Qlib</td>
+<td><code>—</code></td>
+<td>微软开源的AI导向量化投资平台（Yang et al., 2020），本文使用其提供的CSI300/500/1000与S&amp;P500市场数据子集进行实验。</td>
+</tr>
+<tr>
+<td>mode collapse</td>
+<td><code>—</code></td>
+<td>模式坍缩：传统RL最大化期望收益会使策略收敛到单一最优模式，导致生成的alpha高度相似，缺乏构建稳健组合所需的多样性。</td>
+</tr>
+<tr>
+<td>AST</td>
+<td><code>—</code></td>
+<td>抽象语法树（Abstract Syntax Tree），将alpha表达式解析为树形结构，节点为算子或特征，边表示计算层级。本文以AST作为状态空间，使表示对语法变体不变。</td>
+</tr>
+<tr>
+<td>RPN</td>
+<td><code>—</code></td>
+<td>逆波兰表示法（Reverse Polish Notation），将表达式展平为序列的序列化方式。现有LSTM方法常基于RPN，但丢失层级结构信息。</td>
+</tr>
+<tr>
+<td>DAG</td>
+<td><code>—</code></td>
+<td>有向无环图（Directed Acyclic Graph），GFlowNet将alpha构造建模为从空状态到完整AST的DAG状态空间中的轨迹流动。</td>
+</tr>
+<tr>
+<td>MaxLen</td>
+<td><code>—</code></td>
+<td>最大长度，控制生成AST的最大token数与早停阈值。实验表明 MaxLen≈20 时在表达力与稳定性间取得最佳平衡。</td>
+</tr>
+<tr>
+<td>SA</td>
+<td><code>—</code></td>
+<td>结构感知奖励（Structure-Aware Reward），通过K近邻加权行为距离的负指数，确保结构嵌入相似的alpha行为也相似，提供稠密自监督信号。</td>
+</tr>
+<tr>
+<td>NOV</td>
+<td><code>—</code></td>
+<td>新颖度奖励（Novelty Reward），1减去与已知alpha库的最大绝对IC相关性，惩罚冗余、鼓励发现新颖alpha。</td>
+</tr>
+<tr>
+<td>ENT</td>
+<td><code>—</code></td>
+<td>熵正则项（Entropy Regularizer），对前向策略动作分布熵求和取负，加入目标函数以鼓励细粒度探索、防止过早收敛。</td>
+</tr>
+<tr>
+<td>MDD</td>
+<td><code>—</code></td>
+<td>最大回撤（Maximum Drawdown），财富过程最差的峰谷损失，衡量尾部与轨迹风险，对风险限制与投资者体验关键。</td>
+</tr>
+<tr>
+<td>AR</td>
+<td><code>—</code></td>
+<td>年化收益（Annualized Return），组合规则产生的年化经济价值，K·E[R_d]；当复利显著时优先使用几何年化。</td>
+</tr>
+<tr>
+<td>KNN</td>
+<td><code>—</code></td>
+<td>K近邻（K-Nearest Neighbors），本文在低维图嵌入空间对终端alpha做KNN以构建结构感知奖励的邻域集。</td>
+</tr>
+<tr>
+<td>GA</td>
+<td><code>—</code></td>
+<td>遗传算法（Genetic Algorithm），早期自动化alpha挖掘方法，通过变异与交叉演化候选表达式树，公式可解释但易陷入局部最优。</td>
+</tr>
+<tr>
+<td>AlphaForge</td>
+<td><code>—</code></td>
+<td>一种两阶段GAN式alpha挖掘框架（Shi et al., 2025a），耦合生成-预测神经模块与动态组合阶段，本文沿用其动态线性组合方法。</td>
+</tr>
+<tr>
+<td>SR</td>
+<td><code>—</code></td>
+<td>（见论文）</td>
+</tr>
+<tr>
+<td>GP</td>
+<td><code>—</code></td>
+<td>（见论文）</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>附录</h2>
+<h3>文件清单（按扩展名分组）</h3>
+<ul>
+<li><strong>.py</strong>（86 个）</li>
+<li><strong>.ipynb</strong>（4 个）</li>
+<li><strong>.yaml</strong>（3 个）</li>
+<li><strong>.no_ext</strong>（2 个）</li>
+<li><strong>.sh</strong>（2 个）</li>
+<li><strong>.png</strong>（2 个）</li>
+<li><strong>.lock</strong>（1 个）</li>
+<li><strong>.toml</strong>（1 个）</li>
+</ul>
+<h3>已知限制 / 不确定项</h3>
+<ul>
+<li>QLIB_PATH在各train_*.py与run_adaptive_combination.py中硬编码为/your_path占位符，需手动修改才能运行，缺少统一的环境变量或配置文件管理</li>
+<li>股票池仅内置csi300与sp500两种，扩展需修改if-else分支与Qlib数据路径逻辑</li>
+<li>run_adaptive_combination.py的use_weights分支与自适应组合分支代码路径差异较大，缺少统一的评估接口抽象</li>
+<li>src/alphagen与src/alphagen_generic未被列入profile.json的module_candidates，但实为alpha_gfn与所有基线的公共依赖</li>
+<li>gplearn/gan/fqf_iqn_qrdqn为基线实现，与主流程alpha_gfn在表达式构建、alpha池、token映射上存在部分代码重复</li>
+<li>src/alpha_gfn/env/core.py的backward_step抛出NotImplementedError，仅支持前向采样，限制了部分GFlowNet变体的实验</li>
+<li>mask dropout与奖励计算在env中以Python循环逐state处理，批量效率较低，大规模训练可能成为瓶颈</li>
+<li>论文未涉及mask dropout机制；其提到的masking指对非法动作的掩码（invalid actions are masked），即从掩码分布中采样下一个token以保证语法合法性，并非神经网络中的dropout正则化。</li>
+<li>AlphaSAGE优化目标以IC为主导，在短窗口或高波动regime下，稳定的长期正IC并不一定转化为短期累积收益优势（如CSI500 2022-2024、S&amp;P500 2018-2020部分子区间收益曲线优势不如IC优势明显）。</li>
+<li>数据截止限制：受数据源限制，美股数据仅至2020-12-31，未涵盖2021年后市场结构与regime变化。</li>
+<li>结构感知奖励与新颖度奖励的权重采用线性退火调度，虽实验显示线性最优，但对其它调度形式（如余弦、分段）未充分探索。</li>
+<li>实验仅在CSI300/500/1000与S&amp;P500四个股票池上验证，未覆盖加密货币、期货、外汇等其他资产类别，泛化性有待进一步验证。</li>
+<li>组合阶段采用简单的动态线性回归，未引入非线性组合器；在alpha间存在复杂非线性协同时的潜力未讨论。</li>
+<li>行号均经实际读取源文件验证（非沿用 analysis_code.json 的近似值），但仓库代码可能随版本变动，建议以实际文件为准。</li>
+<li>公式 e_α = MaxPooling 与代码实现存在差异：modules.py 导入并使用 global_mean_pool（均值池化）而非最大池化，标记为 medium confidence。</li>
+<li>公式 p = Len(s_t)/MaxLen 早停概率：代码以 length_based_dropout_prob = mask_dropout_prob * (expr_length/MAX_EXPR_LENGTH) 间接实现，形式与论文略有不同，标记为 medium。</li>
+<li>d_behav 行为距离：代码 _compute_consistency_loss 直接对因子值 (query_value) 计算 MSE，而非论文所述截面归一化输出向量 Z(d)，标记为 medium。</li>
+<li>analysis_arch.json 提到 env/core.py 的 backward_step 抛出 NotImplementedError，但实际源文件 line 82 存在 def backward_step 定义；该不一致可能源于版本差异或部分实现，未深入验证。</li>
+<li>Layer 3 中 4.4 敏感性分析与 E.2/E.6-E.8 等附加实验主要依赖 exp_*.ipynb 笔记本与手动参数扫描，仓库未提供统一实验编排脚本，相关映射 confidence 为 medium。</li>
+<li>config.py 的 MAX_EXPR_LENGTH 具体行号未精确定位（line 字段填 0），因未读取该文件全文；论文提及 MaxLen≈20 最优，与 config.py 注释一致。</li>
+<li>src/alphagen 与 src/alphagen_generic 未列入 profile.json 的 module_candidates，但实为 alpha_gfn 与所有基线的公共依赖（表达式体系、token、RL 环境），本映射已纳入相关条目。</li>
+</ul>
+<h3>生成信息</h3>
+<ul>
+<li>生成时间：2026-06-25 20:27</li>
+<li>执行模式：clone</li>
+<li>分析档位：deep</li>
+<li>核心文件数：55（全部展开）</li>
+<li>论文配套：是</li>
+<li>图片资源：论文图 7 张，仓库图 2 张，生成图 1 张</li>
+</ul>
+</body>
+</html>

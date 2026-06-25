@@ -1,75 +1,87 @@
-\documentclass[12pt,a4paper]{ctexart}
+\documentclass[11pt,a4paper]{ctexart}
 
-% Geometry
+% ===== 页面 =====
 \usepackage{geometry}
-\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+\geometry{left=2.4cm,right=2.4cm,top=2.4cm,bottom=2.4cm}
 
-% Colors
+% ===== 颜色 =====
 \usepackage{xcolor}
-\definecolor{codebg}{RGB}{248,248,248}
-\definecolor{codeframe}{RGB}{221,221,221}
-\definecolor{linkblue}{RGB}{0,82,147}
+\definecolor{primary}{RGB}{11,61,145}      % 主蓝
+\definecolor{accent}{RGB}{205,32,64}       % 强调红
+\definecolor{codebg}{RGB}{246,248,250}
+\definecolor{codeframe}{RGB}{208,215,222}
+\definecolor{quotebg}{RGB}{238,242,247}
+\definecolor{tablehead}{RGB}{238,242,247}
+\definecolor{linkblue}{RGB}{11,61,145}
 
-% Links
+% ===== 数学（修复公式渲染） =====
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+
+% ===== 链接 =====
 \usepackage{hyperref}
 \hypersetup{
-  colorlinks=true,
-  linkcolor=linkblue,
-  urlcolor=linkblue,
-  citecolor=linkblue,
-  pdfauthor={RepoGuide},
-  pdftitle={{TITLE}}
+  colorlinks=true, linkcolor=primary, urlcolor=linkblue, citecolor=primary,
+  pdftitle={{TITLE}}, pdfauthor={RepoGuide}
 }
 
-% Listings
+% ===== 代码 =====
 \usepackage{listings}
 \lstset{
   basicstyle=\small\ttfamily,
   backgroundcolor=\color{codebg},
-  frame=single,
-  rulecolor=\color{codeframe},
-  breaklines=true,
-  breakatwhitespace=false,
-  showstringspaces=false,
-  tabsize=2,
-  captionpos=b,
-  numbers=left,
-  numberstyle=\tiny\color{gray},
-  xleftmargin=2em,
-  framexleftmargin=1.5em,
+  frame=single, rulecolor=\color{codeframe},
+  breaklines=true, breakatwhitespace=false,
+  showstringspaces=false, tabsize=2,
+  captionpos=b, numbers=left, numberstyle=\tiny\color{gray},
+  xleftmargin=1.6em, framexleftmargin=1.2em,
   extendedchars=true,
   literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
 }
 
-% Graphics
+% ===== 图片（自适应尺寸） =====
 \usepackage{graphicx}
 \graphicspath{{images/}{./}}
 \usepackage{float}
 
-% Tables
+% ===== 表格 =====
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
 \usepackage{multirow}
+\usepackage{tabularx}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 
-% Lists
+% ===== 列表 =====
 \usepackage{enumitem}
-\setlist[itemize]{leftmargin=2em}
-\setlist[enumerate]{leftmargin=2em}
+\setlist[itemize]{leftmargin=1.6em, itemsep=2pt}
+\setlist[enumerate]{leftmargin=1.8em, itemsep=2pt}
 
-% Verbatim for mermaid fallback
-\usepackage{fancyvrb}
+% ===== 提示框 =====
+\usepackage[most]{tcolorbox}
+\tcbset{
+  notebox/.style={enhanced, colback=quotebg, colframe=primary, boxrule=0.4pt,
+    arc=2pt, left=8pt, right=8pt, top=4pt, bottom=4pt, fonttitle=\bfseries\color{primary}},
+}
 
-% Pandoc compatibility
-\providecommand{\tightlist}{%
-  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+% ===== 章节标题样式 =====
+\usepackage{titlesec}
+\titleformat{\section}{\Large\bfseries\color{primary}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries\color{primary}}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{primary!85!black}}{\thesubsubsection}{0.5em}{}
+\titlespacing*{\section}{0pt}{1.4em}{0.5em}
+\titlespacing*{\subsection}{0pt}{1.0em}{0.4em}
 
-% Mermaid fallback placeholder
-\newcommand{\mermaid}[1]{\begin{Verbatim}#1\end{Verbatim}}
+% ===== 行距 =====
+\linespread{1.18}
 
-% Title info
-\title{\Huge\bfseries {TITLE}\\[0.5em]\Large 仓库手册指南}
-\author{RepoGuide Skill}
+% ===== Pandoc 兼容 =====
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% ===== 标题信息 =====
+\title{\Huge\bfseries\color{primary} {TITLE}\\[0.3em]\Large\color{black!70} 仓库手册指南}
+\author{RepoGuide}
 \date{{DATE}}
 
 \begin{document}
@@ -79,12 +91,12 @@
 
 \vfill
 \begin{center}
-\begin{tabular}{rl}
-\textbf{仓库：} & {REPO_NAME} \\
-\textbf{主语言：} & {PRIMARY_LANGUAGE} \\
-\textbf{文件总数：} & {FILE_COUNT} \\
-\textbf{生成时间：} & {DATE} \\
-\end{tabular}
+\begin{tcolorbox}[notebox, width=0.7\textwidth, halign=flush left]
+\textbf{仓库：} {REPO_NAME}\\[2pt]
+\textbf{主语言：} {PRIMARY_LANGUAGE}\\[2pt]
+\textbf{文件总数：} {FILE_COUNT}\\[2pt]
+\textbf{生成时间：} {DATE}
+\end{tcolorbox}
 \end{center}
 \vfill
 
@@ -92,7 +104,7 @@
 \tableofcontents
 \newpage
 
-% Content placeholder
+% ===== 正文 =====
 {CONTENT}
 
 \end{document}

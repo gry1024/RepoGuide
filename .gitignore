@@ -50,3 +50,7 @@ Thumbs.db
 *.tmp
 *.swp
 *.swo
+
+# 样例产物例外（供验收，允许提交 AlphaSAGE-manual/ 目录）
+!AlphaSAGE-manual/
+!AlphaSAGE-manual/**

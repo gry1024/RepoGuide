@@ -107,14 +107,31 @@ echo "REMOTE:$REPO_PATH"
 import json
 import os
 from pathlib import Path
+import re
+
+def extract_repo_name(repo_ref: str) -> str:
+    """从 GitHub URL 或本地路径解析仓库名。"""
+    if not repo_ref:
+        return "repo"
+    # GitHub URL: https://github.com/owner/repo.git or /owner/repo
+    m = re.search(r"github\.com[/:]([^/]+)/([^/\.]+)(?:\.git)?", repo_ref)
+    if m:
+        return m.group(2)
+    # 本地路径
+    p = Path(repo_ref)
+    return p.name if p.name else "repo"
 
 work_dir = Path(os.environ.get("WORK_DIR", "_repoguide"))
 work_dir.mkdir(parents=True, exist_ok=True)
+
+repo_ref = os.environ.get("REPO_REF", os.environ.get("REPO_PATH", ""))
+repo_name = os.environ.get("REPO_NAME") or extract_repo_name(repo_ref)
 
 profile = {
     "repo_path": os.environ.get("REPO_PATH", ""),
     "work_dir": str(work_dir.resolve()),
     "analysis_mode": os.environ.get("ANALYSIS_MODE", "clone"),
+    "repo_name": repo_name,
 }
 
 (work_dir / "profile.json").write_text(
@@ -127,6 +144,7 @@ profile = {
 {
   "repo_path": "...",
   "work_dir": "...",
-  "analysis_mode": "local|clone|remote"
+  "analysis_mode": "local|clone|remote",
+  "repo_name": "AlphaSAGE"
 }
 ```
