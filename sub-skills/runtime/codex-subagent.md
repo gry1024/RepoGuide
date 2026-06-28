@@ -41,6 +41,6 @@ Codex 没有独立的 `SendMessage()` 工具，subagent 结果通过返回直接
 
 ## 约束
 
-- Codex 全自动运行，不向用户提问。
+- Codex 在 Phase 0 仍必须向用户确认分析细致度；收到明确回复后，其余 Phase 可全自动运行。
 - 所有产物必须落盘到 `$WORK_DIR`（即 `<cwd>/_repoguide/`）。
 - 主 agent 负责最后的汇总和 PDF 渲染。

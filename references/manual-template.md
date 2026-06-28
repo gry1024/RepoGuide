@@ -329,6 +329,6 @@ $$
 4. **注释化目录树**：直接取 `analysis_arch.json.annotated_tree`，**不得删去注释**。
 5. **卡片式代码**：按 `analysis_code.json.core_files` 渲染；函数的 `key_logic` 若超过 12 行须截断并加 `# ...（略）` 注释。
 6. **公式**：论文公式以 `$$...$$` 写入，保留原始 LaTeX；writer 不得对公式内容做转义。
-7. **全中文校验**：写完 `manual.md` 后，扫描是否含英文整句（连续 ≥ 4 个英文单词且非代码/专有名词），若有则改写为中文。
+7. **全中文校验**：写完 `manual.md` 后，调用 `sub-skills/tools/manual-quality-checker.md` 扫描英文整句；若有违规项，改写为中文后重新检查。
 8. 缺失字段留空并在附录"已知限制"标注。
 9. 输出到 `$WORK_DIR/manual.md`。

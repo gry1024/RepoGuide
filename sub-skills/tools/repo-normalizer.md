@@ -113,10 +113,11 @@ def extract_repo_name(repo_ref: str) -> str:
     """从 GitHub URL 或本地路径解析仓库名。"""
     if not repo_ref:
         return "repo"
-    # GitHub URL: https://github.com/owner/repo.git or /owner/repo
-    m = re.search(r"github\.com[/:]([^/]+)/([^/\.]+)(?:\.git)?", repo_ref)
+    # GitHub URL: https://github.com/owner/repo.git or git@github.com:owner/repo.git
+    m = re.search(r"github\.com[/:]([^/]+)/([^/?#]+)", repo_ref)
     if m:
-        return m.group(2)
+        name = m.group(2).rstrip("/")
+        return name[:-4] if name.endswith(".git") else name
     # 本地路径
     p = Path(repo_ref)
     return p.name if p.name else "repo"

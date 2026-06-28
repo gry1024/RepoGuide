@@ -3,6 +3,8 @@ import re
 from pathlib import Path
 from typing import Optional
 
+import pytest
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -164,3 +166,133 @@ def test_template_enforces_chinese_and_card_layout():
     assert "annotated_tree" in text or "注释化目录树" in text
     # 论文公式以 $$ 写入
     assert "$$" in text
+
+
+def test_depth_confirmation_is_required_across_runtime_docs():
+    skill = read_rel("skill.md")
+    index = read_rel("sub-skills/tasks/_index.md")
+    phase0 = read_rel("sub-skills/tasks/phase-0-normalize.md")
+    codex = read_rel("sub-skills/runtime/codex-subagent.md")
+
+    combined = "\n".join([skill, index, phase0, codex])
+    assert "未指定时默认使用" not in combined
+    assert "不向用户提问" not in codex
+    assert "必须询问" in skill
+    assert "等待用户明确回复" in phase0
+
+
+def test_detect_stack_refuses_to_default_missing_depth(tmp_path, monkeypatch):
+    repo = tmp_path / "sample"
+    repo.mkdir()
+    (repo / "README.md").write_text("# Sample\n", encoding="utf-8")
+    work_dir = tmp_path / "_repoguide"
+    work_dir.mkdir()
+    (work_dir / "profile.json").write_text(
+        json.dumps(
+            {
+                "repo_path": str(repo),
+                "work_dir": str(work_dir),
+                "analysis_mode": "local",
+                "repo_name": "sample",
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    code = extract_python_block(read_rel("sub-skills/tools/detect-stack.md"))
+    code = re.sub(
+        r'REPO_PATH = Path\("/path/to/repo"\)\.resolve\(\)',
+        lambda _m: f"REPO_PATH = Path({str(repo)!r}).resolve()",
+        code,
+    )
+
+    monkeypatch.setenv("WORK_DIR", str(work_dir))
+    monkeypatch.delenv("REPOGUIDE_DEPTH", raising=False)
+
+    with pytest.raises(SystemExit, match="REPOGUIDE_DEPTH"):
+        exec(compile(code, "detect-stack.md", "exec"), {})
+
+
+def test_detect_stack_prefers_typescript_over_javascript_when_tsconfig_present(tmp_path, monkeypatch, capsys):
+    repo = tmp_path / "_repoguide" / "repo"
+    (repo / "src").mkdir(parents=True)
+    work_dir = tmp_path / "_repoguide"
+
+    (repo / "package.json").write_text('{"scripts":{"dev":"vite"}}\n', encoding="utf-8")
+    (repo / "tsconfig.json").write_text('{"compilerOptions":{}}\n', encoding="utf-8")
+    (repo / "src" / "index.ts").write_text("export const value: number = 1;\n", encoding="utf-8")
+
+    (work_dir / "profile.json").write_text(
+        json.dumps(
+            {
+                "repo_path": str(repo),
+                "work_dir": str(work_dir),
+                "analysis_mode": "clone",
+                "repo_name": "ts-app",
+                "depth": "standard",
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    code = extract_python_block(read_rel("sub-skills/tools/detect-stack.md"))
+    code = re.sub(
+        r'REPO_PATH = Path\("/path/to/repo"\)\.resolve\(\)',
+        lambda _m: f"REPO_PATH = Path({str(repo)!r}).resolve()",
+        code,
+    )
+
+    monkeypatch.setenv("WORK_DIR", str(work_dir))
+    monkeypatch.setenv("REPOGUIDE_DEPTH", "standard")
+    exec(compile(code, "detect-stack.md", "exec"), {})
+    capsys.readouterr()
+
+    profile = json.loads((work_dir / "profile.json").read_text(encoding="utf-8"))
+    assert profile["primary_language"] == "typescript"
+    assert profile["all_languages"][0] == "typescript"
+
+
+def test_repo_normalizer_extracts_full_github_repo_names(tmp_path, monkeypatch):
+    monkeypatch.setenv("WORK_DIR", str(tmp_path / "_repoguide"))
+    monkeypatch.setenv("REPO_REF", "")
+    code = extract_python_block(read_rel("sub-skills/tools/repo-normalizer.md"))
+    ns = {}
+    exec(compile(code, "repo-normalizer.md", "exec"), ns)
+
+    extract_repo_name = ns["extract_repo_name"]
+    assert extract_repo_name("https://github.com/acme/my.repo.git") == "my.repo"
+    assert extract_repo_name("git@github.com:acme/repo-name.git") == "repo-name"
+    assert extract_repo_name("https://github.com/acme/repo.name-with-dash") == "repo.name-with-dash"
+
+
+def test_pytest_configuration_ignores_generated_work_dirs():
+    pytest_ini = ROOT / "pytest.ini"
+    assert pytest_ini.exists()
+    text = pytest_ini.read_text(encoding="utf-8")
+    assert "testpaths = tests" in text
+    assert "_repoguide" in text
+    assert "AlphaSAGE-manual" in text
+
+
+def test_manual_quality_checker_detects_english_sentences_and_ignores_code():
+    code = extract_python_block(read_rel("sub-skills/tools/manual-quality-checker.md"))
+    ns = {}
+    exec(compile(code, "manual-quality-checker.md", "exec"), ns)
+
+    find_violations = ns["find_english_sentence_violations"]
+    markdown = """# 示例
+
+这是中文说明，GFlowNet 和 RGCN 是允许保留的专有名词。
+
+This section should be rewritten into Chinese.
+
+```python
+def train_model():
+    return "This code string is allowed"
+```
+"""
+
+    violations = find_violations(markdown)
+    assert [item["text"] for item in violations] == ["This section should be rewritten into Chinese."]

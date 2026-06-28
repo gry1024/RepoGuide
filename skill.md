@@ -43,7 +43,7 @@ version: 2.0.0
 深度分析 https://github.com/owner/repo，论文 https://arxiv.org/abs/xxxx.xxxxx
 ```
 
-未指定时默认使用 **标准** 档位。
+无论用户是否写明"标准/深度"，Phase 0 都**必须询问细致度**，列出两档并等待用户明确确认后再继续；不得静默默认任何档位。
 
 ## 执行架构
 
@@ -101,6 +101,7 @@ Phase 6: 输出到用户工作目录（主 agent）
 | 论文获取 | `sub-skills/tools/paper-fetcher.md` |
 | LaTeX 渲染 | `sub-skills/tools/latex-renderer.md` |
 | 图像处理 | `sub-skills/tools/image-handler.md` |
+| 手册质量验收 | `sub-skills/tools/manual-quality-checker.md` |
 | 手册模板 | `references/manual-template.md` |
 | 智能分层规则 | `references/depth-rules.md` |
 | 语言特征表 | `references/language-profiles.md` |

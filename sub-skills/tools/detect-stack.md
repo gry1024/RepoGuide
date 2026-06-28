@@ -17,7 +17,16 @@ from pathlib import Path
 
 REPO_PATH = Path("/path/to/repo").resolve()
 WORK_DIR = Path(os.environ.get("WORK_DIR", str(REPO_PATH.parent / "_repoguide"))).resolve()
-DEPTH = os.environ.get("REPOGUIDE_DEPTH", "standard")
+existing = {}
+if (WORK_DIR / "profile.json").exists():
+    try:
+        existing = json.loads((WORK_DIR / "profile.json").read_text(encoding="utf-8"))
+    except Exception:
+        existing = {}
+
+DEPTH = os.environ.get("REPOGUIDE_DEPTH") or existing.get("depth")
+if DEPTH not in ("standard", "deep"):
+    raise SystemExit("REPOGUIDE_DEPTH must be set to 'standard' or 'deep' after user confirmation")
 
 LANGUAGE_SIGNALS = {
     "python": {
@@ -25,15 +34,15 @@ LANGUAGE_SIGNALS = {
         "entry_patterns": ["main.py", "app.py", "__main__.py", "cli.py", "run.py"],
         "exts": [".py"],
     },
-    "javascript": {
-        "package_files": ["package.json", "package-lock.json", "yarn.lock", "pnpm-lock.yaml", "bun.lockb"],
-        "entry_patterns": ["index.js", "index.mjs", "index.cjs", "app.js", "server.js", "main.js"],
-        "exts": [".js", ".mjs", ".cjs"],
-    },
     "typescript": {
         "package_files": ["tsconfig.json", "package.json", "package-lock.json", "yarn.lock", "pnpm-lock.yaml"],
         "entry_patterns": ["index.ts", "app.ts", "main.ts", "src/index.ts", "src/main.ts"],
         "exts": [".ts", ".tsx"],
+    },
+    "javascript": {
+        "package_files": ["package.json", "package-lock.json", "yarn.lock", "pnpm-lock.yaml", "bun.lockb"],
+        "entry_patterns": ["index.js", "index.mjs", "index.cjs", "app.js", "server.js", "main.js"],
+        "exts": [".js", ".mjs", ".cjs"],
     },
     "java": {
         "package_files": ["pom.xml", "build.gradle", "build.gradle.kts", "settings.gradle"],
@@ -151,12 +160,6 @@ for pat in RESEARCH_ENTRY_GLOBS:
 # 优先使用环境变量或已有 profile 中的 repo_name / repo_ref，其次从路径推断
 repo_name = os.environ.get("REPO_NAME")
 repo_ref = os.environ.get("REPO_REF")
-existing = {}
-if (WORK_DIR / "profile.json").exists():
-    try:
-        existing = json.loads((WORK_DIR / "profile.json").read_text(encoding="utf-8"))
-    except Exception:
-        existing = {}
 if not repo_name:
     repo_name = existing.get("repo_name")
 if not repo_name:
@@ -179,7 +182,7 @@ profile = {
     "entry_points": entry_points,
     "paper_found": paper_found,
     "paper_path": paper_path,
-    "depth": DEPTH if DEPTH in ("standard", "deep") else "standard",
+    "depth": DEPTH,
     "file_count_total": total,
     "file_count_by_ext": by_ext,
     "module_candidates": modules,
@@ -215,5 +218,6 @@ print(json.dumps(profile, indent=2, ensure_ascii=False))
 ## 使用方式
 
 1. 由 profiler agent 执行上述代码，生成 `profile.json`。
-2. 其他 agent 读取 `profile.json` 作为分析输入。
-3. 语言特定入口识别参考 `references/language-profiles.md`。
+2. 执行前必须由 Phase 0 完成细致度确认，并通过 `REPOGUIDE_DEPTH` 或已有 `profile.json.depth` 传入 `standard|deep`；缺失时应失败而不是默认。
+3. 其他 agent 读取 `profile.json` 作为分析输入。
+4. 语言特定入口识别参考 `references/language-profiles.md`。
