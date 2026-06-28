@@ -12,10 +12,12 @@ description: RepoGuide 的 LaTeX / xelatex PDF 渲染方法：数学公式感知
 3. **图片自适应尺寸**：统一 `\includegraphics[width=\linewidth,height=0.75\textheight,keepaspectratio]`，小图不放大、大图不溢出。
 4. **中文必须正确渲染**：`ctex` 文档类 + 系统 CJK 字体。
 5. **产物命名带仓库名**：`<repo_name>-manual.pdf`。
+6. **不得把 pandoc 作为主转换器**：pandoc 可用于诊断或兜底，但主路径必须使用本文的 Markdown→LaTeX 转换器，避免目录、宽表、图片尺寸被黑箱输出破坏。
+7. **目录、图、表必须可验收**：目录由 renderer 从 Markdown 标题生成，不依赖空 `.toc`；宽表统一包裹 `adjustbox`；HTML 表格必须横向滚动，图片必须完整显示。
 
 ## 依赖
 
-- TeX Live / MiKTeX / TinyTeX（含 `xelatex`、`amsmath`、`amssymb`、`tcolorbox`、`graphicx`、`booktabs`）
+- TeX Live / MiKTeX / TinyTeX（含 `xelatex`、`amsmath`、`amssymb`、`mathtools`、`tcolorbox`、`graphicx`、`adjustbox`、`booktabs`）
 - 中文字体（Windows: 微软雅黑/宋体；macOS: 苹方；Linux: Noto CJK）
 - 可选 `pandoc`
 
@@ -112,7 +114,7 @@ while i < len(lines):
             body.append(f"<li>{inline(item)}</li>")
         body.append("</ul>"); continue
     if s.startswith("|"):
-        tbl = ["<table>"]; i += 0
+        tbl = ['<div class="table-wrap"><table>']; i += 0
         rows = []
         while i < len(lines) and lines[i].strip().startswith("|"):
             rows.append(lines[i].strip()); i += 1
@@ -126,7 +128,7 @@ while i < len(lines):
                 for c in r.split("|")[1:-1]:
                     tbl.append(f"<td>{inline(c.strip())}</td>")
                 tbl.append("</tr>")
-        tbl.append("</table>")
+        tbl.append("</table></div>")
         body.extend(tbl); continue
     para = [line]; i += 1
     while i < len(lines) and lines[i].strip() and not lines[i].strip().startswith(("#","```","|","- ","* ","$$")):
@@ -147,10 +149,11 @@ body {{ font-family: -apple-system, "Microsoft YaHei", "PingFang SC", "Noto Sans
 h1,h2,h3,h4 {{ color: #0b3d91; margin-top: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: .3em; }}
 pre {{ background: #f6f8fa; padding: 1rem; border-radius: 6px; overflow-x: auto; }}
 code {{ font-family: Consolas, Monaco, monospace; font-size: .92em; }}
-table {{ border-collapse: collapse; width: 100%; margin: 1em 0; }}
+.table-wrap {{ width: 100%; overflow-x: auto; margin: 1em 0; }}
+table {{ border-collapse: collapse; width: max-content; min-width: 100%; margin: 0; }}
 th, td {{ border: 1px solid #d0d7de; padding: .5em .7em; text-align: left; }}
 th {{ background: #eef2f7; }}
-img {{ max-width: 100%; height: auto; display: block; margin: 1em auto; }}
+img {{ max-width: 100%; max-height: 82vh; height: auto; object-fit: contain; display: block; margin: 1em auto; }}
 blockquote {{ border-left: 4px solid #0b3d91; margin: 1em 0; padding: .5em 1em; background: #f6f8fa; color: #444; }}
 </style></head><body>
 {chr(10).join(body)}
@@ -223,7 +226,45 @@ new_md_text = re.sub(r"!\[([^\]]*)\]\(([^)]+)\)", normalize_image, md_text)
 md_path.write_text(new_md_text, encoding="utf-8")
 ```
 
+### 步骤 2.8: 生成稳定目录页（不依赖空 `.toc`）
+
+renderer 必须从 Markdown 标题直接生成目录页。这样即使 LaTeX 的 `.toc` 没写入，PDF 也不会出现空目录。
+
+```python
+# REPOGUIDE_RENDERER_TOC_START
+import re
+
+def extract_markdown_headings(markdown: str, max_level: int = 3):
+    headings = []
+    in_fence = False
+    for raw in markdown.splitlines():
+        stripped = raw.strip()
+        if stripped.startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        m = re.match(r"^(#{1,6})\s+(.+)$", raw)
+        if not m:
+            continue
+        level = len(m.group(1))
+        if level <= max_level:
+            title = re.sub(r"`([^`]+)`", r"\1", m.group(2)).strip()
+            headings.append({"level": level, "title": title})
+    return headings
+
+def build_manual_toc(markdown: str):
+    lines = ["\\section*{目录}", "\\addcontentsline{toc}{section}{目录}"]
+    for item in extract_markdown_headings(markdown):
+        indent = "\\quad " * max(item["level"] - 1, 0)
+        lines.append(f"{indent}{inline(item['title'])}\\\\")
+    return "\n".join(lines)
+# REPOGUIDE_RENDERER_TOC_END
+```
+
 ### 步骤 3: 数学公式感知的 Markdown→LaTeX 转换（关键修复）
+
+宽表合同：生成的 LaTeX 必须包含 `begin{adjustbox}{max width=\textwidth}`，并用 `tabularx` 的 `Y` 列自动换行。
 
 ```python
 import os, re
@@ -244,7 +285,34 @@ TEXT_ESCAPES = {
     "\\": "\\textbackslash{}",
     "{": "\\{", "}": "\\}",
     "&": "\\&", "#": "\\#", "%": "\\%",
+    "_": "\\_", "$": "\\$",
     "~": "\\textasciitilde{}",
+    "^": "\\textasciicircum{}",
+    "<": "\\textless{}", ">": "\\textgreater{}",
+    "→": "\\ensuremath{\\rightarrow}",
+    "←": "\\ensuremath{\\leftarrow}",
+    "↔": "\\ensuremath{\\leftrightarrow}",
+    "⇒": "\\ensuremath{\\Rightarrow}",
+    "≤": "\\ensuremath{\\leq}",
+    "≥": "\\ensuremath{\\geq}",
+    "≈": "\\ensuremath{\\approx}",
+    "≠": "\\ensuremath{\\neq}",
+    "×": "\\ensuremath{\\times}",
+    "±": "\\ensuremath{\\pm}",
+    "α": "\\ensuremath{\\alpha}",
+    "β": "\\ensuremath{\\beta}",
+    "γ": "\\ensuremath{\\gamma}",
+    "δ": "\\ensuremath{\\delta}",
+    "λ": "\\ensuremath{\\lambda}",
+    "μ": "\\ensuremath{\\mu}",
+    "σ": "\\ensuremath{\\sigma}",
+    "τ": "\\ensuremath{\\tau}",
+    "ρ": "\\ensuremath{\\rho}",
+    "π": "\\ensuremath{\\pi}",
+    "θ": "\\ensuremath{\\theta}",
+    "Δ": "\\ensuremath{\\Delta}",
+    "Σ": "\\ensuremath{\\Sigma}",
+    "Ω": "\\ensuremath{\\Omega}",
 }
 # 数学区内不转义任何字符（保留 ^ _ $ 原样）
 
@@ -252,31 +320,27 @@ def escape_text(s):
     return "".join(TEXT_ESCAPES.get(c, c) for c in s)
 
 def inline(s):
-    # 先抽出行内数学 $...$，用占位符保护
-    placeholders = []
-    def stash_math(m):
-        placeholders.append(m.group(1))
-        return f"\x00MATH{len(placeholders)-1}\x00"
-    s = re.sub(r"\$([^$\n]+)\$", stash_math, s)
-    # 行内代码
-    code_ph = []
-    def stash_code(m):
-        code_ph.append(m.group(1))
-        return f"\x00CODE{len(code_ph)-1}\x00"
-    s = re.sub(r"`([^`]+)`", stash_code, s)
-    # 粗体/斜体/链接
-    s = re.sub(r"\*\*(.+?)\*\*", lambda m: f"\\textbf{{{escape_text(m.group(1))}}}", s)
-    s = re.sub(r"\*(.+?)\*", lambda m: f"\\textit{{{escape_text(m.group(1))}}}", s)
-    s = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", lambda m: f"\\href{{{escape_text(m.group(2))}}}{{{escape_text(m.group(1))}}}", s)
-    # 还原代码
-    for i, c in enumerate(code_ph):
-        s = s.replace(f"\x00CODE{i}\x00", f"\\texttt{{{escape_text(c)}}}")
-    # 普通文本转义
-    s = escape_text(s)
-    # 还原数学（原样输出，包裹 $...$）
-    for i, m in enumerate(placeholders):
-        s = s.replace(f"\x00MATH{i}\x00", f"$\\({m}\\)$")
-    return s
+    # 所有 LaTeX 片段都先占位，普通文本整体转义后再还原，避免命令被二次转义。
+    fragments = []
+    def stash(fragment):
+        token = f"\x00LATEX{len(fragments)}\x00"
+        fragments.append((token, fragment))
+        return token
+
+    s = re.sub(r"`([^`]+)`", lambda m: stash(f"\\texttt{{{escape_text(m.group(1))}}}"), s)
+    s = re.sub(r"\$([^$\n]+)\$", lambda m: stash(f"\\({m.group(1)}\\)"), s)
+    s = re.sub(
+        r"\[([^\]]+)\]\(([^)]+)\)",
+        lambda m: stash(f"\\href{{{escape_text(m.group(2))}}}{{{escape_text(m.group(1))}}}"),
+        s,
+    )
+    s = re.sub(r"\*\*(.+?)\*\*", lambda m: stash(f"\\textbf{{{escape_text(m.group(1))}}}"), s)
+    s = re.sub(r"(?<!\*)\*([^*\n]+)\*(?!\*)", lambda m: stash(f"\\textit{{{escape_text(m.group(1))}}}"), s)
+
+    rendered = escape_text(s)
+    for token, fragment in fragments:
+        rendered = rendered.replace(token, fragment)
+    return rendered
 
 def figure_env(alt, src):
     alt = inline(alt) or "图"
@@ -286,30 +350,34 @@ def figure_env(alt, src):
                 f"  \\caption{{{alt}}}\n\\end{{figure}}")
     # 自适应尺寸：不溢出，小图不放大
     return (f"\\begin{{figure}}[htbp]\n  \\centering\n"
-            f"  \\includegraphics[width=\\linewidth,height=0.75\\textheight,keepaspectratio]{{{escape_text(src)}}}\n"
+            f"  \\includegraphics[width=\\linewidth,height=0.75\\textheight,keepaspectratio]{{\\detokenize{{{src}}}}}\n"
             f"  \\caption{{{alt}}}\n\\end{{figure}}")
 
 def parse_table(lines, start):
     header = lines[start].strip()
     sep = lines[start+1].strip() if start+1 < len(lines) else ""
-    if not sep or not all(c in "-|:" for c in sep):
+    if not sep or "-" not in sep or not all(c in "-|: " for c in sep):
         return None, start
     cols = header.split("|")[1:-1]
     n = len(cols)
-    align = []
-    for cell in sep.split("|")[1:-1]:
-        c = cell.strip()
-        align.append("c" if c.startswith(":") and c.endswith(":") else ("r" if c.endswith(":") else "l"))
-    align = align[:n] + ["l"]*(n-len(align))
-    out = ["\\begin{center}", "\\begin{tabular}{"+"".join(align)+"}", "\\toprule",
-           " & ".join(inline(c.strip()) for c in cols) + " \\\\", "\\midrule"]
+    # REPOGUIDE_RENDERER_SAFE_TABLE_START
+    col_spec = "Y" * max(n, 1)
+    out = [
+        "\\begin{center}",
+        "\\begin{adjustbox}{max width=\\textwidth}",
+        "\\begin{tabularx}{\\textwidth}{" + col_spec + "}",
+        "\\toprule",
+        " & ".join(inline(c.strip()) for c in cols) + " \\\\",
+        "\\midrule",
+    ]
     i = start+2
     while i < len(lines) and lines[i].strip().startswith("|"):
         row = lines[i].strip().split("|")[1:-1]
         row = row[:n] + [""]*(n-len(row))
         out.append(" & ".join(inline(c.strip()) for c in row) + " \\\\")
         i += 1
-    out += ["\\bottomrule", "\\end{tabular}", "\\end{center}"]
+    out += ["\\bottomrule", "\\end{tabularx}", "\\end{adjustbox}", "\\end{center}"]
+    # REPOGUIDE_RENDERER_SAFE_TABLE_END
     return out, i
 
 lines = text.splitlines()
@@ -367,6 +435,15 @@ while i < len(lines):
         m = re.match(r"!\[([^\]]*)\]\(([^)]+)\)", s)
         if m:
             out.append(figure_env(m.group(1), m.group(2))); i += 1; continue
+    if s.startswith(">"):
+        quotes = []
+        while i < len(lines) and lines[i].strip().startswith(">"):
+            quotes.append(lines[i].strip()[1:].strip())
+            i += 1
+        out.append("\\begin{tcolorbox}[notebox]")
+        out.append(inline(" ".join(q for q in quotes if q)))
+        out.append("\\end{tcolorbox}")
+        continue
     if s.startswith(("- ","* ","+ ")):
         items=[s[2:]]; i+=1
         while i<len(lines) and lines[i].strip().startswith(("- ","* ","+ ")):
@@ -383,11 +460,19 @@ while i < len(lines):
         out.append("\\end{enumerate}"); continue
 
     para=[line]; i+=1
-    while i<len(lines) and lines[i].strip() and not lines[i].strip().startswith(("#","```","|","- ","* ","$$","![")):
+    while (
+        i < len(lines)
+        and lines[i].strip()
+        and not lines[i].strip().startswith(("#", "```", "|", "- ", "* ", "+ ", "$$", "![", ">"))
+        and not re.match(r"^\d+\.\s", lines[i].strip())
+    ):
         para.append(lines[i]); i+=1
     out.append(inline(" ".join(para)))
 
-out_path.write_text("\n".join(out), encoding="utf-8")
+body_tex = "\n".join(out)
+if "build_manual_toc" in globals():
+    body_tex = build_manual_toc(text) + "\n\\newpage\n\n" + body_tex
+out_path.write_text(body_tex, encoding="utf-8")
 ```
 
 **与旧版的区别（修复点）**：
@@ -453,7 +538,9 @@ cp "$WORK_DIR/manual.md" "$PWD/${REPO_NAME}-manual.md"
 | 图片太大撑破页面 | 固定 `width=0.85\textwidth` | 改 `width=\linewidth,height=0.75\textheight,keepaspectratio` |
 | 论文图碎片 | 用 `get_images` 抽裸 raster | 改用 `get_image_info` bbox + clip 渲染（见 image-handler） |
 | 中文乱码 | 缺 CJK 字体 | ctex + 系统字体 |
-| PDF 无目录 | 只编译一次 | xelatex 编译两次 |
+| PDF 无目录 | 依赖空 `.toc` 或只编译一次 | renderer 从 Markdown 标题生成稳定目录页，并保留 xelatex 两次编译 |
+| 目录/表格编译失败 | 文件名、方法名、Windows 路径里的 `_` 未转义 | 普通文本统一转义，代码片段先保护再处理数学 |
+| 宽表/图片只显示一部分 | 固定表格或图片尺寸超过版心 | 表格包裹 `adjustbox`，图片设置宽高上限并保持比例 |
 
 ## 输出
 

@@ -4,6 +4,21 @@
 \usepackage{geometry}
 \geometry{left=2.4cm,right=2.4cm,top=2.4cm,bottom=2.4cm}
 
+% ===== 字体 =====
+\usepackage{fontspec}
+\IfFontExistsTF{Microsoft YaHei}{
+  \setCJKmainfont{Microsoft YaHei}[AutoFakeBold=true,AutoFakeSlant=true]
+  \setCJKsansfont{Microsoft YaHei}[AutoFakeBold=true,AutoFakeSlant=true]
+  \setCJKmonofont{Microsoft YaHei}[AutoFakeBold=true,AutoFakeSlant=true]
+}{
+  \IfFontExistsTF{Noto Sans CJK SC}{
+    \setCJKmainfont{Noto Sans CJK SC}[AutoFakeBold=true,AutoFakeSlant=true]
+    \setCJKsansfont{Noto Sans CJK SC}[AutoFakeBold=true,AutoFakeSlant=true]
+    \setCJKmonofont{Noto Sans Mono CJK SC}[AutoFakeBold=true,AutoFakeSlant=true]
+  }{}
+}
+\IfFontExistsTF{Consolas}{\setmonofont{Consolas}[Scale=MatchLowercase]}{}
+
 % ===== 颜色 =====
 \usepackage{xcolor}
 \definecolor{primary}{RGB}{11,61,145}      % 主蓝
@@ -18,6 +33,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{mathtools}
+\usepackage{textcomp}
 
 % ===== 链接 =====
 \usepackage{hyperref}
@@ -43,7 +59,10 @@
 % ===== 图片（自适应尺寸） =====
 \usepackage{graphicx}
 \graphicspath{{images/}{./}}
+% 图片合同：max width=\linewidth, max height=0.72\textheight
+\setkeys{Gin}{width=\linewidth,height=0.72\textheight,keepaspectratio}
 \usepackage{float}
+\usepackage{adjustbox}
 
 % ===== 表格 =====
 \usepackage{booktabs}
@@ -75,6 +94,9 @@
 
 % ===== 行距 =====
 \linespread{1.18}
+\sloppy
+\emergencystretch=3em
+\setcounter{tocdepth}{3}
 
 % ===== Pandoc 兼容 =====
 \providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
@@ -101,10 +123,7 @@
 \vfill
 
 \newpage
-\tableofcontents
-\newpage
-
-% ===== 正文 =====
+% ===== 正文（renderer 会在正文前部写入稳定目录页） =====
 {CONTENT}
 
 \end{document}

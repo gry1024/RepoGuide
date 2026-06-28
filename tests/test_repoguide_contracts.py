@@ -275,6 +275,9 @@ def test_pytest_configuration_ignores_generated_work_dirs():
     assert "_repoguide" in text
     assert "AlphaSAGE-manual" in text
 
+    gitignore = read_rel(".gitignore")
+    assert "_repoguide_eval/" in gitignore
+
 
 def test_manual_quality_checker_detects_english_sentences_and_ignores_code():
     code = extract_python_block(read_rel("sub-skills/tools/manual-quality-checker.md"))
@@ -296,3 +299,83 @@ def train_model():
 
     violations = find_violations(markdown)
     assert [item["text"] for item in violations] == ["This section should be rewritten into Chinese."]
+
+
+def test_pdf_template_contains_layout_safety_primitives():
+    template = read_rel("references/latex-template/main.tex")
+    assert "adjustbox" in template
+    assert "\\IfFontExistsTF{Microsoft YaHei}" in template
+    assert "\\setCJKmainfont" in template
+    assert "\\setcounter{tocdepth}{3}" in template
+    assert "\\setkeys{Gin}" in template
+    assert "max width=\\linewidth" in template
+    assert "max height=0.72\\textheight" in template
+    assert template.count("{CONTENT}") == 1
+
+
+def test_latex_renderer_defines_manual_toc_and_safe_table_contracts():
+    text = read_rel("sub-skills/tools/latex-renderer.md")
+    assert "REPOGUIDE_RENDERER_TOC_START" in text
+    assert "REPOGUIDE_RENDERER_SAFE_TABLE_START" in text
+    assert "build_manual_toc" in text
+    assert '"_": "\\\\_"' in text
+    assert '"↔": "\\\\ensuremath{\\\\leftrightarrow}"' in text
+    assert "\\begin{tcolorbox}[notebox]" in text
+    assert "begin{adjustbox}{max width=\\textwidth}" in text
+    assert "不得把 pandoc 作为主转换器" in text
+
+
+def test_latex_renderer_escapes_paths_methods_tables_and_quotes(tmp_path, monkeypatch):
+    work_dir = tmp_path / "_repoguide"
+    work_dir.mkdir()
+    (work_dir / "manual.md").write_text(
+        """# AlphaSAGE 仓库手册指南
+
+> 由 RepoGuide 自动生成  > 仓库路径：`E:\\KimiClaw\\RepoGuide\\_repoguide_eval`，公式用 `$$...$$` 块渲染。
+
+## train_gfn.py — 主训练入口
+
+| 项 | 值 |
+| --- | --- |
+| 入口 | `train_gfn.py` 与 `__add__/__sub__` |
+| 路径 | E:\\KimiClaw\\RepoGuide\\_repoguide_eval |
+
+正文包含 train_gfn.py、filter_by_index/__add__ 和 $x_i^2$。
+""",
+        encoding="utf-8",
+    )
+
+    renderer = read_rel("sub-skills/tools/latex-renderer.md")
+    ns = {}
+    exec(compile(extract_python_block(renderer, "REPOGUIDE_RENDERER_TOC_START"), "toc", "exec"), ns)
+    monkeypatch.setenv("WORK_DIR", str(work_dir))
+    exec(compile(extract_python_block(renderer, "TEXT_ESCAPES"), "latex-renderer", "exec"), ns)
+
+    tex = (work_dir / "manual-body.tex").read_text(encoding="utf-8")
+    assert "\\section*{目录}" in tex
+    assert "\\begin{tcolorbox}[notebox]" in tex
+    assert "\\begin{adjustbox}{max width=\\textwidth}" in tex
+    assert "\\texttt{train\\_gfn.py}" in tex
+    assert "\\texttt{\\$\\$...\\$\\$}" in tex
+    assert "train\\_gfn.py" in tex
+    assert "\\_\\_add\\_\\_/\\_\\_sub\\_\\_" in tex
+    assert "filter\\_by\\_index/\\_\\_add\\_\\_" in tex
+    assert "\\(x_i^2\\)" in tex
+    assert "\x00" not in tex
+    assert "\\textbackslash{}texttt" not in tex
+    assert "> 由 RepoGuide" not in tex
+
+
+def test_html_renderer_contract_wraps_wide_tables_and_images():
+    text = read_rel("sub-skills/tools/latex-renderer.md")
+    assert "table-wrap" in text
+    assert "overflow-x: auto" in text
+    assert "max-height: 82vh" in text
+    assert "object-fit: contain" in text
+
+
+def test_phase5_requires_visual_pdf_validation():
+    text = read_rel("sub-skills/tasks/phase-5-renderer.md")
+    assert "渲染抽检" in text
+    assert "PyMuPDF" in text or "pdftoppm" in text
+    assert "目录页不得为空" in text
