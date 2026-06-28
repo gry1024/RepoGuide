@@ -17,7 +17,7 @@ description: RepoGuide 的 LaTeX / xelatex PDF 渲染方法：数学公式感知
 
 ## 依赖
 
-- TeX Live / MiKTeX / TinyTeX（含 `xelatex`、`amsmath`、`amssymb`、`mathtools`、`tcolorbox`、`graphicx`、`adjustbox`、`booktabs`）
+- TeX Live / MiKTeX / TinyTeX（含 `xelatex`、`fontspec`、`ctex`、`amsmath`、`amssymb`、`mathtools`、`tcolorbox`、`tikz/pgf`、`graphicx`、`caption`、`listings`、`adjustbox`、`booktabs`、`tabularx`、`titlesec`）
 - 中文字体（Windows: 微软雅黑/宋体；macOS: 苹方；Linux: Noto CJK）
 - 可选 `pandoc`
 
@@ -234,8 +234,10 @@ renderer 必须从 Markdown 标题直接生成目录页。这样即使 LaTeX 的
 # REPOGUIDE_RENDERER_TOC_START
 import re
 
-def extract_markdown_headings(markdown: str, max_level: int = 3):
-    headings = []
+def is_report_title(level: int, title: str) -> bool:
+    return level == 1 and "仓库手册指南" in title
+
+def detect_heading_offset(markdown: str) -> int:
     in_fence = False
     for raw in markdown.splitlines():
         stripped = raw.strip()
@@ -248,16 +250,41 @@ def extract_markdown_headings(markdown: str, max_level: int = 3):
         if not m:
             continue
         level = len(m.group(1))
-        if level <= max_level:
-            title = re.sub(r"`([^`]+)`", r"\1", m.group(2)).strip()
-            headings.append({"level": level, "title": title})
+        title = re.sub(r"`([^`]+)`", r"\1", m.group(2)).strip()
+        return 1 if is_report_title(level, title) else 0
+    return 0
+
+def extract_markdown_headings(markdown: str, max_level: int = 2):
+    headings = []
+    heading_offset = detect_heading_offset(markdown)
+    in_fence = False
+    for raw in markdown.splitlines():
+        stripped = raw.strip()
+        if stripped.startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        m = re.match(r"^(#{1,6})\s+(.+)$", raw)
+        if not m:
+            continue
+        level = len(m.group(1))
+        title = re.sub(r"`([^`]+)`", r"\1", m.group(2)).strip()
+        if heading_offset and is_report_title(level, title):
+            continue
+        effective_level = max(1, level - heading_offset)
+        if effective_level > 1 and ("—" in title or len(title) > 44):
+            continue
+        if effective_level <= max_level:
+            headings.append({"level": effective_level, "title": title})
     return headings
 
 def build_manual_toc(markdown: str):
-    lines = ["\\section*{目录}", "\\addcontentsline{toc}{section}{目录}"]
+    lines = ["\\begin{repoguidetoc}"]
     for item in extract_markdown_headings(markdown):
-        indent = "\\quad " * max(item["level"] - 1, 0)
-        lines.append(f"{indent}{inline(item['title'])}\\\\")
+        cmd = "tocmajor" if item["level"] == 1 else "tocminor"
+        lines.append(f"\\{cmd}{{{inline(item['title'])}}}")
+    lines.append("\\end{repoguidetoc}")
     return "\n".join(lines)
 # REPOGUIDE_RENDERER_TOC_END
 ```
@@ -381,6 +408,7 @@ def parse_table(lines, start):
     return out, i
 
 lines = text.splitlines()
+heading_offset = detect_heading_offset(text) if "detect_heading_offset" in globals() else 0
 out = []
 i = 0
 while i < len(lines):
@@ -410,7 +438,7 @@ while i < len(lines):
         lang_map = {"python":"Python","py":"Python","bash":"bash","sh":"bash",
                     "javascript":"JavaScript","js":"JavaScript","text":"{}","dot":"{}"}
         lstlang = lang_map.get(lang, lang or "{}")
-        out.append(f"\\begin{{lstlisting}}[language={lstlang},basicstyle=\\small\\ttfamily,breaklines=true,breakatwhitespace=false]")
+        out.append(f"\\begin{{lstlisting}}[language={lstlang}]")
         out.append("\n".join(code))  # 代码内容不转义（listings 原样处理）
         out.append("\\end{lstlisting}")
         i += 1; continue
@@ -418,8 +446,12 @@ while i < len(lines):
     if s.startswith("#"):
         level = len(s) - len(s.lstrip("#"))
         if level <= 6 and s[level:].startswith(" "):
-            cmd = ["\\section","\\subsection","\\subsubsection","\\paragraph","\\subparagraph","\\subparagraph"][min(level-1,5)]
-            out.append(f"{cmd}{{{inline(s[level+1:].strip())}}}")
+            title = s[level+1:].strip()
+            if heading_offset and "is_report_title" in globals() and is_report_title(level, title):
+                i += 1; continue
+            effective_level = max(1, level - heading_offset)
+            cmd = ["\\section","\\subsection","\\subsubsection","\\paragraph","\\subparagraph","\\subparagraph"][min(effective_level-1,5)]
+            out.append(f"{cmd}{{{inline(title)}}}")
             i += 1; continue
 
     if s.startswith("|"):

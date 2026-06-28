@@ -2,67 +2,91 @@
 
 % ===== 页面 =====
 \usepackage{geometry}
-\geometry{left=2.4cm,right=2.4cm,top=2.4cm,bottom=2.4cm}
+\geometry{left=2.1cm,right=2.1cm,top=2.2cm,bottom=2.25cm,headheight=15pt,headsep=0.55cm}
 
 % ===== 字体 =====
 \usepackage{fontspec}
-\IfFontExistsTF{Microsoft YaHei}{
-  \setCJKmainfont{Microsoft YaHei}[AutoFakeBold=true,AutoFakeSlant=true]
-  \setCJKsansfont{Microsoft YaHei}[AutoFakeBold=true,AutoFakeSlant=true]
-  \setCJKmonofont{Microsoft YaHei}[AutoFakeBold=true,AutoFakeSlant=true]
+\IfFontExistsTF{TeX Gyre Pagella}{\setmainfont{TeX Gyre Pagella}}{}
+\IfFontExistsTF{TeX Gyre Heros}{\setsansfont{TeX Gyre Heros}}{}
+\IfFontExistsTF{Consolas}{\setmonofont{Consolas}[Scale=MatchLowercase]}{}
+\IfFontExistsTF{FandolSong}{
+  \setCJKmainfont{FandolSong}[AutoFakeBold=true,AutoFakeSlant=true]
+  \setCJKsansfont{FandolHei}[AutoFakeBold=true,AutoFakeSlant=true]
+  \setCJKmonofont{FandolFang}[AutoFakeBold=true,AutoFakeSlant=true]
 }{
-  \IfFontExistsTF{Noto Sans CJK SC}{
-    \setCJKmainfont{Noto Sans CJK SC}[AutoFakeBold=true,AutoFakeSlant=true]
-    \setCJKsansfont{Noto Sans CJK SC}[AutoFakeBold=true,AutoFakeSlant=true]
-    \setCJKmonofont{Noto Sans Mono CJK SC}[AutoFakeBold=true,AutoFakeSlant=true]
+  \IfFontExistsTF{SimSun}{
+    \setCJKmainfont{SimSun}[AutoFakeBold=true,AutoFakeSlant=true]
+    \setCJKsansfont{DengXian}[AutoFakeBold=true,AutoFakeSlant=true]
+    \setCJKmonofont{Microsoft YaHei}[AutoFakeBold=true,AutoFakeSlant=true]
   }{}
 }
-\IfFontExistsTF{Consolas}{\setmonofont{Consolas}[Scale=MatchLowercase]}{}
 
 % ===== 颜色 =====
 \usepackage{xcolor}
-\definecolor{primary}{RGB}{11,61,145}      % 主蓝
-\definecolor{accent}{RGB}{205,32,64}       % 强调红
-\definecolor{codebg}{RGB}{246,248,250}
-\definecolor{codeframe}{RGB}{208,215,222}
-\definecolor{quotebg}{RGB}{238,242,247}
-\definecolor{tablehead}{RGB}{238,242,247}
-\definecolor{linkblue}{RGB}{11,61,145}
+\definecolor{paper}{RGB}{253,252,249}
+\definecolor{ink}{RGB}{30,35,43}
+\definecolor{muted}{RGB}{100,111,124}
+\definecolor{primary}{RGB}{25,72,145}
+\definecolor{accent}{RGB}{185,121,38}
+\definecolor{codebg}{RGB}{247,248,250}
+\definecolor{codeframe}{RGB}{220,226,235}
+\definecolor{quotebg}{RGB}{246,249,252}
+\definecolor{tablehead}{RGB}{238,243,248}
+\definecolor{linkblue}{RGB}{25,72,145}
+\pagecolor{paper}
+\color{ink}
 
-% ===== 数学（修复公式渲染） =====
+% ===== 数学 =====
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{mathtools}
 \usepackage{textcomp}
 
-% ===== 链接 =====
+% ===== 图形 / 链接 =====
+\usepackage{graphicx}
+\usepackage{tikz}
 \usepackage{hyperref}
 \hypersetup{
   colorlinks=true, linkcolor=primary, urlcolor=linkblue, citecolor=primary,
   pdftitle={{TITLE}}, pdfauthor={RepoGuide}
 }
 
+% ===== 页眉页脚 =====
+\makeatletter
+\def\ps@repoguide{
+  \def\@oddhead{\sffamily\footnotesize\color{muted}RepoGuide\hfil\rightmark}
+  \def\@evenhead{\sffamily\footnotesize\color{muted}\leftmark\hfil RepoGuide}
+  \def\@oddfoot{\sffamily\footnotesize\color{muted}{REPO_NAME}\hfil\thepage}
+  \def\@evenfoot{\sffamily\footnotesize\color{muted}\thepage\hfil {REPO_NAME}}
+}
+\makeatother
+\pagestyle{repoguide}
+
 % ===== 代码 =====
 \usepackage{listings}
-\lstset{
-  basicstyle=\small\ttfamily,
+\lstdefinestyle{repocode}{
+  basicstyle=\footnotesize\ttfamily,
   backgroundcolor=\color{codebg},
   frame=single, rulecolor=\color{codeframe},
+  framerule=0.35pt, framesep=7pt,
   breaklines=true, breakatwhitespace=false,
   showstringspaces=false, tabsize=2,
-  captionpos=b, numbers=left, numberstyle=\tiny\color{gray},
-  xleftmargin=1.6em, framexleftmargin=1.2em,
+  captionpos=b, numbers=left, numberstyle=\tiny\color{muted},
+  xleftmargin=1.7em, framexleftmargin=1.3em,
+  columns=fullflexible, keepspaces=true,
   extendedchars=true,
   literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
 }
+\lstset{style=repocode}
 
-% ===== 图片（自适应尺寸） =====
-\usepackage{graphicx}
+% ===== 图片 =====
 \graphicspath{{images/}{./}}
 % 图片合同：max width=\linewidth, max height=0.72\textheight
 \setkeys{Gin}{width=\linewidth,height=0.72\textheight,keepaspectratio}
 \usepackage{float}
 \usepackage{adjustbox}
+\usepackage[font=small,labelfont={bf,sf,color=primary},textfont=it]{caption}
+\captionsetup{justification=centering,singlelinecheck=false}
 
 % ===== 表格 =====
 \usepackage{booktabs}
@@ -70,59 +94,98 @@
 \usepackage{array}
 \usepackage{multirow}
 \usepackage{tabularx}
+\renewcommand{\arraystretch}{1.22}
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 
 % ===== 列表 =====
 \usepackage{enumitem}
-\setlist[itemize]{leftmargin=1.6em, itemsep=2pt}
-\setlist[enumerate]{leftmargin=1.8em, itemsep=2pt}
+\setlist[itemize]{leftmargin=1.45em, itemsep=2pt, topsep=3pt}
+\setlist[enumerate]{leftmargin=1.7em, itemsep=2pt, topsep=3pt}
 
-% ===== 提示框 =====
+% ===== 提示框 / 目录 =====
 \usepackage[most]{tcolorbox}
 \tcbset{
-  notebox/.style={enhanced, colback=quotebg, colframe=primary, boxrule=0.4pt,
-    arc=2pt, left=8pt, right=8pt, top=4pt, bottom=4pt, fonttitle=\bfseries\color{primary}},
+  notebox/.style={
+    enhanced, breakable, colback=quotebg, colframe=primary!55, boxrule=0.45pt,
+    arc=1.5pt, left=9pt, right=9pt, top=6pt, bottom=6pt,
+    borderline west={2pt}{0pt}{primary}
+  },
+  covermeta/.style={
+    enhanced, colback=white, colframe=primary!35, boxrule=0.45pt,
+    arc=2pt, left=12pt, right=12pt, top=10pt, bottom=10pt
+  },
+  tocbox/.style={
+    enhanced, breakable, colback=white, colframe=primary!20, boxrule=0.35pt,
+    arc=2pt, left=14pt, right=14pt, top=12pt, bottom=12pt
+  }
 }
+\newenvironment{repoguidetoc}{
+  \clearpage
+  \thispagestyle{plain}
+  {\sffamily\bfseries\Huge\color{primary}目录\par}
+  \vspace{0.4cm}
+  \begin{tcolorbox}[tocbox]
+}{
+  \end{tcolorbox}
+  \clearpage
+}
+\newcommand{\tocmajor}[1]{\par\noindent{\sffamily\bfseries\large\color{ink}#1}\par\vspace{0.16cm}}
+\newcommand{\tocminor}[1]{\par\noindent\hspace{0.8em}{\color{accent}\rule{1.6em}{0.45pt}}\hspace{0.65em}{\small #1}\par\vspace{0.09cm}}
 
-% ===== 章节标题样式 =====
+% ===== 章节标题 =====
 \usepackage{titlesec}
-\titleformat{\section}{\Large\bfseries\color{primary}}{\thesection}{0.6em}{}
-\titleformat{\subsection}{\large\bfseries\color{primary}}{\thesubsection}{0.6em}{}
-\titleformat{\subsubsection}{\normalsize\bfseries\color{primary!85!black}}{\thesubsubsection}{0.5em}{}
-\titlespacing*{\section}{0pt}{1.4em}{0.5em}
-\titlespacing*{\subsection}{0pt}{1.0em}{0.4em}
+\setcounter{secnumdepth}{0}
+\setcounter{tocdepth}{2}
+\titleformat{\section}
+  {\sffamily\LARGE\bfseries\color{primary}}
+  {}{0pt}{}
+  [\vspace{0.25em}{\color{accent}\titlerule[0.7pt]}]
+\titleformat{\subsection}{\sffamily\Large\bfseries\color{ink}}{}{0pt}{}
+\titleformat{\subsubsection}{\sffamily\normalsize\bfseries\color{primary!85!black}}{}{0pt}{}
+\titlespacing*{\section}{0pt}{1.6em}{0.75em}
+\titlespacing*{\subsection}{0pt}{1.15em}{0.45em}
+\titlespacing*{\subsubsection}{0pt}{0.9em}{0.3em}
 
 % ===== 行距 =====
-\linespread{1.18}
+\linespread{1.12}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.45em}
 \sloppy
 \emergencystretch=3em
-\setcounter{tocdepth}{3}
 
 % ===== Pandoc 兼容 =====
 \providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 
-% ===== 标题信息 =====
-\title{\Huge\bfseries\color{primary} {TITLE}\\[0.3em]\Large\color{black!70} 仓库手册指南}
-\author{RepoGuide}
-\date{{DATE}}
-
 \begin{document}
 
-\maketitle
+\begin{titlepage}
 \thispagestyle{empty}
-
-\vfill
-\begin{center}
-\begin{tcolorbox}[notebox, width=0.7\textwidth, halign=flush left]
-\textbf{仓库：} {REPO_NAME}\\[2pt]
-\textbf{主语言：} {PRIMARY_LANGUAGE}\\[2pt]
-\textbf{文件总数：} {FILE_COUNT}\\[2pt]
-\textbf{生成时间：} {DATE}
+\begin{tikzpicture}[remember picture,overlay]
+  \fill[primary] (current page.north west) rectangle ([xshift=1.05cm]current page.south west);
+  \fill[accent] ([yshift=-5.25cm]current page.north west) rectangle ([xshift=1.05cm,yshift=-9.4cm]current page.north west);
+  \draw[primary!18,line width=0.7pt] ([xshift=2.1cm,yshift=-2.15cm]current page.north west) -- ([xshift=-2.1cm,yshift=-2.15cm]current page.north east);
+  \draw[primary!12,line width=0.7pt] ([xshift=2.1cm,yshift=2.2cm]current page.south west) -- ([xshift=-2.1cm,yshift=2.2cm]current page.south east);
+\end{tikzpicture}
+\vspace*{1.9cm}
+{\sffamily\large\color{accent}RepoGuide Technical Manual\par}
+\vspace{0.55cm}
+{\sffamily\bfseries\fontsize{30}{36}\selectfont\color{primary}{TITLE}\par}
+\vspace{0.45cm}
+{\sffamily\Large\color{muted}仓库手册指南\par}
+\vspace{1.35cm}
+\begin{tcolorbox}[covermeta, width=0.72\textwidth]
+\sffamily
+\begin{tabularx}{\textwidth}{@{}>{\color{muted}}lY@{}}
+仓库 & \textbf{{REPO_NAME}}\\
+主语言 & {PRIMARY_LANGUAGE}\\
+文件总数 & {FILE_COUNT}\\
+生成时间 & {DATE}\\
+\end{tabularx}
 \end{tcolorbox}
-\end{center}
 \vfill
+{\sffamily\small\color{muted}Generated by RepoGuide with XeLaTeX\par}
+\end{titlepage}
 
-\newpage
 % ===== 正文（renderer 会在正文前部写入稳定目录页） =====
 {CONTENT}
 

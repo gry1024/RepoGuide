@@ -304,9 +304,13 @@ def train_model():
 def test_pdf_template_contains_layout_safety_primitives():
     template = read_rel("references/latex-template/main.tex")
     assert "adjustbox" in template
-    assert "\\IfFontExistsTF{Microsoft YaHei}" in template
+    assert "\\IfFontExistsTF{FandolSong}" in template
     assert "\\setCJKmainfont" in template
-    assert "\\setcounter{tocdepth}{3}" in template
+    assert "\\begin{titlepage}" in template
+    assert "\\pagestyle{repoguide}" in template
+    assert "\\newenvironment{repoguidetoc}" in template
+    assert "\\setcounter{secnumdepth}{0}" in template
+    assert "\\setcounter{tocdepth}{2}" in template
     assert "\\setkeys{Gin}" in template
     assert "max width=\\linewidth" in template
     assert "max height=0.72\\textheight" in template
@@ -318,6 +322,9 @@ def test_latex_renderer_defines_manual_toc_and_safe_table_contracts():
     assert "REPOGUIDE_RENDERER_TOC_START" in text
     assert "REPOGUIDE_RENDERER_SAFE_TABLE_START" in text
     assert "build_manual_toc" in text
+    assert "detect_heading_offset" in text
+    assert "repoguidetoc" in text
+    assert "tocmajor" in text
     assert '"_": "\\\\_"' in text
     assert '"↔": "\\\\ensuremath{\\\\leftrightarrow}"' in text
     assert "\\begin{tcolorbox}[notebox]" in text
@@ -334,6 +341,10 @@ def test_latex_renderer_escapes_paths_methods_tables_and_quotes(tmp_path, monkey
 > 由 RepoGuide 自动生成  > 仓库路径：`E:\\KimiClaw\\RepoGuide\\_repoguide_eval`，公式用 `$$...$$` 块渲染。
 
 ## train_gfn.py — 主训练入口
+
+### 3.1 架构总览图
+
+### src/alpha_gfn/modules.py — AlphaSAGE 结构感知编码器：RPN 到 RGCN 的长文件卡片标题
 
 | 项 | 值 |
 | --- | --- |
@@ -352,7 +363,12 @@ def test_latex_renderer_escapes_paths_methods_tables_and_quotes(tmp_path, monkey
     exec(compile(extract_python_block(renderer, "TEXT_ESCAPES"), "latex-renderer", "exec"), ns)
 
     tex = (work_dir / "manual-body.tex").read_text(encoding="utf-8")
-    assert "\\section*{目录}" in tex
+    assert "\\begin{repoguidetoc}" in tex
+    assert "\\tocmajor{train\\_gfn.py" in tex
+    assert "\\tocminor{3.1 架构总览图}" in tex
+    assert "RPN 到 RGCN 的长文件卡片标题" not in tex.split("\\end{repoguidetoc}", 1)[0]
+    assert "\\section{train\\_gfn.py" in tex
+    assert "\\section{AlphaSAGE 仓库手册指南}" not in tex
     assert "\\begin{tcolorbox}[notebox]" in tex
     assert "\\begin{adjustbox}{max width=\\textwidth}" in tex
     assert "\\texttt{train\\_gfn.py}" in tex
