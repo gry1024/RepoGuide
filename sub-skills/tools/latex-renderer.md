@@ -146,15 +146,15 @@ html = f"""<!DOCTYPE html>
   onload="renderMathInElement(document.body,{{delimiters:[{{left:'$$',right:'$$',display:true}},{{left:'\\\\(',right:'\\\\)',display:false}},{{left:'\\\\[',right:'\\\\]',display:true}}]}});"></script>
 <style>
 body {{ font-family: -apple-system, "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif; max-width: 920px; margin: 0 auto; padding: 2rem; line-height: 1.75; color: #24292f; }}
-h1,h2,h3,h4 {{ color: #0b3d91; margin-top: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: .3em; }}
+h1,h2,h3,h4 {{ color: #94070A; margin-top: 1.5em; border-bottom: 1px solid #eadeda; padding-bottom: .3em; }}
 pre {{ background: #f6f8fa; padding: 1rem; border-radius: 6px; overflow-x: auto; }}
 code {{ font-family: Consolas, Monaco, monospace; font-size: .92em; }}
 .table-wrap {{ width: 100%; overflow-x: auto; margin: 1em 0; }}
 table {{ border-collapse: collapse; width: max-content; min-width: 100%; margin: 0; }}
 th, td {{ border: 1px solid #d0d7de; padding: .5em .7em; text-align: left; }}
-th {{ background: #eef2f7; }}
+th {{ background: #f8efeb; }}
 img {{ max-width: 100%; max-height: 82vh; height: auto; object-fit: contain; display: block; margin: 1em auto; }}
-blockquote {{ border-left: 4px solid #0b3d91; margin: 1em 0; padding: .5em 1em; background: #f6f8fa; color: #444; }}
+blockquote {{ border-left: 4px solid #94070A; margin: 1em 0; padding: .5em 1em; background: #fcf7f5; color: #444; }}
 </style></head><body>
 {chr(10).join(body)}
 </body></html>"""
@@ -254,11 +254,14 @@ def detect_heading_offset(markdown: str) -> int:
         return 1 if is_report_title(level, title) else 0
     return 0
 
+def heading_anchor(line_no: int) -> str:
+    return f"repoguide-heading-{line_no}"
+
 def extract_markdown_headings(markdown: str, max_level: int = 2):
     headings = []
     heading_offset = detect_heading_offset(markdown)
     in_fence = False
-    for raw in markdown.splitlines():
+    for line_no, raw in enumerate(markdown.splitlines(), start=1):
         stripped = raw.strip()
         if stripped.startswith("```"):
             in_fence = not in_fence
@@ -276,14 +279,14 @@ def extract_markdown_headings(markdown: str, max_level: int = 2):
         if effective_level > 1 and ("—" in title or len(title) > 44):
             continue
         if effective_level <= max_level:
-            headings.append({"level": effective_level, "title": title})
+            headings.append({"level": effective_level, "title": title, "anchor": heading_anchor(line_no)})
     return headings
 
 def build_manual_toc(markdown: str):
     lines = ["\\begin{repoguidetoc}"]
     for item in extract_markdown_headings(markdown):
         cmd = "tocmajor" if item["level"] == 1 else "tocminor"
-        lines.append(f"\\{cmd}{{{inline(item['title'])}}}")
+        lines.append(f"\\{cmd}{{\\hyperlink{{{item['anchor']}}}{{{inline(item['title'])}}}}}")
     lines.append("\\end{repoguidetoc}")
     return "\n".join(lines)
 # REPOGUIDE_RENDERER_TOC_END
@@ -521,7 +524,8 @@ while i < len(lines):
                 i += 1; continue
             effective_level = max(1, level - heading_offset)
             cmd = ["\\section","\\subsection","\\subsubsection","\\paragraph","\\subparagraph","\\subparagraph"][min(effective_level-1,5)]
-            out.append(f"{cmd}{{{inline(title)}}}")
+            anchor = heading_anchor(i + 1) if "heading_anchor" in globals() else f"repoguide-heading-{i + 1}"
+            out.append(f"\\hypertarget{{{anchor}}}{{}}\n{cmd}{{{inline(title)}}}")
             i += 1; continue
 
     if s.startswith("|"):

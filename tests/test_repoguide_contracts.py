@@ -315,6 +315,9 @@ def test_pdf_template_contains_layout_safety_primitives():
     assert "max width=\\linewidth" in template
     assert "max height=0.72\\textheight" in template
     assert "\\raggedright" in template
+    assert "\\definecolor{primary}{RGB}{139,0,18}" in template
+    assert "\\definecolor{linkblue}{RGB}{139,0,18}" in template
+    assert "\\definecolor{primary}{RGB}{25,72,145}" not in template
     assert template.count("{CONTENT}") == 1
 
 
@@ -324,6 +327,9 @@ def test_latex_renderer_defines_manual_toc_and_safe_table_contracts():
     assert "REPOGUIDE_RENDERER_SAFE_TABLE_START" in text
     assert "build_manual_toc" in text
     assert "detect_heading_offset" in text
+    assert "heading_anchor" in text
+    assert "\\hyperlink" in text
+    assert "\\hypertarget" in text
     assert "repoguidetoc" in text
     assert "tocmajor" in text
     assert "CODE_LIKE_TOKEN" in text
@@ -372,9 +378,11 @@ def test_latex_renderer_escapes_paths_methods_tables_and_quotes(tmp_path, monkey
 
     tex = (work_dir / "manual-body.tex").read_text(encoding="utf-8")
     assert "\\begin{repoguidetoc}" in tex
-    assert "\\tocmajor{train\\_gfn.py" in tex
-    assert "\\tocminor{3.1 架构总览图}" in tex
+    assert "\\tocmajor{\\hyperlink{repoguide-heading-5}{train\\_gfn.py" in tex
+    assert "\\tocminor{\\hyperlink{repoguide-heading-7}{3.1 架构总览图}" in tex
     assert "RPN 到 RGCN 的长文件卡片标题" not in tex.split("\\end{repoguidetoc}", 1)[0]
+    assert "\\hypertarget{repoguide-heading-5}{}" in tex
+    assert "\\hypertarget{repoguide-heading-11}{}" in tex
     assert "\\section{train\\_gfn.py" in tex
     assert "calculate\\_\\allowbreak{}quantile" in tex
     assert "huber\\_\\allowbreak{}loss/\\allowbreak{}get" in tex
@@ -443,6 +451,8 @@ def test_html_renderer_contract_wraps_wide_tables_and_images():
     assert "overflow-x: auto" in text
     assert "max-height: 82vh" in text
     assert "object-fit: contain" in text
+    assert "#94070A" in text
+    assert "#0b3d91" not in text
 
 
 def test_phase5_requires_visual_pdf_validation():
