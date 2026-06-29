@@ -166,6 +166,43 @@ def test_template_enforces_chinese_and_card_layout():
     assert "annotated_tree" in text or "注释化目录树" in text
     # 论文公式以 $$ 写入
     assert "$$" in text
+    visible_template = text.split("## writer 组装规则", 1)[0]
+    forbidden = [
+        "## 四、核心代码详解（卡片式）",
+        "每个核心文件一张",
+        "函数签名+职责+参数+关键逻辑",
+        "`key_logic` 超",
+    ]
+    for phrase in forbidden:
+        assert phrase not in visible_template
+
+
+def test_manual_quality_checker_rejects_reader_facing_meta_instructions():
+    text = read_rel("sub-skills/tools/manual-quality-checker.md")
+    assert "find_reader_facing_meta_violations" in text
+    assert "每个核心文件一张卡片" in text
+    assert "key_logic" in text
+    assert "卡片式" in text
+
+
+def test_tracked_alphasage_samples_do_not_include_writer_meta_instructions():
+    sample_paths = [
+        "AlphaSAGE-manual/AlphaSAGE-standard-manual.md",
+        "AlphaSAGE-manual/AlphaSAGE-deep-manual.md",
+        "AlphaSAGE-manual/AlphaSAGE-standard-manual.html",
+        "AlphaSAGE-manual/AlphaSAGE-deep-manual.html",
+    ]
+    forbidden = [
+        "核心代码详解（卡片式）",
+        "每个核心文件一张卡片",
+        "标题带一句话职责",
+        "函数签名+职责+参数+关键逻辑",
+        "key_logic",
+    ]
+    for path in sample_paths:
+        text = read_rel(path)
+        for phrase in forbidden:
+            assert phrase not in text
 
 
 def test_depth_confirmation_is_required_across_runtime_docs():

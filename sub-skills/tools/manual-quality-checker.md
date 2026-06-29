@@ -64,6 +64,41 @@ def find_english_sentence_violations(markdown: str):
     return violations
 ```
 
+## 面向读者的内部说明泄漏扫描
+
+最终手册是给读者看的，不得把 writer/schema/排版策略说明直接写进正文。
+
+```python
+READER_FACING_META_PHRASES = [
+    "卡片式",
+    "每个核心文件一张卡片",
+    "每个核心文件一张\"卡片\"",
+    "标题带一句话职责",
+    "类清单（行内）",
+    "函数签名+职责+参数+关键逻辑",
+    "key_logic",
+]
+
+
+def find_reader_facing_meta_violations(markdown: str):
+    violations = []
+    in_fence = False
+
+    for line_no, raw in enumerate(markdown.splitlines(), start=1):
+        stripped = raw.strip()
+        if stripped.startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+
+        for phrase in READER_FACING_META_PHRASES:
+            if phrase in raw:
+                violations.append({"line": line_no, "text": phrase})
+
+    return violations
+```
+
 ## 注释化目录树检查
 
 ```python
@@ -88,6 +123,12 @@ if violations:
     raise SystemExit(
         "手册存在英文整句，请改写为中文后重试: "
         + "; ".join(f"line {v['line']}: {v['text']}" for v in violations[:20])
+    )
+meta_violations = find_reader_facing_meta_violations(manual)
+if meta_violations:
+    raise SystemExit(
+        "手册泄漏了面向 writer 的内部说明，请删除或改写: "
+        + "; ".join(f"line {v['line']}: {v['text']}" for v in meta_violations[:20])
     )
 ```
 

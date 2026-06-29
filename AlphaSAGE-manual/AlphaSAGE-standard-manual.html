@@ -505,8 +505,7 @@ python run_adaptive_combination.py --expressions_file results_dir --instruments 
 <li><strong>理由</strong>：训练初期依赖SSL与新颖度辅助奖励促进结构感知与多样性探索，后期逐步衰减让模型聚焦于IC主奖励以提升预测力，实现探索到利用的平滑过渡</li>
 </ul>
 <hr>
-<h2>四、核心代码详解（卡片式）</h2>
-<blockquote>每个核心文件一张卡片：标题带一句话职责 → 类清单（行内）→ 函数签名+职责+参数+关键逻辑。<code>key_logic</code> 超 8 行自动截断。</blockquote>
+<h2>四、核心代码详解</h2>
 <h3><code>train_gfn.py</code> — AlphaSAGE GFlowNet 主训练入口，使用结构感知 RGCN 编码器 + 熵正则 TB 损失训练因子表达式生成器，并维护带 SSL 自监督奖励的因子池</h3>
 <blockquote>依赖：<code>torch</code>, <code>gfn</code>, <code>tensorboard</code>, <code>src.alpha_gfn</code>, <code>src.alphagen_qlib</code>, <code>src.alphagen_generic</code></blockquote>
 <p><strong>类</strong>：<code>GFNLogger</code> (L18) 核心类；<code>WeightScheduler</code> (L33) 核心类</p>
