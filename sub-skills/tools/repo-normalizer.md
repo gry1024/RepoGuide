@@ -133,6 +133,12 @@ profile = {
     "work_dir": str(work_dir.resolve()),
     "analysis_mode": os.environ.get("ANALYSIS_MODE", "clone"),
     "repo_name": repo_name,
+    "repo_ref": repo_ref,
+    "paper_found": False,
+    "paper_path": None,
+    "paper_ref": None,
+    "paper_source": None,
+    "paper_source_type": None,
 }
 
 (work_dir / "profile.json").write_text(
@@ -146,6 +152,7 @@ profile = {
   "repo_path": "...",
   "work_dir": "...",
   "analysis_mode": "local|clone|remote",
-  "repo_name": "AlphaSAGE"
+  "repo_name": "AlphaSAGE",
+  "paper_found": false
 }
 ```

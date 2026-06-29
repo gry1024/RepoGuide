@@ -76,18 +76,11 @@ def collect_files(repo_path):
         by_ext[ext] = by_ext.get(ext, 0) + 1
     return files, len(files), by_ext
 
-def detect_paper(repo_path):
-    for pattern in ["*.pdf", "*.tex", "paper*", "Paper*"]:
+def detect_local_paper(repo_path):
+    for pattern in ["paper*.pdf", "paper*.tex", "paper/**/*.pdf", "paper/**/*.tex", "papers/**/*.pdf", "papers/**/*.tex"]:
         matches = sorted(repo_path.glob(pattern))
         if matches:
             return True, str(matches[0])
-    for readme in repo_path.glob("README*"):
-        try:
-            content = readme.read_text(encoding="utf-8", errors="ignore")
-            if "arxiv.org" in content.lower():
-                return True, str(readme)
-        except Exception:
-            pass
     return False, None
 
 def detect_language(repo_path, files):
@@ -142,7 +135,11 @@ def find_modules(repo_path, files, primary):
 
 files, total, by_ext = collect_files(REPO_PATH)
 primary, package_managers, entry_points, languages = detect_language(REPO_PATH, files)
-paper_found, paper_path = detect_paper(REPO_PATH)
+if existing.get("paper_found") and existing.get("paper_path"):
+    paper_found = True
+    paper_path = existing.get("paper_path")
+else:
+    paper_found, paper_path = detect_local_paper(REPO_PATH)
 modules = find_modules(REPO_PATH, files, primary)
 
 # 研究/训练入口脚本提升：train_*.py / run_*.py / combine_*.py 视为入口并加入 core_files_seed
@@ -182,6 +179,9 @@ profile = {
     "entry_points": entry_points,
     "paper_found": paper_found,
     "paper_path": paper_path,
+    "paper_ref": existing.get("paper_ref") or paper_path,
+    "paper_source": existing.get("paper_source"),
+    "paper_source_type": existing.get("paper_source_type"),
     "depth": DEPTH,
     "file_count_total": total,
     "file_count_by_ext": by_ext,
@@ -207,6 +207,9 @@ print(json.dumps(profile, indent=2, ensure_ascii=False))
   "entry_points": ["src/main.py"],
   "paper_found": false,
   "paper_path": null,
+  "paper_ref": null,
+  "paper_source": null,
+  "paper_source_type": null,
   "depth": "standard",
   "file_count_total": 42,
   "file_count_by_ext": {"py": 30, "md": 5},

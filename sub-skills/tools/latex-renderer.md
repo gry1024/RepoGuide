@@ -1,6 +1,6 @@
 ---
 name: repoguide-tool-latex-renderer
-description: RepoGuide 的 LaTeX / xelatex PDF 渲染方法：数学公式感知的 Markdown→LaTeX 转换、自适应图片尺寸、精美中文 PDF。全部以代码片段写在 md 中由 agent 执行。
+description: RepoGuide 的 LaTeX / xelatex PDF 渲染方法：数学公式感知的 Markdown→LaTeX 转换、自适应图片尺寸、中文 PDF。全部以代码片段写在 md 中由 agent 执行。
 ---
 
 # RepoGuide · LaTeX PDF 渲染

@@ -159,10 +159,11 @@ def test_depth_rules_treat_training_and_experiment_scripts_as_core_files():
     assert "不得仅放入 scripts 清单" in text
 
 
-def test_template_enforces_chinese_and_card_layout():
+def test_template_enforces_chinese_and_structured_code_layout():
     text = read_rel("references/manual-template.md")
     assert "全中文" in text
-    assert "卡片" in text
+    assert "函数条目" in text
+    assert "关键逻辑" in text
     assert "annotated_tree" in text or "注释化目录树" in text
     # 论文公式以 $$ 写入
     assert "$$" in text
@@ -185,24 +186,17 @@ def test_manual_quality_checker_rejects_reader_facing_meta_instructions():
     assert "卡片式" in text
 
 
-def test_tracked_alphasage_samples_do_not_include_writer_meta_instructions():
-    sample_paths = [
-        "AlphaSAGE-manual/AlphaSAGE-standard-manual.md",
-        "AlphaSAGE-manual/AlphaSAGE-deep-manual.md",
-        "AlphaSAGE-manual/AlphaSAGE-standard-manual.html",
-        "AlphaSAGE-manual/AlphaSAGE-deep-manual.html",
-    ]
-    forbidden = [
-        "核心代码详解（卡片式）",
-        "每个核心文件一张卡片",
-        "标题带一句话职责",
-        "函数签名+职责+参数+关键逻辑",
-        "key_logic",
-    ]
-    for path in sample_paths:
-        text = read_rel(path)
-        for phrase in forbidden:
-            assert phrase not in text
+def test_phase0_discovers_repo_paper_when_user_omits_paper_link():
+    phase0 = read_rel("sub-skills/tasks/phase-0-normalize.md")
+    index = read_rel("sub-skills/tasks/_index.md")
+    fetcher = read_rel("sub-skills/tools/paper-fetcher.md")
+
+    combined = "\n".join([phase0, index])
+    assert "用户未显式提供论文" in combined
+    assert "README" in combined
+    assert "CITATION" in combined
+    assert "paper_found: true" in combined
+    assert "discover_paper_reference" in fetcher
 
 
 def test_depth_confirmation_is_required_across_runtime_docs():
@@ -292,7 +286,8 @@ def test_detect_stack_prefers_typescript_over_javascript_when_tsconfig_present(t
 
 
 def test_repo_normalizer_extracts_full_github_repo_names(tmp_path, monkeypatch):
-    monkeypatch.setenv("WORK_DIR", str(tmp_path / "_repoguide"))
+    work_dir = tmp_path / "_repoguide"
+    monkeypatch.setenv("WORK_DIR", str(work_dir))
     monkeypatch.setenv("REPO_REF", "")
     code = extract_python_block(read_rel("sub-skills/tools/repo-normalizer.md"))
     ns = {}
@@ -302,6 +297,74 @@ def test_repo_normalizer_extracts_full_github_repo_names(tmp_path, monkeypatch):
     assert extract_repo_name("https://github.com/acme/my.repo.git") == "my.repo"
     assert extract_repo_name("git@github.com:acme/repo-name.git") == "repo-name"
     assert extract_repo_name("https://github.com/acme/repo.name-with-dash") == "repo.name-with-dash"
+
+    profile = json.loads((work_dir / "profile.json").read_text(encoding="utf-8"))
+    assert profile["paper_found"] is False
+    assert profile["paper_path"] is None
+    assert profile["paper_ref"] is None
+
+
+def test_paper_fetcher_discovers_arxiv_from_repo_metadata(tmp_path):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / "README.md").write_text(
+        "This repository implements the method from https://arxiv.org/abs/2509.25055.\n",
+        encoding="utf-8",
+    )
+
+    code = extract_python_block(read_rel("sub-skills/tools/paper-fetcher.md"))
+    ns = {}
+    exec(compile(code, "paper-fetcher.md", "exec"), ns)
+
+    discovered = ns["discover_paper_reference"](repo)
+    assert discovered == {
+        "paper_ref": "https://arxiv.org/abs/2509.25055",
+        "paper_source": "README.md",
+        "paper_source_type": "arxiv",
+    }
+
+
+def test_detect_stack_preserves_phase0_paper_metadata(tmp_path, monkeypatch, capsys):
+    repo = tmp_path / "_repoguide" / "repo"
+    repo.mkdir(parents=True)
+    work_dir = tmp_path / "_repoguide"
+    paper = work_dir / "paper.pdf"
+    paper.write_bytes(b"%PDF-1.4\n")
+    (repo / "README.md").write_text("# Sample\n", encoding="utf-8")
+    (work_dir / "profile.json").write_text(
+        json.dumps(
+            {
+                "repo_path": str(repo),
+                "work_dir": str(work_dir),
+                "analysis_mode": "clone",
+                "repo_name": "sample",
+                "paper_found": True,
+                "paper_path": str(paper),
+                "paper_ref": "https://arxiv.org/abs/2509.25055",
+                "paper_source": "README.md",
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    code = extract_python_block(read_rel("sub-skills/tools/detect-stack.md"))
+    code = re.sub(
+        r'REPO_PATH = Path\("/path/to/repo"\)\.resolve\(\)',
+        lambda _m: f"REPO_PATH = Path({str(repo)!r}).resolve()",
+        code,
+    )
+
+    monkeypatch.setenv("WORK_DIR", str(work_dir))
+    monkeypatch.setenv("REPOGUIDE_DEPTH", "standard")
+    exec(compile(code, "detect-stack.md", "exec"), {})
+    capsys.readouterr()
+
+    profile = json.loads((work_dir / "profile.json").read_text(encoding="utf-8"))
+    assert profile["paper_found"] is True
+    assert profile["paper_path"] == str(paper)
+    assert profile["paper_ref"] == "https://arxiv.org/abs/2509.25055"
+    assert profile["paper_source"] == "README.md"
 
 
 def test_pytest_configuration_ignores_generated_work_dirs():
@@ -314,6 +377,8 @@ def test_pytest_configuration_ignores_generated_work_dirs():
 
     gitignore = read_rel(".gitignore")
     assert "_repoguide_eval/" in gitignore
+    assert "*-manual.md" in gitignore
+    assert "!AlphaSAGE-manual/" not in gitignore
 
 
 def test_manual_quality_checker_detects_english_sentences_and_ignores_code():
@@ -393,7 +458,7 @@ def test_latex_renderer_escapes_paths_methods_tables_and_quotes(tmp_path, monkey
 
 ### 3.1 架构总览图
 
-### src/alpha_gfn/modules.py — AlphaSAGE 结构感知编码器：RPN 到 RGCN 的长文件卡片标题
+### src/alpha_gfn/modules.py — AlphaSAGE 结构感知编码器：RPN 到 RGCN 的长文件标题
 
 ## 工具： up-calculate_quantile_huber_loss/get_subtree/reproduce
 
@@ -417,7 +482,7 @@ def test_latex_renderer_escapes_paths_methods_tables_and_quotes(tmp_path, monkey
     assert "\\begin{repoguidetoc}" in tex
     assert "\\tocmajor{\\hyperlink{repoguide-heading-5}{train\\_gfn.py" in tex
     assert "\\tocminor{\\hyperlink{repoguide-heading-7}{3.1 架构总览图}" in tex
-    assert "RPN 到 RGCN 的长文件卡片标题" not in tex.split("\\end{repoguidetoc}", 1)[0]
+    assert "RPN 到 RGCN 的长文件标题" not in tex.split("\\end{repoguidetoc}", 1)[0]
     assert "\\hypertarget{repoguide-heading-5}{}" in tex
     assert "\\hypertarget{repoguide-heading-11}{}" in tex
     assert "\\section{train\\_gfn.py" in tex

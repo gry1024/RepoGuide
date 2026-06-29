@@ -21,10 +21,11 @@ description: RepoGuide 任务总览。定义触发条件、输入解析、细致
 ## 输入解析
 
 1. 提取 GitHub URL（匹配 `https?://github\.[\w.-]+/[\w.-]+`）。
-2. 提取 arXiv 链接（匹配 `https?://arxiv\.(?:org|pdf)/[\d.]+` 或本地 PDF/.tex 路径）。
+2. 提取显式论文引用（arXiv URL 或本地 PDF/.tex 路径）。
 3. 如果没有 URL 但有本地路径，使用本地路径。
 4. 如果都没有，使用当前工作目录（必须是 git 仓库根）。
-5. 如果无法确定 → 终止并报错，不追问。
+5. 仓库归一化后，如果没有显式论文引用，扫描 README、CITATION、docs、paper(s) 等元文件；发现 arXiv 或本地论文文件则写入 profile 并启用论文分析。
+6. 如果无法确定仓库 → 终止并报错，不追问。
 
 ## 分析细致度（执行前必须询问）
 
@@ -33,8 +34,8 @@ description: RepoGuide 任务总览。定义触发条件、输入解析、细致
 ```
 检测到仓库 <repo> 与论文 <arxiv>。
 请选择分析细致度：
-1) 标准 (standard) - 核心模块 + 注释化目录树（核心目录） + 1 张 graphviz 架构总览图 + 关键文件卡片式详解 + 核心数据流叙述 + 论文主要章节
-2) 深度 (deep)   - 面面俱到：所有文件 + 每个类/函数卡片式详解 + 完整注释化目录树 + 1 张 graphviz 架构总览图 + 完整数据流叙述与流转表 + 论文逐章映射 + 按区域裁剪论文原图
+1) 标准 (standard) - 核心模块 + 注释化目录树（核心目录） + 1 张 graphviz 架构总览图 + 关键文件详解 + 核心数据流叙述 + 论文主要章节
+2) 深度 (deep)   - 所有文件 + 每个类/函数详解 + 完整注释化目录树 + 1 张 graphviz 架构总览图 + 完整数据流叙述与流转表 + 论文逐章映射 + 按区域裁剪论文原图
 ```
 
 用户回复档位后，写入 `$WORK_DIR/profile.json` 的 `"depth": "standard|deep"`。
@@ -42,7 +43,7 @@ description: RepoGuide 任务总览。定义触发条件、输入解析、细致
 | 档位 | 仓库分析 | 论文分析 | 输出重点 |
 |------|----------|----------|----------|
 | **standard** | 核心模块、关键文件、**注释化目录树（核心目录，每行带用途注释）**、1 张 graphviz 架构总览图、核心数据流叙述 | 主要章节、公式、算法、术语 | 有图、有结构、有重点代码 |
-| **deep** | **所有文件**、每个类/函数卡片式详解、**完整注释化目录树（每行带用途注释）**、1 张 graphviz 架构总览图、完整数据流叙述 + 流转表 | 逐章映射、实验-脚本对应、按区域裁剪论文原图 | 面面俱到 |
+| **deep** | **所有文件**、每个类/函数详解、**完整注释化目录树（每行带用途注释）**、1 张 graphviz 架构总览图、完整数据流叙述 + 流转表 | 逐章映射、实验-脚本对应、按区域裁剪论文原图 | 面面俱到 |
 
 **不默认推荐任何一档**，由用户根据场景自行选择。
 
@@ -68,7 +69,7 @@ description: RepoGuide 任务总览。定义触发条件、输入解析、细致
 ├── analysis_map.json        (可选)
 ├── image-manifest.json      (可选)
 ├── images/                  (可选)
-├── paper.pdf                (可选)
+├── paper.pdf                (可选；显式提供或从仓库发现)
 ├── manual.md
 ├── <repo_name>-manual.pdf   (如 xelatex 可用)
 └── <repo_name>-manual.html  (xelatex 不可用时降级)
@@ -223,7 +224,7 @@ ok, errs = validate_json(
     "$WORK_DIR/profile.json",
     required_fields=["repo_path", "work_dir", "repo_name", "primary_language",
                      "depth", "file_count_total", "core_files_seed"],
-    nullable_fields=["paper_path"],
+    nullable_fields=["paper_path", "paper_ref", "paper_source", "paper_source_type"],
 )
 
 # Phase 2a
