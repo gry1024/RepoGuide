@@ -343,8 +343,33 @@ TEXT_ESCAPES = {
 }
 # 数学区内不转义任何字符（保留 ^ _ $ 原样）
 
-def escape_text(s):
+CODE_LIKE_TOKEN = re.compile(r"[A-Za-z0-9\\][A-Za-z0-9_./:\\{}\[\](),+=^'-]{17,}")
+BREAK_AFTER = {"_", "/", ".", "-", "\\", "{", "}", "[", "]", "(", ")", ",", "+", "="}
+
+def escape_raw_text(s):
     return "".join(TEXT_ESCAPES.get(c, c) for c in s)
+
+def escape_breakable_token(token):
+    out = []
+    for c in token:
+        out.append(TEXT_ESCAPES.get(c, c))
+        if c in BREAK_AFTER:
+            out.append("\\allowbreak{}")
+    return "".join(out)
+
+def escape_text(s):
+    out = []
+    pos = 0
+    for m in CODE_LIKE_TOKEN.finditer(s):
+        token = m.group(0)
+        out.append(escape_raw_text(s[pos:m.start()]))
+        if any(ch in token for ch in BREAK_AFTER):
+            out.append(escape_breakable_token(token))
+        else:
+            out.append(escape_raw_text(token))
+        pos = m.end()
+    out.append(escape_raw_text(s[pos:]))
+    return "".join(out)
 
 def inline(s):
     # 所有 LaTeX 片段都先占位，普通文本整体转义后再还原，避免命令被二次转义。
@@ -358,7 +383,7 @@ def inline(s):
     s = re.sub(r"\$([^$\n]+)\$", lambda m: stash(f"\\({m.group(1)}\\)"), s)
     s = re.sub(
         r"\[([^\]]+)\]\(([^)]+)\)",
-        lambda m: stash(f"\\href{{{escape_text(m.group(2))}}}{{{escape_text(m.group(1))}}}"),
+        lambda m: stash(f"\\href{{{escape_raw_text(m.group(2))}}}{{{escape_text(m.group(1))}}}"),
         s,
     )
     s = re.sub(r"\*\*(.+?)\*\*", lambda m: stash(f"\\textbf{{{escape_text(m.group(1))}}}"), s)
@@ -387,23 +412,68 @@ def parse_table(lines, start):
         return None, start
     cols = header.split("|")[1:-1]
     n = len(cols)
+    rows = []
+    i = start+2
+    while i < len(lines) and lines[i].strip().startswith("|"):
+        row = lines[i].strip().split("|")[1:-1]
+        rows.append(row[:n] + [""]*(n-len(row)))
+        i += 1
+
+    def rendered_row(row):
+        return " & ".join(inline(c.strip()) for c in row) + " \\\\"
+
+    def longtable_col_spec(count):
+        count = max(count, 1)
+        presets = {
+            2: [0.34, 0.62],
+            3: [0.30, 0.35, 0.31],
+            4: [0.27, 0.30, 0.31, 0.10],
+            5: [0.21, 0.22, 0.22, 0.21, 0.10],
+        }
+        fractions = presets.get(count, [0.96 / count] * count)
+        cells = [
+            f">{{\\raggedright\\arraybackslash}}p{{\\dimexpr{frac:.3f}\\textwidth-2\\tabcolsep\\relax}}"
+            for frac in fractions
+        ]
+        return "@{}" + "".join(cells) + "@{}"
+
+    long_table = len(rows) > 10 or any(len(c) > 90 for row in rows for c in row)
     # REPOGUIDE_RENDERER_SAFE_TABLE_START
     col_spec = "Y" * max(n, 1)
+    header_row = rendered_row(cols)
+    if long_table:
+        long_spec = longtable_col_spec(n)
+        out = [
+            "\\begingroup",
+            "\\footnotesize",
+            "\\setlength{\\tabcolsep}{3pt}",
+            "\\begin{longtable}{" + long_spec + "}",
+            "\\toprule",
+            header_row,
+            "\\midrule",
+            "\\endfirsthead",
+            "\\toprule",
+            header_row,
+            "\\midrule",
+            "\\endhead",
+        ]
+        out.extend(rendered_row(row) for row in rows)
+        out += ["\\bottomrule", "\\end{longtable}", "\\endgroup"]
+        return out, i
+
     out = [
+        "\\begingroup",
+        "\\footnotesize",
+        "\\setlength{\\tabcolsep}{4pt}",
         "\\begin{center}",
         "\\begin{adjustbox}{max width=\\textwidth}",
         "\\begin{tabularx}{\\textwidth}{" + col_spec + "}",
         "\\toprule",
-        " & ".join(inline(c.strip()) for c in cols) + " \\\\",
+        header_row,
         "\\midrule",
     ]
-    i = start+2
-    while i < len(lines) and lines[i].strip().startswith("|"):
-        row = lines[i].strip().split("|")[1:-1]
-        row = row[:n] + [""]*(n-len(row))
-        out.append(" & ".join(inline(c.strip()) for c in row) + " \\\\")
-        i += 1
-    out += ["\\bottomrule", "\\end{tabularx}", "\\end{adjustbox}", "\\end{center}"]
+    out.extend(rendered_row(row) for row in rows)
+    out += ["\\bottomrule", "\\end{tabularx}", "\\end{adjustbox}", "\\end{center}", "\\endgroup"]
     # REPOGUIDE_RENDERER_SAFE_TABLE_END
     return out, i
 

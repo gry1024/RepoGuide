@@ -314,6 +314,7 @@ def test_pdf_template_contains_layout_safety_primitives():
     assert "\\setkeys{Gin}" in template
     assert "max width=\\linewidth" in template
     assert "max height=0.72\\textheight" in template
+    assert "\\raggedright" in template
     assert template.count("{CONTENT}") == 1
 
 
@@ -325,6 +326,11 @@ def test_latex_renderer_defines_manual_toc_and_safe_table_contracts():
     assert "detect_heading_offset" in text
     assert "repoguidetoc" in text
     assert "tocmajor" in text
+    assert "CODE_LIKE_TOKEN" in text
+    assert "\\allowbreak{}" in text
+    assert "longtable_col_spec" in text
+    assert "\\begin{longtable}" in text
+    assert "long_table = len(rows) > 10" in text
     assert '"_": "\\\\_"' in text
     assert '"↔": "\\\\ensuremath{\\\\leftrightarrow}"' in text
     assert "\\begin{tcolorbox}[notebox]" in text
@@ -345,6 +351,8 @@ def test_latex_renderer_escapes_paths_methods_tables_and_quotes(tmp_path, monkey
 ### 3.1 架构总览图
 
 ### src/alpha_gfn/modules.py — AlphaSAGE 结构感知编码器：RPN 到 RGCN 的长文件卡片标题
+
+## 工具： up-calculate_quantile_huber_loss/get_subtree/reproduce
 
 | 项 | 值 |
 | --- | --- |
@@ -368,6 +376,9 @@ def test_latex_renderer_escapes_paths_methods_tables_and_quotes(tmp_path, monkey
     assert "\\tocminor{3.1 架构总览图}" in tex
     assert "RPN 到 RGCN 的长文件卡片标题" not in tex.split("\\end{repoguidetoc}", 1)[0]
     assert "\\section{train\\_gfn.py" in tex
+    assert "calculate\\_\\allowbreak{}quantile" in tex
+    assert "huber\\_\\allowbreak{}loss/\\allowbreak{}get" in tex
+    assert "get\\_\\allowbreak{}subtree/\\allowbreak{}reproduce" in tex
     assert "\\section{AlphaSAGE 仓库手册指南}" not in tex
     assert "\\begin{tcolorbox}[notebox]" in tex
     assert "\\begin{adjustbox}{max width=\\textwidth}" in tex
@@ -375,11 +386,55 @@ def test_latex_renderer_escapes_paths_methods_tables_and_quotes(tmp_path, monkey
     assert "\\texttt{\\$\\$...\\$\\$}" in tex
     assert "train\\_gfn.py" in tex
     assert "\\_\\_add\\_\\_/\\_\\_sub\\_\\_" in tex
-    assert "filter\\_by\\_index/\\_\\_add\\_\\_" in tex
+    assert "filter\\_\\allowbreak{}by\\_\\allowbreak{}index/\\allowbreak{}" in tex
     assert "\\(x_i^2\\)" in tex
     assert "\x00" not in tex
     assert "\\textbackslash{}texttt" not in tex
     assert "> 由 RepoGuide" not in tex
+
+
+def test_latex_renderer_uses_longtable_for_long_tables(tmp_path, monkeypatch):
+    work_dir = tmp_path / "_repoguide"
+    work_dir.mkdir()
+    formula_row = (
+        r"| L_{final} = \mathbb{E}_{\tau}[L_{TB}(\tau)] + \beta \cdot entropy_bonus "
+        r"| `EntropyTBGFlowNet.loss` | `src/alpha_gfn/gflownet.py:81` | high |"
+    )
+    rows = "\n".join(
+        [formula_row]
+        + [
+            f"| formula_{i} | `AlphaPoolGFN._find_k_nearest_neighbors_{i}` | `src/alpha_gfn/alpha_pool.py:{i}` | high |"
+            for i in range(11)
+        ]
+    )
+    (work_dir / "manual.md").write_text(
+        "\n".join(
+            [
+                "# AlphaSAGE 仓库手册指南",
+                "",
+                "## 论文-代码映射",
+                "",
+                "| 论文公式/算法 | 代码函数/类 | 位置 | 置信度 |",
+                "| --- | --- | --- | --- |",
+                rows,
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    renderer = read_rel("sub-skills/tools/latex-renderer.md")
+    ns = {}
+    exec(compile(extract_python_block(renderer, "REPOGUIDE_RENDERER_TOC_START"), "toc", "exec"), ns)
+    monkeypatch.setenv("WORK_DIR", str(work_dir))
+    exec(compile(extract_python_block(renderer, "TEXT_ESCAPES"), "latex-renderer", "exec"), ns)
+
+    tex = (work_dir / "manual-body.tex").read_text(encoding="utf-8")
+    assert "\\begin{longtable}" in tex
+    assert "\\endfirsthead" in tex
+    assert "\\footnotesize" in tex
+    assert "\\begin{adjustbox}" not in tex
+    assert "find\\_\\allowbreak{}k\\_\\allowbreak{}nearest" in tex
+    assert "\\textbackslash{}\\allowbreak{}mathbb" in tex
 
 
 def test_html_renderer_contract_wraps_wide_tables_and_images():
