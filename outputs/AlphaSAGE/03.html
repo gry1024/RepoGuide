@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 3 章：GFlowNet 生成框架 | AlphaSAGE</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {{delimiters:[{{left:'$$',right:'$$',display:true}},{{left:'$',right:'$',display:false}}]}});"></script>
+<style>
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    padding: 0;
+    background: #FBFBFD;
+    color: #1D1D1F;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+                 "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+}
+main.content {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 64px 28px 120px;
+}
+h1 {
+    font-size: 38px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+    line-height: 1.15;
+}
+h2 {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 56px 0 16px;
+    color: #1D1D1F;
+}
+h3 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 36px 0 12px;
+    color: #1D1D1F;
+}
+p {
+    margin: 0 0 16px;
+    color: #1D1D1F;
+}
+.subtitle {
+    color: #86868B;
+    font-size: 19px;
+    margin: 0 0 32px;
+    font-weight: 400;
+}
+.muted { color: #86868B; }
+code.inline {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: #F5F5F7;
+    color: #1D1D1F;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.92em;
+}
+pre {
+    background: #F5F5F7;
+    border-radius: 10px;
+    padding: 18px 20px;
+    overflow-x: auto;
+    margin: 0 0 20px;
+    border: 1px solid #E8E8ED;
+}
+pre code {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: #1D1D1F;
+    background: transparent;
+    padding: 0;
+}
+.math-block {
+    background: #F5F5F7;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin: 0 0 20px;
+    text-align: center;
+    overflow-x: auto;
+}
+.callout {
+    background: #F5F5F7;
+    border-left: 3px solid #0071e3;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 0 0 20px;
+    color: #1D1D1F;
+}
+.callout .label {
+    color: #0071e3;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: block;
+    margin-bottom: 4px;
+}
+ul, ol {
+    margin: 0 0 20px;
+    padding-left: 24px;
+}
+li { margin-bottom: 8px; }
+a {
+    color: #0071e3;
+    text-decoration: none;
+}
+a:hover { text-decoration: underline; }
+.nav-footer {
+    margin-top: 72px;
+    padding-top: 24px;
+    border-top: 1px solid #E8E8ED;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.nav-footer a {
+    color: #0071e3;
+    font-size: 15px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: #F5F5F7;
+}
+.nav-footer a:hover { background: #E8E8ED; }
+.toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 24px 0;
+}
+.toc-list li {
+    margin-bottom: 14px;
+    padding: 16px 20px;
+    background: #F5F5F7;
+    border-radius: 12px;
+    transition: background 0.15s;
+}
+.toc-list li:hover { background: #ECECEF; }
+.toc-list a {
+    font-size: 17px;
+    font-weight: 600;
+    color: #1D1D1F;
+    display: block;
+}
+.toc-list .desc {
+    color: #86868B;
+    font-size: 14px;
+    font-weight: 400;
+    margin-top: 4px;
+    display: block;
+}
+.toc-list .num {
+    color: #0071e3;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+.hero {
+    text-align: center;
+    padding: 32px 0 8px;
+}
+.hero .badge {
+    color: #0071e3;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+img.diagram {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    margin: 16px 0;
+    border: 1px solid #E8E8ED;
+}
+.section-intro {
+    color: #86868B;
+    font-size: 15px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid #E8E8ED;
+    padding-bottom: 20px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 20px;
+    font-size: 15px;
+}
+th, td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid #E8E8ED;
+}
+th { color: #86868B; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
+</style>
+</head>
+<body>
+<main class="content">
+<div class="hero"><div class="badge">第 3 章 · 核心层</div></div><h1>第 3 章：GFlowNet 生成框架</h1><p class="subtitle">EntropyTBGFlowNet —— Trajectory Balance 损失与熵正则项的采样框架</p><h2>欢迎</h2><p>欢迎来到第 3 章！前两章我们讲了数据与表达式体系，现在终于进入 AlphaSAGE 的核心：GFlowNet。这是整个项目最重要的一章，因为它实现了“多样化生成”这个核心能力—— 与传统 RL 不同，GFlowNet 不是找一条最优路径，而是同时探索多条路径，采样出与奖励成正比的多样表达式。</p><p>本章会进入 <code class='inline'>gflownet.py</code>，从 Trajectory Balance 的数学原理讲起，然后看代码如何计算 log_pf、log_pb、熵项，最后看 TB 损失函数如何把这些量组合成梯度。</p><h2>它解决什么问题？</h2><p>类比来说，GFlowNet 像一个多路探险家，同时派许多路径去采样不同 alpha，而非只走一条最优路。</p><p>传统强化学习（如 PPO）在 alpha 挑挘中有一个致命问题：它倾向于“贪婪”地找到一个高 IC 的 alpha 后反复生成它，导致 alpha 池中高度同质。但量化研究中我们需要多样化的 alpha 来做组合，互相补充。GFlowNet 解决这个问题：它学习的是一个采样分布 P_F，使得采样到某个 alpha 的概率正比于它的奖励 R。这样高奖励的 alpha 会被多采样，低奖励的也会被采样到但频率较低，保讹了多样性。</p><h2>核心设计思路</h2><p>GFlowNet 的核心思想是<b>Trajectory Balance（TB）</b>。它要求从起始状态 s_0 到终止状态 x 的任何路径 τ，都满足：</p><p><b>P_F(τ) · Z = R(x) · P_B(τ)</b>，其中 P_F 是前向策略（从 s_0 走到 x），P_B 是后向策略（从 x 回到 s_0），Z 是使两边相等的配分函数，R(x) 是状态 x 的奖励。取对数后变成：log P_F(τ) + log Z = log R(x) + log P_B(τ)，移项后可以定义损失为两边的 MSE。</p><p>为了避免模型过早收敛、挖掘出单一最优解，AlphaSAGE 在 TB 损失上加了<b>熵正则项</b>：鼓励前向策略 P_F 在每一步保持较高熵，避免确信度过高。这就是 <code class='inline'>EntropyTBGFlowNet</code> 的由来。</p><h2>代码深入</h2><h3>类定义与构造</h3><pre><code>import torch
+from typing import Tuple
+from gfn.containers import Trajectories
+from gfn.env import Env
+from gfn.gflownet.trajectory_balance import TBGFlowNet
+from gfn.modules import DiscretePolicyEstimator
+from torchtyping import TensorType as TT
+
+
+class EntropyTBGFlowNet(TBGFlowNet):
+    def __init__(
+        self,
+        pf: DiscretePolicyEstimator,
+        pb: DiscretePolicyEstimator,
+        entropy_coef: float = 0.0,
+        entropy_temperature: float = 1.0,
+        **kwargs,
+    ):
+        super().__init__(pf, pb, **kwargs)
+        self.entropy_coef = entropy_coef
+        self.entropy_temperature = entropy_temperature</code></pre><p><code class='inline'>EntropyTBGFlowNet</code> 继承自 <code class='inline'>TBGFlowNet</code>（来自 gfn 库），额外加入了两个参数：<code class='inline'>entropy_coef</code>（熵正则项系数）与 <code class='inline'>entropy_temperature</code>（计算熵时的温度）。</p><p>传入的 <code class='inline'>pf</code> 与 <code class='inline'>pb</code> 是 DiscretePolicyEstimator，分别是前向和后向策略估计器。它们内部包含了编码器（下一章的 RGCN）和一个简单的线性输出头，输出每个 token 的 logit。</p><h3>get_trajectories_scores：计算每条轨迹的分数</h3><p>这个方法计算每条采样轨迹的 log_pf、log_pb、scores 和熵项。它是损失函数的数据来源。</p><pre><code>    def get_trajectories_scores(
+        self, trajectories: Trajectories, recalculate_all_logprobs: bool = False
+    ) -&gt; Tuple[
+        TT[&quot;n_trajectories&quot;, torch.float],
+        TT[&quot;n_trajectories&quot;, torch.float],
+        TT[&quot;n_trajectories&quot;, torch.float],
+        TT[&quot;n_trajectories&quot;, torch.float]
+    ]:
+        if self.entropy_coef &lt;= 0:
+            return (*super().get_trajectories_scores(trajectories, recalculate_all_logprobs), torch.zeros(trajectories.n_trajectories, device=trajectories.states.device))
+
+        log_pf, log_pb, scores = super().get_trajectories_scores(
+            trajectories, recalculate_all_logprobs
+        )
+
+        # Calculate entropy term
+        entropy_term = torch.zeros(trajectories.n_trajectories, device=trajectories.states.device)
+        if trajectories.estimator_outputs is not None:
+            logits = trajectories.estimator_outputs  # (max_len, batch_size, n_actions)
+            temp_logits = logits / self.entropy_temperature
+            probs = torch.softmax(temp_logits, dim=-1)
+            entropy_per_step = -torch.sum(
+                probs * torch.log(probs.clamp(min=1e-9)), dim=-1
+            )  # (max_len, batch_size)
+
+            # Mask out invalid steps for each trajectory
+            max_len = logits.shape[0]
+            step_indices = torch.arange(max_len, device=logits.device).unsqueeze(1)
+            valid_steps_mask = step_indices &lt; trajectories.when_is_done.unsqueeze(0)
+
+            masked_entropy = entropy_per_step * valid_steps_mask
+
+            # Sum entropy over trajectory steps for each trajectory in the batch
+            entropy_sum_per_trajectory = masked_entropy.sum(dim=0)  # (batch_size,)
+
+            entropy_term = entropy_sum_per_trajectory * self.entropy_coef
+        elif self.entropy_coef &gt; 0:
+            # Fallback for older gfn versions or if outputs are not saved</code></pre><p>这个方法的逻辑很巧妙。它先调用父类的 <code class='inline'>super().get_trajectories_scores()</code> 拿到 log_pf、log_pb、scores，这些是 gfn 库默认实现的。然后计算熵项，这里是重点。</p><p>第 41-46 行是熵的核心计算：从 <code class='inline'>trajectories.estimator_outputs</code> 拿到每一步的 logits（形状 <code class='inline'>(max_len, batch_size, n_actions)</code>），除以温度 <code class='inline'>entropy_temperature</code>，softmax 得到概率，然后套用熵公式 H = -sum(p * log p)。</p><p>第 49-53 行是 mask 逻辑：只对有效步骤计算熵。一条轨迹可能在第 5 步就结束，那么第 6 步以后的 logits 是无效的，需要被 mask 掉。<code class='inline'>when_is_done</code> 记录了每条轨迹在哪一止，<code class='inline'>valid_steps_mask</code> 则是一个布尔矩阵，表示哪些步骤是有效的。</p><p>最后乘以 <code class='inline'>entropy_coef</code> 得到熵项，这个项会在损失中被减去，起到鼓励高熵的作用。</p><h3>loss：TB 损失的核心</h3><pre><code>    def loss(
+        self,
+        env: Env,
+        trajectories: Trajectories,
+        recalculate_all_logprobs: bool = False,
+    ) -&gt; TT[0, float]:
+        &quot;&quot;&quot;Trajectory balance loss.
+
+        The trajectory balance loss is described in 2.3 of
+        [Trajectory balance: Improved credit assignment in GFlowNets](https://arxiv.org/abs/2201.13259))
+
+        Raises:
+            ValueError: if the loss is NaN.
+        &quot;&quot;&quot;
+        del env  # unused
+        _, _, scores, entropy_term = self.get_trajectories_scores(
+            trajectories, recalculate_all_logprobs=recalculate_all_logprobs
+        )
+        loss = (scores + self.logZ).pow(2).mean() - entropy_term.mean()
+        if torch.isnan(loss):
+            # set inf
+            loss = torch.tensor(float(&#x27;inf&#x27;))
+
+        return loss</code></pre><p>这是整个 GFlowNet 的核心。第 96-98 行调用 <code class='inline'>get_trajectories_scores</code> 拿到 scores 和 entropy_term，第 99 行就是 TB 损失公式的代码实现。</p><p>公式：$$L_{TB} = \mathbb{E}\left[\left(\log\frac{P_F(\tau)}{P_B(\tau)R(\tau)} + \log Z\right)^2\right] - \lambda_H H(\pi)$$</p><p>对应代码 <code class='inline'>loss = (scores + self.logZ).pow(2).mean() - entropy_term.mean()</code>。这里 <code class='inline'>scores</code> = log P_F - log P_B - log R（由父类计算），加上 <code class='inline'>logZ</code> 后平方，就是 TB 的核心损失。减去熵项后，就实现了“TB + 熵正则”这个双重目标。</p><p>最后两行是 NaN 检查：如果损失出现 NaN（通常因为采样到了异常表达式导致奖励为 0），返回无穿大，让优化器跳过这个 batch，避免训练崩溃。</p><h2>数据流</h2><p>数据流：<b>环境采样轨迹 → get_trajectories_scores 计算 log_pf/log_pb/熵 → loss 合成 TB 损失 → 优化器反向传播</b>。</p><p>具体来说，训练循环（第 7 章）调用 <code class='inline'>sampler.sample_trajectories</code> 采样 N 条轨迹，轨迹中包含了每一步的状态与动作。这些轨迹被传给 <code class='inline'>loss_fn.loss(env, trajectories)</code>，内部调用 <code class='inline'>get_trajectories_scores</code>，计算损失。这个损失会被 PyTorch 的自动微分机制传回到编码器参数，完成一次参数更新。</p><h2>关联公式</h2><div class="math-block">$$L_{TB} = \mathbb{E}\left[\left(\log\frac{P_F(\tau)}{P_B(\tau)R(\tau)} + \log Z\right)^2\right] - \lambda_H H(\pi)$$</div><div class="math-block">$$H(\pi) = -\sum_a \pi(a)\log\pi(a)$$</div><p>第一个公式对应 <code class='inline'>loss</code> 函数的 <code class='inline'>(scores + self.logZ).pow(2).mean() - entropy_term.mean()</code>。其中 scores 包含了 log P_F − log P_B − log R。</p><p>第二个公式是熵的定义，对应代码中的 <code class='inline'>-torch.sum(probs * torch.log(probs.clamp(min=1e-9)), dim=-1)</code>。<code class='inline'>clamp(min=1e-9)</code> 是为了避免 log(0) 产生 NaN。</p><h2>设计权衡</h2><p><b>为什么选择 Trajectory Balance 而不是 Flow Matching？</b>TB 是 GFlowNet 中较早也较简单的变体，它在整条轨迹上定义损失，只需要起始与终止两端的平衡，计算量较小。Flow Matching 虽然更精细，但需要中间状态的完美估计，实现复杂。对于 alpha 表达式生成这种离散动作空间，TB 是合适的折中。</p><p><b>为什么要加熵正则？</b>因为 TB 本身不能避免模型走向“确信度极高的单一解”。熵正则项起到“软化”作用，让模型在多个动作上保持非零概率，从而保讹多样性。这与 AlphaSAGE 设计初衷一致。</p><p><b>为什么 entropy_temperature 可调？</b>温度越高，softmax 后的分布越平均（熵越高）；温度越低，分布越锐利（熵越低）。调整温度可以控制正则项的强度，适应不同阶段的训练需求。</p><h2>小结</h2><p>本章讲解了 GFlowNet 生成框架：从 TB 的数学原理到 <code class='inline'>EntropyTBGFlowNet</code> 的代码实现。损失函数 <code class='inline'>(scores + logZ)^2 - entropy</code> 同时驱动模型学习“采样与奖励成正比”以及“保持高熵”。</p><p>下一章我们会进入 RGCN 结构编码器，看它如何把 alpha 表达式转成图，让模型能“看懂”表达式结构。</p><div class="nav-footer"><a href="02.html">← 上一章</a><a href="index.html">目录</a><a href="04.html">下一章 →</a></div>
+</main>
+</body>
+</html>

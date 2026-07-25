@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 9 章：评估指标 | AlphaSAGE</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {{delimiters:[{{left:'$$',right:'$$',display:true}},{{left:'$',right:'$',display:false}}]}});"></script>
+<style>
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    padding: 0;
+    background: #FBFBFD;
+    color: #1D1D1F;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+                 "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+}
+main.content {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 64px 28px 120px;
+}
+h1 {
+    font-size: 38px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+    line-height: 1.15;
+}
+h2 {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 56px 0 16px;
+    color: #1D1D1F;
+}
+h3 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 36px 0 12px;
+    color: #1D1D1F;
+}
+p {
+    margin: 0 0 16px;
+    color: #1D1D1F;
+}
+.subtitle {
+    color: #86868B;
+    font-size: 19px;
+    margin: 0 0 32px;
+    font-weight: 400;
+}
+.muted { color: #86868B; }
+code.inline {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: #F5F5F7;
+    color: #1D1D1F;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.92em;
+}
+pre {
+    background: #F5F5F7;
+    border-radius: 10px;
+    padding: 18px 20px;
+    overflow-x: auto;
+    margin: 0 0 20px;
+    border: 1px solid #E8E8ED;
+}
+pre code {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: #1D1D1F;
+    background: transparent;
+    padding: 0;
+}
+.math-block {
+    background: #F5F5F7;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin: 0 0 20px;
+    text-align: center;
+    overflow-x: auto;
+}
+.callout {
+    background: #F5F5F7;
+    border-left: 3px solid #0071e3;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 0 0 20px;
+    color: #1D1D1F;
+}
+.callout .label {
+    color: #0071e3;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: block;
+    margin-bottom: 4px;
+}
+ul, ol {
+    margin: 0 0 20px;
+    padding-left: 24px;
+}
+li { margin-bottom: 8px; }
+a {
+    color: #0071e3;
+    text-decoration: none;
+}
+a:hover { text-decoration: underline; }
+.nav-footer {
+    margin-top: 72px;
+    padding-top: 24px;
+    border-top: 1px solid #E8E8ED;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.nav-footer a {
+    color: #0071e3;
+    font-size: 15px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: #F5F5F7;
+}
+.nav-footer a:hover { background: #E8E8ED; }
+.toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 24px 0;
+}
+.toc-list li {
+    margin-bottom: 14px;
+    padding: 16px 20px;
+    background: #F5F5F7;
+    border-radius: 12px;
+    transition: background 0.15s;
+}
+.toc-list li:hover { background: #ECECEF; }
+.toc-list a {
+    font-size: 17px;
+    font-weight: 600;
+    color: #1D1D1F;
+    display: block;
+}
+.toc-list .desc {
+    color: #86868B;
+    font-size: 14px;
+    font-weight: 400;
+    margin-top: 4px;
+    display: block;
+}
+.toc-list .num {
+    color: #0071e3;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+.hero {
+    text-align: center;
+    padding: 32px 0 8px;
+}
+.hero .badge {
+    color: #0071e3;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+img.diagram {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    margin: 16px 0;
+    border: 1px solid #E8E8ED;
+}
+.section-intro {
+    color: #86868B;
+    font-size: 15px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid #E8E8ED;
+    padding-bottom: 20px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 20px;
+    font-size: 15px;
+}
+th, td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid #E8E8ED;
+}
+th { color: #86868B; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
+</style>
+</head>
+<body>
+<main class="content">
+<div class="hero"><div class="badge">第 9 章 · IO 层</div></div><h1>第 9 章：评估指标</h1><p class="subtitle">IC、ICIR、RankICIR、夏普与最大回撤 —— 把预测转成可比的健康度报告</p><h2>欢迎</h2><p>欢迎来到第 9 章！上一章我们讲了如何用滚动 OLS 生成 Mega-Alpha 预测。但预测是一个张量，质量好坏怎么衡量？这就需要一套评估指标。量化研究中有很多指标，IC、ICIR、RankIC、RankICIR、夏普比率、最大回撤、年化收益……它们各有侧重，共同描绘 alpha 的预测能力与稳定性。</p><p>本章会进入 <code class='inline'>calculator.py</code> 与 <code class='inline'>correlation.py</code>，看 IC、ICIR、rIC、rICIR 如何从 Pearson 与 Spearman 相关系数计算而来；会进入 <code class='inline'>run_adaptive_combination.py</code> 的 <code class='inline'>get_tensor_metrics</code>，看它如何汇总 IC、收益、夏普、MDD 输出一份完整指标报告。</p><h2>它解决什么问题？</h2><p>类比来说，评估指标像体检报告的多项指标，IC、ICIR、RankICIR、回撤与夏普一起给出 alpha 健康度。</p><p>单一指标有局限。IC 高不代表稳定（可能某些天极高、其他天为负）；ICIR 高不代表收益可观（可能有巨大回撤）；夏普高不代表能实际走得出来（可能交易成本吃掉收益）。AlphaSAGE 同时输出多个指标，让用户从不同维度审视 alpha 质量，避免“某一指标优异但实际不可用”的陷阱。</p><h2>核心设计思路</h2><p>评估指标的设计思路是<b>分层计算 + 多维汇总 + 防御性处理</b>。</p><p><b>分层计算</b>：底层是 <code class='inline'>batch_pearsonr</code>、<code class='inline'>batch_spearmanr</code>、<code class='inline'>batch_ret</code> 这些“逐天计算”函数，返回形状 <code class='inline'>(n_days,)</code> 的张量；中间层是 <code class='inline'>_calc_ICIR</code>、<code class='inline'>_calc_rICIR</code> 这些标量化函数，返回单个数；顶层是 <code class='inline'>get_tensor_metrics</code> 汇总成字典。</p><p><b>多维汇总</b>：一份报告同时包含 IC、ICIR、RankIC、RankICIR、收益、夏普、MDD 六类指标，分别衡量预测精准度、稳定性、极端值稳健性、投资回报、风险调整后收益、最大亏损幅度。</p><p><b>防御性处理</b>：多处使用 <code class='inline'>torch.nan_to_num</code>、除以下限的标准差（<code class='inline'>if std &lt; 1e-6: std = 1.0</code>），避免 NaN 和除零错误崩溃指标计算。</p><h2>代码深入</h2><h3>IC 与 ICIR：从 Pearson 相关到稳定性</h3><p>这些方法在 <code class='inline'>QLibStockDataCalculator</code> 中实现，是全仓库最底层的指标计算。</p><pre><code>    def _calc_IC(self, value1: Tensor, value2: Tensor) -&gt; float:
+        return batch_pearsonr(value1, value2).mean().item()
+    
+    def _calc_raw_IC(self, value1: Tensor, value2: Tensor) -&gt; Tensor:
+        return batch_pearsonr(value1, value2)
+    
+    def _calc_ICIR(self, value1: Tensor, value2: Tensor) -&gt; float:
+        aaa = batch_pearsonr(value1, value2)
+        IC = aaa.mean().item()
+        _std = aaa.std().item()
+        return IC/_std</code></pre><p><code class='inline'>_calc_IC</code> 调用 <code class='inline'>batch_pearsonr</code> 计算每一天的 Pearson 相关系数，再取 <code class='inline'>.mean()</code> 得到整体 IC。这里的“每一天”是指跨股票计算：一天内有 n_stocks 个样本，计算一个相关系数。</p><p><code class='inline'>_calc_ICIR</code> 计算逻辑很简单：均值除以标准差。但这个“简单”背后藏着重要含义：<b>ICIR 衡量的是 IC 的稳定性</b>。IC=0.05 但 std=0.01 的 alpha，ICIR=5，远比 IC=0.10 但 std=0.05 的 alpha（ICIR=2）可靠。</p><p>公式：$$ICIR = \frac{\bar{IC}}{\sigma_{IC}}$$。这里的 IC 是逐天计算的，均值与标准差都是跨天统计。这个公式与金融中的夏普比率在形式上一致（收益/波动），但衡量的是 alpha 预测能力的稳定性而非收益的稳定性。</p><h3>RankIC 与 RankICIR：极端值稳健性</h3><pre><code>    def _calc_rIC(self, value1: Tensor, value2: Tensor) -&gt; float:        
+        return batch_spearmanr(value1, value2).mean().item()
+    
+    def _calc_raw_rIC(self, value1: Tensor, value2: Tensor) -&gt; Tensor:
+        return batch_spearmanr(value1, value2)
+    
+    def _calc_rICIR(self, value1: Tensor, value2: Tensor) -&gt; float:
+        # return batch_pearsonr(value1, value2).mean().item()
+        aaa = batch_spearmanr(value1, value2)
+        RIC = aaa.mean().item()
+        _std = aaa.std().item()
+        return RIC/_std</code></pre><p>这里用 <code class='inline'>batch_spearmanr</code> 计算 Spearman 相关系数。Spearman 与 Pearson 的区别在于：Pearson 直接用原始值计算，对极端值敏感；Spearman 先转成排名再计算，对极端值稳健。</p><p>为什么需要区分 IC 与 RankIC？股票市场中经常出现尊不同寻常的异常股票（如高送转、停牌后补涨），它们的因子值或收益可能极端，严重拉偏 Pearson 相关系数。RankIC 用排名避免了这个问题，提供更稳健的预测能力指标。</p><p>实践中 RankICIR 是最被重视的指标之一。第 8 章的滚动筛选就是用 RankIC 与 RankICIR 作为阈值（<code class='inline'>tmp[(tmp['ric']>0.02)&(tmp['ricir']>0.2)]</code>），可见其重要性。</p><h3>batch_pearsonr 与 batch_spearmanr：底层计算</h3><p>这些函数在 <code class='inline'>correlation.py</code> 中实现，是所有 IC 计算的真正底层。看 Pearson 的实现：</p><pre><code>def _batch_pearsonr_given_mask(
+    x: Tensor, y: Tensor,
+    n: Tensor, mask: Tensor
+) -&gt; Tensor:
+    x_mean, x_std = masked_mean_std(x, n, mask)
+    y_mean, y_std = masked_mean_std(y, n, mask)
+    cov = (x * y).sum(dim=1) / n - x_mean * y_mean
+    stdmul = x_std * y_std
+    stdmul[(x_std &lt; 1e-3) | (y_std &lt; 1e-3)] = 1
+    corrs = cov / stdmul
+    return corrs</code></pre><p>这里的关键是 <code class='inline'>masked_mean_std</code> 与 <code class='inline'>_mask_either_nan</code>。股票数据中经常有 NaN（停牌、退市），这些 NaN 必须被屏蔽掉否则会污染相关系数计算。</p><p>公式：$$\rho = \frac{\text{cov}(x, y)}{\sigma_x \sigma_y}$$。代码中 <code class='inline'>cov = (x*y).sum(dim=1)/n - x_mean*y_mean</code> 就是协方差计算，<code class='inline'>stdmul = x_std * y_std</code> 是标准差乘积。</p><p>第 34 行 <code class='inline'>stdmul[(x_std &lt; 1e-3) | (y_std &lt; 1e-3)] = 1</code> 是防御性处理：如果某一天所有股票的因子值都相同（标准差 0），相关系数无意义，这里让分母为 1，避免除零错误。</p><h3>get_tensor_metrics：指标总汇函数</h3><p>这个函数是第 8 章 Mega-Alpha 评估的总入口。它计算 IC、ICIR、RankIC、RankICIR、收益、夏普、MDD，返回字典。</p><pre><code>def get_tensor_metrics(x, y, risk_free_rate=0.0):
+    # Ensure tensors are 2D (days, stocks)
+    if x.dim() &gt; 2: x = x.squeeze(-1)
+    if y.dim() &gt; 2: y = y.squeeze(-1)
+
+    ic_s = batch_pearsonr(x, y)
+    ric_s = chunk_batch_spearmanr(x, y, chunk_size=args.chunk_size)
+    ret_s = batch_ret(x, y)
+
+    ic_s = torch.nan_to_num(ic_s, nan=0.)
+    ric_s = torch.nan_to_num(ric_s, nan=0.)
+    ret_s = torch.nan_to_num(ret_s, nan=0.) / args.label_days
+    ic_s_mean = ic_s.mean().item()
+    ic_s_std = ic_s.std().item() if ic_s.std().item() &gt; 1e-6 else 1.0
+    ric_s_mean = ric_s.mean().item()
+    ric_s_std = ric_s.std().item() if ric_s.std().item() &gt; 1e-6 else 1.0
+    ret_s_mean = (ret_s).mean().item()
+    ret_s_std = (ret_s).std().item() if (ret_s).std().item() &gt; 1e-6 else 1.0
+
+    # Calculate Sharpe Ratio and Maximum Drawdown for ret series
+    ret_sharpe = batch_sharpe_ratio(ret_s, risk_free_rate).item()
+    ret_mdd = batch_max_drawdown(ret_s).item()
+
+    result = dict(
+        ic=ic_s_mean,
+        ic_std=ic_s_std,
+        icir=ic_s_mean / ic_s_std,
+        ric=ric_s_mean,
+        ric_std=ric_s_std,
+        ricir=ric_s_mean / ric_s_std,
+        ret=ret_s_mean * len(ret_s) / 3,
+        ret_std=ret_s_std,
+        retir=ret_s_mean / ret_s_std,
+        ret_sharpe=ret_sharpe,
+        ret_mdd=ret_mdd,
+    )
+    return result, ret_s
+</code></pre><p>看这个函数的逻辑。第 248-250 行调用三个底层函数计算 IC、RankIC、收益。第 252-254 行处理 NaN：如果某天没有有效股票，IC 会是 NaN，被替换为 0。</p><p>第 256-260 行计算标准差，并且加了一个防御性检查：<code class='inline'>if ic_s.std() &gt; 1e-6 else 1.0</code>。这个“默认为 1”的逻辑避免了 std=0 时 ICIR 除以 0 产生 NaN。</p><p>第 263-264 行调用 <code class='inline'>batch_sharpe_ratio</code> 与 <code class='inline'>batch_max_drawdown</code> 计算夏普与 MDD。第 266-278 行构造返回字典，包含 11 个指标。</p><p>值得注意的是第 273 行：<code class='inline'>ret = ret_s_mean * len(ret_s) / 3</code>。这个“乘以天数除以 3”是一个经验性调整，用于近似年化收益（假设一年约 252 个交易日，除以 3 近似 60 个交易日的季度化手法）。这个调整体现了实践中对“可比性”的需求。</p><h3>夏普比率：风险调整后收益</h3><pre><code>def batch_sharpe_ratio(ret_series: Tensor, risk_free_rate: float = 0.0) -&gt; Tensor:
+    &quot;&quot;&quot;
+    Calculate Sharpe Ratio for return series.
+    
+    Args:
+        ret_series: Tensor of shape [days] - daily return series
+        risk_free_rate: Risk-free rate (annualized), default 0.0
+    
+    Returns:
+        Sharpe ratio as a scalar tensor
+    &quot;&quot;&quot;
+    # Convert to daily risk-free rate (assuming 252 trading days per year)
+    daily_rf = risk_free_rate / 252.0
+    
+    # Calculate excess returns
+    excess_returns = ret_series - daily_rf
+    
+    # Calculate mean and std of excess returns
+    mean_excess = excess_returns.mean()
+    std_excess = excess_returns.std()
+    
+    # Handle division by zero
+    if std_excess &lt; 1e-8:
+        return torch.tensor(0.0, device=ret_series.device)
+    
+    # Annualize Sharpe ratio
+    sharpe = mean_excess / std_excess * (252.0 ** 0.5)
+    
+    return sharpe</code></pre><p>夏普比率是金融中最常见的风险调整后收益指标。公式：$$\text{Sharpe} = \frac{\bar{r} - r_f}{\sigma_r} \sqrt{252}$$。</p><p>代码中 <code class='inline'>daily_rf = risk_free_rate / 252.0</code> 把年化无风险利率转成日度；<code class='inline'>excess_returns = ret_series - daily_rf</code> 计算超额收益；<code class='inline'>mean_excess / std_excess * (252.0 ** 0.5)</code> 完成年化。</p><p>为什么要 <code class='inline'>* (252.0 ** 0.5)</code>？因为日度收益的方差是日度波动，要转成年化需要乘以 <code class='inline'>\sqrt{252}</code>（假设一年 252 个交易日）。这个“年化”手法在金融中是标准操作。</p><p>第 130-131 行是防御性处理：如果收益序列标准差太小（几乎没有波动），返回 0 避免除以极小值产生巨大夏普。</p><h3>最大回撤：风险下界</h3><pre><code>def batch_max_drawdown(ret_series: Tensor) -&gt; Tensor:
+    &quot;&quot;&quot;
+    Calculate Maximum Drawdown for return series.
+    
+    Args:
+        ret_series: Tensor of shape [days] - daily return series
+    
+    Returns:
+        Maximum drawdown as a scalar tensor (positive value)
+    &quot;&quot;&quot;
+    # Calculate cumulative returns
+    cum_returns = 1+ret_series.cumsum(dim=0)
+    # Calculate running maximum using cummax
+    running_max = torch.cummax(cum_returns, dim=0)[0]
+    
+    # Calculate drawdown at each point
+    drawdown = (cum_returns - running_max) / running_max
+    
+    # Return maximum drawdown (as positive value)
+    max_dd = -drawdown.min()
+    
+    return max_dd</code></pre><p>最大回撤是衡量“最坏情况”的指标。公式：$$\text{MDD} = \max_t \frac{V_t - \max_{s\leq t} V_s}{\max_{s\leq t} V_s}$$，其中 V_t 是累计净值。</p><p>代码中 <code class='inline'>cum_returns = 1 + ret_series.cumsum(dim=0)</code> 计算累计净值（假设初始为 1）。<code class='inline'>running_max = torch.cummax(cum_returns, dim=0)[0]</code> 计算到当前为止的最高点。<code class='inline'>drawdown = (cum_returns - running_max) / running_max</code> 计算每个时点相对最高点的下跌幅度。</p><p>最后 <code class='inline'>-drawdown.min()</code> 取最大下跌（为正值返回）。MDD 越小越好，表示策略在极端情况下亏损越小。</p><p>这里有一个隐藏假设：用 <code class='inline'>1 + cumsum</code> 表示净值调用了加法累加而非乘法复利。这适用于日度收益较小的场景，近似复利。如果收益波动较大，这个近似会有偏差。</p><h3>batch_ret：头部 20% 选股回报</h3><pre><code>def _batch_ret_given_mask(
+    x: Tensor, y: Tensor,
+    n: Tensor, mask: Tensor
+) -&gt; Tensor:
+    &quot;&quot;&quot;
+    Calculate mean return of top 20% stocks based on factor values.
+    
+    Args:
+        x: Factor values tensor of shape [days, stocks]
+        y: Returns tensor of shape [days, stocks]
+        n: Number of valid stocks per day
+        mask: Boolean mask indicating NaN values
+    
+    Returns:
+        Mean return for each day
+    &quot;&quot;&quot;
+    batch_size, num_stocks = x.shape
+    returns = torch.zeros(batch_size, device=x.device)
+    for day_idx in range(batch_size):
+        day_mask = ~mask[day_idx]  # Valid stocks for this day
+        valid_count = day_mask.sum().item()
+        
+        if valid_count == 0:
+            returns[day_idx] = 0.0
+            continue
+            
+        # Get valid factor values and returns for this day
+        day_x = x[day_idx][day_mask]
+        day_y = y[day_idx][day_mask]
+        
+        top_count = max(1, int(valid_count * 0.2))
+        
+        _, top_indices = torch.topk(day_x, top_count, largest=True)
+        _, bottom_indices = torch.topk(day_x, top_count, largest=False)
+        
+        # Calculate mean return of top 20% stocks
+        top_returns = day_y[top_indices]
+        bottom_returns = day_y[bottom_indices]
+        returns[day_idx] = top_returns.mean()
+    return returns</code></pre><p>这个函数计算“按因子值选出头部 20% 股票的平均收益”。这是一个实践性的回报指标，模拟了“按 alpha 买头部 20% 股票”这个策略。</p><p>第 68 行 <code class='inline'>top_count = max(1, int(valid_count * 0.2))</code> 计算头部数量。第 70-71 行用 <code class='inline'>torch.topk</code> 选出因子值最大/最小的股票。第 76 行返回头部股票的平均收益。</p><p>为什么用 20%？这是量化中常见的“五分之”选股法，避免了与全市场的 beta 混淆，更能体现 alpha 本身的预测价值。代码中还计算了 bottom 20%，可以算多空收益但返回时只用了 top 部分。</p><h2>数据流</h2><p>数据流：<b>预测张量 + 目标张量 → batch_pearsonr/spearmanr/ret → IC/rIC/ret 序列 → 均值/标准差 → ICIR/rICIR/Sharpe/MDD → 指标字典</b>。</p><p>具体来说，第 8 章生成的预测张量与目标张量传给 <code class='inline'>get_tensor_metrics</code>，后者调用三个底层函数计算逐天的 IC、rIC、收益。这些序列被各自汇总成 ICIR、rICIR、夏普、MDD。最后输出字典与 ret_s 序列，前者被打印成表格，后者被保存为 ret_s.npy 供下游回测使用。</p><h2>关联公式</h2><div class="math-block">$$ICIR = \frac{\bar{IC}}{\sigma_{IC}},\quad RankICIR = \frac{\bar{RIC}}{\sigma_{RIC}}$$</div><div class="math-block">$$\text{Sharpe} = \frac{\bar{r} - r_f}{\sigma_r}\sqrt{252},\quad \text{MDD} = \max_t \frac{V_t - \max_{s\leq t} V_s}{\max_{s\leq t} V_s}$$</div><p>这两个公式对应 <code class='inline'>get_tensor_metrics</code> 中计算的六个核心指标。ICIR 与 RankICIR 衡量预测稳定性，夏普与 MDD 衡量投资风险调整后收益与最大亏损。</p><p>这些指标在 AlphaSAGE 中的作用是“对外接口”：训练过程中仅用 IC 作为奖励，但评估时输出全部六个指标，让用户看到“IC 高但夏普低”这类实践中重要的深层信息。</p><h2>设计权衡</h2><p><b>为什么同时输出 IC 与 RankIC？</b>因为它们补充。IC 反映线性相关，对中间值敏感；RankIC 反映排名相关，对极端值稳健。实践中一个 alpha 可能 IC 低但 RankIC 高，表示它能拾出极端优劣股票但不能精确预测中间值。两个指标同时看才能全面评估。</p><p><b>为什么用 20% 而不是 10% 或 50%？</b>20% 是量化中的经验值。太小（10%）对极端值过敏感，受府市场条件影响大；太大（50%）接近全市场收益，丢失了 alpha 的预测价值。20% 是一个平衡点。</p><p><b>为什么用加法累计而不是乘法复利？</b>加法近似于对数收益（log return），适用于日度收益较小的场景。乘法复利理论上更精确，但负收益会导致累计为 0，需要额外处理。AlphaSAGE 用加法是实用主义的选择。</p><p><b>为什么 std 阈值用 1e-6 而不是 0？</b>因为浮点误差会让 std 极小但不为 0，1e-6 是一个安全阈值，避免除以极小值产生巨大 ICIR 误差。</p><h2>小结</h2><p>本章讲解了 AlphaSAGE 的评估指标体系：从底层的 Pearson/Spearman 相关系数，到 ICIR、RankICIR、夏普、MDD 的多维汇总。这些指标让预测质量从“主观感受”变为“客观可比”。</p><p>下一章我们会看 Baseline 对比，看 PPO、QCM、AFF 三类基线如何与 GFlowNet 同台竞技。</p><div class="nav-footer"><a href="08.html">← 上一章</a><a href="index.html">目录</a><a href="10.html">下一章 →</a></div>
+</main>
+</body>
+</html>

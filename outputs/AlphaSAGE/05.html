@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 5 章：Alpha 池管理 | AlphaSAGE</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {{delimiters:[{{left:'$$',right:'$$',display:true}},{{left:'$',right:'$',display:false}}]}});"></script>
+<style>
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    padding: 0;
+    background: #FBFBFD;
+    color: #1D1D1F;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+                 "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+}
+main.content {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 64px 28px 120px;
+}
+h1 {
+    font-size: 38px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+    line-height: 1.15;
+}
+h2 {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 56px 0 16px;
+    color: #1D1D1F;
+}
+h3 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 36px 0 12px;
+    color: #1D1D1F;
+}
+p {
+    margin: 0 0 16px;
+    color: #1D1D1F;
+}
+.subtitle {
+    color: #86868B;
+    font-size: 19px;
+    margin: 0 0 32px;
+    font-weight: 400;
+}
+.muted { color: #86868B; }
+code.inline {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: #F5F5F7;
+    color: #1D1D1F;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.92em;
+}
+pre {
+    background: #F5F5F7;
+    border-radius: 10px;
+    padding: 18px 20px;
+    overflow-x: auto;
+    margin: 0 0 20px;
+    border: 1px solid #E8E8ED;
+}
+pre code {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: #1D1D1F;
+    background: transparent;
+    padding: 0;
+}
+.math-block {
+    background: #F5F5F7;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin: 0 0 20px;
+    text-align: center;
+    overflow-x: auto;
+}
+.callout {
+    background: #F5F5F7;
+    border-left: 3px solid #0071e3;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 0 0 20px;
+    color: #1D1D1F;
+}
+.callout .label {
+    color: #0071e3;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: block;
+    margin-bottom: 4px;
+}
+ul, ol {
+    margin: 0 0 20px;
+    padding-left: 24px;
+}
+li { margin-bottom: 8px; }
+a {
+    color: #0071e3;
+    text-decoration: none;
+}
+a:hover { text-decoration: underline; }
+.nav-footer {
+    margin-top: 72px;
+    padding-top: 24px;
+    border-top: 1px solid #E8E8ED;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.nav-footer a {
+    color: #0071e3;
+    font-size: 15px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: #F5F5F7;
+}
+.nav-footer a:hover { background: #E8E8ED; }
+.toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 24px 0;
+}
+.toc-list li {
+    margin-bottom: 14px;
+    padding: 16px 20px;
+    background: #F5F5F7;
+    border-radius: 12px;
+    transition: background 0.15s;
+}
+.toc-list li:hover { background: #ECECEF; }
+.toc-list a {
+    font-size: 17px;
+    font-weight: 600;
+    color: #1D1D1F;
+    display: block;
+}
+.toc-list .desc {
+    color: #86868B;
+    font-size: 14px;
+    font-weight: 400;
+    margin-top: 4px;
+    display: block;
+}
+.toc-list .num {
+    color: #0071e3;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+.hero {
+    text-align: center;
+    padding: 32px 0 8px;
+}
+.hero .badge {
+    color: #0071e3;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+img.diagram {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    margin: 16px 0;
+    border: 1px solid #E8E8ED;
+}
+.section-intro {
+    color: #86868B;
+    font-size: 15px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid #E8E8ED;
+    padding-bottom: 20px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 20px;
+    font-size: 15px;
+}
+th, td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid #E8E8ED;
+}
+th { color: #86868B; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
+</style>
+</head>
+<body>
+<main class="content">
+<div class="hero"><div class="badge">第 5 章 · 核心层</div></div><h1>第 5 章：Alpha 池管理</h1><p class="subtitle">AlphaPoolGFN —— 维护多样化 alpha 候选集合的“选秀节目”</p><h2>欢迎</h2><p>欢迎来到第 5 章！前面几章我们看了 GFlowNet 如何生成 alpha、RGCN 如何编码。但生成的 alpha 不能全部保留，需要一个“选秀节目”来筛选。如果只留 IC 最高的 alpha，池子会高度同质，丢失多样性；如果全部保留，会充斥计算资源。AlphaPoolGFN 是这个权衡的实现者。</p><p>本章会进入 <code class='inline'>alpha_pool.py</code>，看 <code class='inline'>try_new_expr</code> 如何用 IC 与互相关阈值决定去留，看 <code class='inline'>_find_k_nearest_neighbors</code> 如何基于结构嵌入查找近邻，为 SSL 奖励提供前置。</p><h2>它解决什么问题？</h2><p>类比来说，AlphaPoolGFN 像选秀节目的待定席，新选手要与现有成员比相关性，达标才入围、末位被淘汰。</p><p>量化 alpha 挑挘面临一个矛盾：下游的 Mega-Alpha 组合需要互补的 alpha（低相关），但高 IC 的 alpha 往往彼此高度相关（互相同质）。如果只看 IC，你会有一个“赢者通吃”的 alpha 池；如果只看多样性，你会留下低 IC 的 alpha。AlphaSAGE 的解决方案是同时考虑 IC 与互相关：只有当新 alpha 与池内现有 alpha 的最大互相关 IC 低于阈值（默认 0.3）时，才允许入池，保讹了不相关性。</p><h2>核心设计思路</h2><p>AlphaPoolGFN 的设计思路是<b>双阈值筛选 + 嵌入追踪 + 末位淘汰</b>。</p><p><b>双阈值筛选</b>：新 alpha 必须同时满足两个条件才能入池—— IC 足够高（比现有最差的还高）、与现有 alpha 的互相关 IC 低于 0.3。这避免了“仅 IC 高但同质”与“多样但 IC 低”两种极端。</p><p><b>嵌入追踪</b>：除了 IC 与互相关，池还存储每个 alpha 的 RGCN 嵌入。这个嵌入会被 SSL 奖励用来查 KNN，实现“结构相似的 alpha 应该有相似的因子值”这个软盘约束。</p><p><b>末位淘汰</b>：当池已满且新 alpha 优于现有最差者时，先加入新 alpha 再淘汰最差者。这个“加后再淘”的顺序避免了“删除后发现新 alpha 不合格”的状态。</p><h2>代码深入</h2><h3>池初始化</h3><pre><code>class AlphaPoolGFN(AlphaPool):
+    def __init__(
+        self,
+        capacity: int,
+        stock_data: StockData,
+        target: Expression,
+        ic_mut_threshold: float = 0.3,
+        ssl_k: int = 3,
+        ssl_tau: float = 0.1
+    ):
+        super().__init__(capacity, stock_data, target)
+        self.ic_mut_threshold = ic_mut_threshold
+        self.ssl_k = ssl_k  # K for k-nearest neighbors
+        self.ssl_tau = ssl_tau  # Temperature parameter for similarity weight
+        # Initialize embeddings storage with the same structure as other factor properties
+        self.embeddings: List[Optional[Tensor]] = [None for _ in range(capacity + 1)]</code></pre><p>池继承自父类 AlphaPool，额外加入了三个参数：<code class='inline'>ic_mut_threshold=0.3</code>（互相关 IC 阈值）、<code class='inline'>ssl_k=3</code>（KNN 的 K）、<code class='inline'>ssl_tau=0.1</code>（相似度 softmax 的温度）。</p><p>第 26 行 <code class='inline'>self.embeddings = [None for _ in range(capacity + 1)]</code> 初始化嵌入存储，多预留一个位置是为了“加后再淘”逻辑中临时存在 capacity+1 个 alpha。这个细节体现了“先加后淘”设计。</p><h3>try_new_expr：入池判定核心</h3><p>这个方法是整个池的核心。它决定一个新表达式是否入池、是否淘汰现有 alpha。</p><pre><code>    def try_new_expr(self, expr: Expression, embedding: Optional[Tensor] = None) -&gt; Tuple[float, float]:
+        value = self._normalize_by_day(expr.evaluate(self.data))
+        ic_ret, ic_mut = self._calc_ics(value, ic_mut_threshold=0.99)
+        if ic_ret is None or ic_mut is None:
+            return 0.0, 1.0
+        ic_ret = np.abs(ic_ret)
+        ic_mut = np.abs(ic_mut)
+        
+        # Check if we should add this factor to the pool
+        if self.size &lt; self.capacity:
+            # Pool not full, add directly if correlation constraint is satisfied
+            if ic_mut.size == 0 or np.max(ic_mut) &lt;= self.ic_mut_threshold:
+                self._add_factor(expr, value, ic_ret, ic_mut, embedding)
+                print(f&quot;[Pool Add] {expr}&quot;)
+        else:
+            # Pool is full, check if this factor is better than the worst one
+            min_ic_idx = np.argmin(self.single_ics[:self.size])
+            min_ic = self.single_ics[min_ic_idx]
+            
+            if ic_ret &gt; min_ic and (ic_mut.size == 0 or np.max(ic_mut) &lt;= self.ic_mut_threshold):
+                # Add the new factor first (this will make size = capacity + 1)
+                self._add_factor(expr, value, ic_ret, ic_mut, embedding)
+                print(f&quot;[Pool Add] {expr}&quot;)
+                # Then remove the worst factor using _pop
+                print(f&quot;[Pool Pop] {self.exprs[np.argmin(self.single_ics[:self.size])]}&quot;)
+                self._pop()
+            else:
+                print(f&quot;[Pool Reject] {expr}&quot;)
+        
+        return ic_ret, (1 - np.max(ic_mut)) if ic_mut.size &gt; 0 else 1.0</code></pre><p>看代码逻辑。第 29-30 行先求值并计算 IC 与互相关 IC，用的阈值是 0.99（不是 0.3）—— 这是为了求出原始互相关，再用 0.3 问题过滤。</p><p>第 37-41 行是“池未满”分支：只要互相关不超阈值，直接入池。第 43-55 行是“池已满”分支：找到现有 IC 最低的 alpha，如果新 alpha 的 IC 比它高且互相关合格，则加入新 alpha，再调用 <code class='inline'>_pop()</code> 淘汰最差者。</p><p>最后一行 <code class='inline'>return ic_ret, (1 - np.max(ic_mut))</code> 返回第二个值就是“新颖度奖励” r_NOV = 1 − max|IC_mut|。越与现有 alpha 不同，这个值越接近 1，会被第 6 章的奖励函数使用。</p><p>这里有一个微妙点：即使 alpha 被拒绝入池，也会返回 IC 与新颖度，这些仍会作为奖励传给 GFlowNet。这让模型即使生成了“重复”的 alpha，仍能得到反馈，学习不要再这么生成。</p><h3>_find_k_nearest_neighbors：基于嵌入的 KNN</h3><p>这个方法是 SSL 奖励的前置。它找到与查询 alpha 结构最相似的 K 个池内 alpha。</p><pre><code>    def _find_k_nearest_neighbors(self, query_embedding: Tensor, k: int, exclude_self: bool = True, distance_threshold: float = 1e-6) -&gt; List[int]:
+        &quot;&quot;&quot;
+        Find k nearest neighbors based on embedding similarity
+        
+        Args:
+            query_embedding: The embedding to find neighbors for
+            k: Number of neighbors to find
+            exclude_self: Whether to exclude identical embeddings (distance ≈ 0)
+            distance_threshold: Minimum distance to consider as different embeddings
+            
+        Returns:
+            List of indices of k nearest neighbors
+        &quot;&quot;&quot;
+        if self.size &lt;= 1:
+            # print(f&quot;[SSL Debug] Pool size &lt;= 1 ({self.size}), no neighbors available&quot;)
+            return []
+        
+        distances = []
+        valid_indices = []
+        
+        for i in range(self.size):
+            if self.embeddings[i] is not None:
+                # Calculate L2 distance
+                dist = torch.norm(query_embedding - self.embeddings[i]).item()
+                
+                # Skip if this is likely the same embedding (distance ≈ 0)
+                if exclude_self and dist &lt; distance_threshold:
+                    # print(f&quot;[SSL Debug] Factor {i}: distance = {dist:.6f} (SKIPPED - too similar/identical)&quot;)
+                    continue
+                    
+                distances.append(dist)
+                valid_indices.append(i)
+                # print(f&quot;[SSL Debug] Factor {i}: distance = {dist:.6f}&quot;)
+        
+        if len(distances) == 0:
+            # print(f&quot;[SSL Debug] No valid embeddings found in pool (after excluding self)&quot;)
+            return []
+        
+        # Get k smallest distances (nearest neighbors)
+        k = min(k, len(distances))
+        _, indices = torch.topk(torch.tensor(distances), k, largest=False)
+        
+        neighbor_indices = [valid_indices[idx] for idx in indices.tolist()]
+        neighbor_distances = [distances[idx] for idx in indices.tolist()]
+        
+        # print(f&quot;[SSL Debug] Found {len(neighbor_indices)} neighbors: {neighbor_indices}&quot;)
+        # print(f&quot;[SSL Debug] Neighbor distances: {[f&#x27;{d:.6f}&#x27; for d in neighbor_distances]}&quot;)
+        
+        return neighbor_indices</code></pre><p>逻辑很直接：遍历池中每个 alpha 的嵌入，计算与查询嵌入的 L2 距离，排除距离接近 0 的（同一表达式），取距离最小的 K 个。</p><p>第 113 行 <code class='inline'>torch.norm(query_embedding - self.embeddings[i]).item()</code> 计算 L2 距离。第 116-118 行用 <code class='inline'>distance_threshold=1e-6</code> 排除自身。第 130 行 <code class='inline'>torch.topk(..., largest=False)</code> 取最小 K 个。</p><p>这里的设计权衡：为什么不用饱和相似度而用 L2 距离？因为嵌入是 RGCN 输出的未归一化向量，其范数会因训练变化，L2 距离对范数敏感。但这里仅用于排序选近邻，不用于计算权重，所以可以接受。后面的 <code class='inline'>_compute_similarity_weights</code> 才用 softmax 计算权重。</p><h2>数据流</h2><p>数据流：<b>环境采样得到表达式 → try_new_expr 计算 IC/互相关 → 入池判定 → 如有嵌入则调用 compute_ssl_reward → 返回 IC 与新颖度</b>。</p><p>池与环境的关系是双向的：环境调用池的 <code class='inline'>try_new_expr_with_ssl</code>，池返回 IC、新颖度、SSL 三个奖励，环境合成总奖励后传给 GFlowNet。同时，池也会被训练主循环保存（第 7 章）为 <code class='inline'>pool_*.json</code>供第 8 章 Mega-Alpha 使用。</p><h2>关联公式</h2><div class="math-block">$$r_{NOV} = 1 - \max_k |IC_{mut,k}|$$</div><p>新颖度奖励 = 1 − 与现有 alpha 最大的互相关 IC 绝对值。对应代码 <code class='inline'>return ic_ret, (1 - np.max(ic_mut))</code>。越不同，越接近 1。</p><h2>设计权衡</h2><p><b>为什么选择 0.3 作为互相关阈值？</b>过低，池会同质；过高，会拒绝多样 alpha。0.3 是业界实践中常用的“低相关”上限，低于该值表示两个 alpha 提供互补信息。</p><p><b>为什么要“加后再淘”而不是“删后再加”？</b>如果先删除最差者再加入新 alpha，中间状态池大小为 capacity-1，会破坏不变量；而先加后再淘，中间状态为 capacity+1，与存储数组的预留位置一致，避免了越界。</p><p><b>为什么用 L2 距离排序而用 softmax 计权重？</b>两个目的不同：排序只关心相对距离，L2 就够；计权重要匹配 softmax 的概率分布特性，需要负距离平方除以温度。这种分工让每一步都用最合适的方法。</p><h2>小结</h2><p>本章讲解了 Alpha 池管理：从双阈值筛选、嵌入追踪、到末位淘汰。看到了为什么要“加后再淘”以及为什么用 L2 排序、softmax 计权重。</p><p>下一章我们会看多维奖励函数，看这个池如何与 IC、SSL、新颖度三种信号结合。</p><div class="nav-footer"><a href="04.html">← 上一章</a><a href="index.html">目录</a><a href="06.html">下一章 →</a></div>
+</main>
+</body>
+</html>

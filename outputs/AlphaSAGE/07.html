@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 7 章：训练主循环 | AlphaSAGE</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {{delimiters:[{{left:'$$',right:'$$',display:true}},{{left:'$',right:'$',display:false}}]}});"></script>
+<style>
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    padding: 0;
+    background: #FBFBFD;
+    color: #1D1D1F;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+                 "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+}
+main.content {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 64px 28px 120px;
+}
+h1 {
+    font-size: 38px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+    line-height: 1.15;
+}
+h2 {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 56px 0 16px;
+    color: #1D1D1F;
+}
+h3 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 36px 0 12px;
+    color: #1D1D1F;
+}
+p {
+    margin: 0 0 16px;
+    color: #1D1D1F;
+}
+.subtitle {
+    color: #86868B;
+    font-size: 19px;
+    margin: 0 0 32px;
+    font-weight: 400;
+}
+.muted { color: #86868B; }
+code.inline {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: #F5F5F7;
+    color: #1D1D1F;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.92em;
+}
+pre {
+    background: #F5F5F7;
+    border-radius: 10px;
+    padding: 18px 20px;
+    overflow-x: auto;
+    margin: 0 0 20px;
+    border: 1px solid #E8E8ED;
+}
+pre code {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: #1D1D1F;
+    background: transparent;
+    padding: 0;
+}
+.math-block {
+    background: #F5F5F7;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin: 0 0 20px;
+    text-align: center;
+    overflow-x: auto;
+}
+.callout {
+    background: #F5F5F7;
+    border-left: 3px solid #0071e3;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 0 0 20px;
+    color: #1D1D1F;
+}
+.callout .label {
+    color: #0071e3;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: block;
+    margin-bottom: 4px;
+}
+ul, ol {
+    margin: 0 0 20px;
+    padding-left: 24px;
+}
+li { margin-bottom: 8px; }
+a {
+    color: #0071e3;
+    text-decoration: none;
+}
+a:hover { text-decoration: underline; }
+.nav-footer {
+    margin-top: 72px;
+    padding-top: 24px;
+    border-top: 1px solid #E8E8ED;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.nav-footer a {
+    color: #0071e3;
+    font-size: 15px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: #F5F5F7;
+}
+.nav-footer a:hover { background: #E8E8ED; }
+.toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 24px 0;
+}
+.toc-list li {
+    margin-bottom: 14px;
+    padding: 16px 20px;
+    background: #F5F5F7;
+    border-radius: 12px;
+    transition: background 0.15s;
+}
+.toc-list li:hover { background: #ECECEF; }
+.toc-list a {
+    font-size: 17px;
+    font-weight: 600;
+    color: #1D1D1F;
+    display: block;
+}
+.toc-list .desc {
+    color: #86868B;
+    font-size: 14px;
+    font-weight: 400;
+    margin-top: 4px;
+    display: block;
+}
+.toc-list .num {
+    color: #0071e3;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+.hero {
+    text-align: center;
+    padding: 32px 0 8px;
+}
+.hero .badge {
+    color: #0071e3;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+img.diagram {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    margin: 16px 0;
+    border: 1px solid #E8E8ED;
+}
+.section-intro {
+    color: #86868B;
+    font-size: 15px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid #E8E8ED;
+    padding-bottom: 20px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 20px;
+    font-size: 15px;
+}
+th, td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid #E8E8ED;
+}
+th { color: #86868B; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
+</style>
+</head>
+<body>
+<main class="content">
+<div class="hero"><div class="badge">第 7 章 · IO 层</div></div><h1>第 7 章：训练主循环</h1><p class="subtitle">train_gfn.py 的 train 与 WeightScheduler —— 乐队指挥、采样轨迹、回传梯度</p><h2>欢迎</h2><p>欢迎来到第 7 章！前面六章我们讲了 AlphaSAGE 的各个组件：数据、表达式、GFlowNet、RGCN、Alpha 池、多维奖励。本章会把这些组件串起来，看 <code class='inline'>train_gfn.py</code> 的训练主循环如何协调它们。</p><p>本章会进入 <code class='inline'>train_gfn.py</code>，看 <code class='inline'>WeightScheduler</code> 如何实现时间退火以及 <code class='inline'>train</code> 主循环如何串联环境、模型、优化器。这是整个项目的“乐队指挥”。</p><h2>它解决什么问题？</h2><p>类比来说，训练主循环像乐队指挥，按节拍采样轨迹、调度权重、回传梯度，把生成器一步步推向高产。</p><p>深度学习训练是一个结构化的过程：采样、计算损失、反向传播、参数更新、评估与保存。如果手写这些步骤，容易忘记某个环节（如忘记零梯度、忘记退火）。train_gfn.py 把这些步骤封装成一个主循环，同时集成了 WeightScheduler 来实现 SSL/NOV 权重的时间退火。</p><h2>核心设计思路</h2><p>训练主循环的设计思路是<b>循环采样 + 批次累积 + 调度器退火</b>。</p><p><b>循环采样</b>：每个 episode 采样一条轨迹，调用 GFlowNet 的 loss 计算损失。这里 n_trajectories=1 是为了与环境的状态设计一致。</p><p><b>批次累积</b>：不是每条轨迹都立即更新，而是累积 update_freq=128 次后一次性反向传播。这相当于 mini-batch SGD，减少了 IO 与梯度计算的开销。</p><p><b>调度器退火</b>：WeightScheduler 创造性地复用了 PyTorch 的 LinearLR / ExponentialLR / PolynomialLR，通过“虚拟参数 + 虚拟优化器”来跳过调度器对 Parameter 的要求，实现了 SSL/NOV 权重的时间退火。</p><h2>代码深入</h2><h3>WeightScheduler：不重造轮子的退火调度器</h3><p>这个类是 AlphaSAGE 训练的一个巧妙设计。它复用了 PyTorch 的 LR 调度器来实现 SSL/NOV 权重的退火。</p><pre><code>class WeightScheduler:
+    &quot;&quot;&quot;A scheduler for managing weight decay using PyTorch schedulers&quot;&quot;&quot;
+    
+    def __init__(self, initial_ssl_weight, initial_nov_weight, final_ratio, total_steps, scheduler_type=&#x27;linear&#x27;):
+        self.initial_ssl_weight = initial_ssl_weight
+        self.initial_nov_weight = initial_nov_weight
+        self.final_ssl_weight = initial_ssl_weight * final_ratio
+        self.final_nov_weight = initial_nov_weight * final_ratio
+        self.total_steps = total_steps
+        self.scheduler_type = scheduler_type
+        
+        # Create dummy parameters and optimizers for using PyTorch schedulers
+        self.ssl_param = nn.Parameter(torch.tensor(initial_ssl_weight))
+        self.nov_param = nn.Parameter(torch.tensor(initial_nov_weight))
+        
+        # Create dummy optimizers (we won&#x27;t actually use them for optimization)
+        self.ssl_optimizer = Adam([self.ssl_param], lr=1.0)
+        self.nov_optimizer = Adam([self.nov_param], lr=1.0)
+        
+        # Create schedulers based on type
+        if scheduler_type == &#x27;linear&#x27;:
+            # LinearLR decays from start_factor to end_factor
+            start_factor = 1.0
+            end_factor = final_ratio
+            self.ssl_scheduler = LinearLR(self.ssl_optimizer, start_factor=start_factor, 
+                                        end_factor=end_factor, total_iters=total_steps)
+            self.nov_scheduler = LinearLR(self.nov_optimizer, start_factor=start_factor, 
+                                        end_factor=end_factor, total_iters=total_steps)
+        elif scheduler_type == &#x27;exponential&#x27;:
+            # ExponentialLR multiplies by gamma each step
+            gamma = (final_ratio) ** (1.0 / total_steps)
+            self.ssl_scheduler = ExponentialLR(self.ssl_optimizer, gamma=gamma)
+            self.nov_scheduler = ExponentialLR(self.nov_optimizer, gamma=gamma)
+        elif scheduler_type == &#x27;polynomial&#x27;:
+            # PolynomialLR with power=1 is linear, power=2 is quadratic, etc.
+            self.ssl_scheduler = PolynomialLR(self.ssl_optimizer, total_iters=total_steps, 
+                                           power=2.0, end_factor=final_ratio)
+            self.nov_scheduler = PolynomialLR(self.nov_optimizer, total_iters=total_steps, 
+                                           power=2.0, end_factor=final_ratio)
+        else:
+            raise ValueError(f&quot;Unknown scheduler type: {scheduler_type}&quot;)
+    
+    def step(self):
+        &quot;&quot;&quot;Step both schedulers&quot;&quot;&quot;
+        self.ssl_scheduler.step()
+        self.nov_scheduler.step()
+    
+    def get_current_weights(self):
+        &quot;&quot;&quot;Get current weight values&quot;&quot;&quot;
+        ssl_lr = self.ssl_scheduler.get_last_lr()[0]
+        nov_lr = self.nov_scheduler.get_last_lr()[0]
+        
+        current_ssl_weight = self.initial_ssl_weight * ssl_lr
+        current_nov_weight = self.initial_nov_weight * nov_lr
+        
+        return current_ssl_weight, current_nov_weight</code></pre><p>看这个类的设计。第 96-101 行创造了两个“虚拟参数” ssl_param 与 nov_param，初值为初始权重。第 100-101 行创造了两个“虚拟优化器”，学习率为 1.0（这里不是真的要优化，只是调度器需要优化器实例）。</p><p>第 104-122 行根据 scheduler_type 创建 PyTorch 调度器。LinearLR 线性从 start_factor=1.0 衰减到 end_factor=final_ratio；ExponentialLR 每步乘 gamma；PolynomialLR 多项式衰减。这里复用了 PyTorch 现成的调度器，避免了重写轮子。</p><p>第 131-139 行的 <code class='inline'>get_current_weights</code> 获取当前权重：从调度器拿到当前“学习率”，乘以初始权重得到当前实际权重。这个“复用 LR 调度器计算权重”的技巧很巧妙。</p><h3>train：训练入口</h3><p>这个函数是训练的入口。它初始化所有组件后进入主循环。先看初始化部分。</p><pre><code>def train(args):
+    # Reproducibility
+    torch.manual_seed(args.seed)
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+
+    device = torch.device(&#x27;cuda:0&#x27; if torch.cuda.is_available() else &#x27;cpu&#x27;)
+    if args.instrument == &#x27;sp500&#x27;:
+        QLIB_PATH = &#x27;/your_path/data/qlib_data/us_data_qlib&#x27;
+    else:    
+        QLIB_PATH = &#x27;/your_path/data/qlib_data/cn_data_rolling&#x27;
+    # Initialize StockData and target expression
+    data = StockData(instrument=args.instrument, start_time=&#x27;2010-01-01&#x27;, end_time=&#x27;2016-12-31&#x27;, qlib_path=QLIB_PATH)
+    data_test = StockData(instrument=args.instrument, start_time=&#x27;2018-01-01&#x27;, end_time=&#x27;2020-12-31&#x27;, qlib_path=QLIB_PATH)
+    close = Feature(FeatureType.CLOSE)
+    target = Ref(close, -20) / close - 1
+    
+    # Initialize AlphaPoolGFN
+    pool = AlphaPoolGFN(capacity=args.pool_capacity, stock_data=data, target=target)
+
+    # Initialize model
+    n_tokens = len(FEATURES) + len(OPERATORS) + len(DELTA_TIMES) + len(CONSTANTS)
+    
+    backbone = SequenceEncoder(
+        n_tokens,
+        args.encoder_type
+    )
+    
+    # Initialize environment with encoder and mask dropout
+    env = GFNEnvCore(pool=pool,
+                     encoder=backbone, 
+                     device=device, 
+                     mask_dropout_prob=args.mask_dropout_prob,
+                     ssl_weight=args.ssl_weight,
+                     nov_weight=args.nov_weight)
+    
+    pf_head = NeuralNet(input_dim=HIDDEN_DIM, output_dim=env.n_actions, n_hidden_layers=0)
+    pb_head = NeuralNet(input_dim=HIDDEN_DIM, output_dim=env.n_actions - 1, n_hidden_layers=0) # pb does not predict exit action
+    
+    pf_module = nn.Sequential(backbone, pf_head)
+    pb_module = nn.Sequential(backbone, pb_head)
+    
+    pf = DiscretePolicyEstimator(pf_module, n_actions=env.n_actions, preprocessor=env.preprocessor)
+    pb = DiscretePolicyEstimator(pb_module, n_actions=env.n_actions, preprocessor=env.preprocessor, is_backward=True)
+
+    loss_fn = EntropyTBGFlowNet(
+        pf=pf,
+        pb=pb,
+        entropy_coef=args.entropy_coef,
+        entropy_temperature=args.entropy_temperature
+    )
+    loss_fn.to(device)
+    sampler = Sampler(estimator=pf)
+    
+    params = list(backbone.parameters()) + list(pf_head.parameters()) + list(pb_head.parameters()) + [loss_fn.logZ]
+    optimizer = Adam(params, lr=LEARNING_RATE)</code></pre><p>看初始化逻辑。第 147-156 行加载训练与测试数据、定义预测标签 <code class='inline'>Ref(close, -20) / close - 1</code>（未来 20 天收益率）。第 159 行创建 AlphaPoolGFN。第 162-167 行计算 token 总数、创建 SequenceEncoder。</p><p>第 169-175 行创建环境，传入编码器与 mask_dropout_prob、ssl_weight、nov_weight。第 177-184 行创建前向与后向策略估计器。这里的 <code class='inline'>pb_head</code> 输出维是 n_actions-1，因为后向策略不预测 exit 动作。</p><p>第 186-191 行创建 EntropyTBGFlowNet，传入 pf 与 pb 估计器以及熵系数。第 195-196 行收集参数列表并创建 Adam 优化器。这里 <code class='inline'>loss_fn.logZ</code> 也被加入参数列表，让 Z 也被优化。</p><h3>主循环：采样、损失、更新</h3><pre><code>    # Training loop
+    losses = []
+    minibatch_loss = 0
+    update_freq = args.update_freq
+    n_episodes = args.n_episodes
+    
+    # Initialize weight scheduler using PyTorch schedulers
+    weight_scheduler = WeightScheduler(
+        initial_ssl_weight=args.ssl_weight,
+        initial_nov_weight=args.nov_weight,
+        final_ratio=args.final_weight_ratio,
+        total_steps=n_episodes,
+        scheduler_type=args.weight_decay_type
+    )
+    
+    print(f&quot;Weight decay strategy: {args.weight_decay_type} (using PyTorch schedulers)&quot;)
+    print(f&quot;SSL weight: {args.ssl_weight:.4f} -&gt; {args.ssl_weight * args.final_weight_ratio:.4f}&quot;)
+    print(f&quot;Novelty weight: {args.nov_weight:.4f} -&gt; {args.nov_weight * args.final_weight_ratio:.4f}&quot;)
+    print(f&quot;Training episodes: {n_episodes}&quot;)
+    print(&quot;=&quot; * 50)
+
+    for episode in tqdm(range(n_episodes)):
+        # Get current weights from scheduler
+        current_ssl_weight, current_nov_weight = weight_scheduler.get_current_weights()
+        
+        # Update environment weights
+        env.ssl_weight = current_ssl_weight
+        env.nov_weight = current_nov_weight
+        
+        save_estimator_outputs = args.entropy_coef &gt; 0
+        trajectories = sampler.sample_trajectories(
+            env=env, n_trajectories=1, save_estimator_outputs=save_estimator_outputs
+        )
+        loss = loss_fn.loss(env=env, trajectories=trajectories)
+
+        if loss is not None and torch.isfinite(loss):
+            minibatch_loss += loss
+            
+        if episode &gt; 0 and (episode + 1) % update_freq == 0 and minibatch_loss != 0:
+            losses.append(minibatch_loss.item())
+            minibatch_loss.backward()
+            optimizer.step()
+            optimizer.zero_grad()
+            minibatch_loss = 0
+
+        if episode &gt; 0 and (episode + 1) % args.log_freq == 0:
+            logger.log_metrics(episode)
+            logger.save_checkpoint(episode)
+            logger.show_pool_state()
+            print(f&quot;----Episode {episode}/{n_episodes} done----&quot;)
+            print(f&quot;Current weights: SSL={current_ssl_weight:.4f}, Novelty={current_nov_weight:.4f}&quot;)
+            
+            # Log weight decay to tensorboard
+            logger.writer.add_scalar(&#x27;weights/ssl_weight&#x27;, current_ssl_weight, episode)
+            logger.writer.add_scalar(&#x27;weights/nov_weight&#x27;, current_nov_weight, episode)
+        
+        # Step the weight scheduler at the end of each episode
+        weight_scheduler.step()
+
+    logger.close()</code></pre><p>这是训练的核心。第 230 行 <code class='inline'>for episode in tqdm(range(n_episodes))</code> 是主循环。每轮：</p><p><b>获取权重</b>（第 232-236 行）：调用 WeightScheduler 获取当前 SSL/NOV 权重，更新到环境中。这让下一次采样时环境会使用退火后的权重计算奖励。</p><p><b>采样轨迹</b>（第 238-241 行）：调用 sampler.sample_trajectories 采样一条轨迹。<code class='inline'>save_estimator_outputs=args.entropy_coef > 0</code> 表示只有开启熵正则时才保存 logits（节省内存）。</p><p><b>计算损失</b>（第 242 行）：调用 loss_fn.loss。第 244-245 行检查损失是否有限。第 245 行累加到 minibatch_loss，每 update_freq 次才反向传播。</p><p><b>反向传播</b>（第 247-252 行）：每 128 次采样后，调用 backward 与 step，然后清零梯度。这里的顺序很重要：先 backward 再 step，否则梯度未被使用。</p><p><b>记录与保存</b>（第 254-263 行）：每 log_freq 次记录 TensorBoard 并保存 checkpoint。这里 <code class='inline'>logger.show_pool_state()</code> 会打印当前池内所有 alpha。</p><p><b>调度器推进</b>（第 266 行）：在每轮末尾调用 WeightScheduler.step()，推进时间退火。</p><h2>数据流</h2><p>数据流：<b>WeightScheduler 推进 → 环境更新权重 → sampler 采样 → loss 计算 → 累积 → backward + step → 保存</b>。</p><p>这个循环会重复 n_episodes 次（默认 1000）。每 1000 次保存一次 checkpoint 到 <code class='inline'>data/gfn_logs/...</code>，包含 model_*.pt 与 pool_*.json。后者会被第 8 章 Mega-Alpha 使用。</p><h2>关联公式</h2><div class="math-block">$$\lambda(t) = \lambda_0 \cdot \text{scheduler}(t;\,\lambda_0, \lambda_T)$$</div><p>这个公式描述了 WeightScheduler 的时间退火逻辑。当前权重 = 初始权重 × 调度器输出（从 1.0 衰减到 final_ratio）。对应代码 <code class='inline'>current_ssl_weight = self.initial_ssl_weight * ssl_lr</code>。</p><h2>设计权衡</h2><p><b>为什么复用 PyTorch 调度器而不自己实现？</b>因为 PyTorch 调度器已经被广泛验证、支持多种衰减策略（线性、指数、多项式），重写轮子不仅浪费时间还容易出错。这个“虚拟参数 + 虚拟优化器”的技巧是 AlphaSAGE 训练代码的一个亮点。</p><p><b>为什么用 update_freq=128 累积梯度？</b>因为每条轨迹独立反向传播会导致 IO 与梯度计算开销占主，累积 128 次后一次更新提高了 GPU 利用率。这与 mini-batch SGD 的思想一致。</p><p><b>为什么 n_trajectories=1？</b>因为环境的状态形状是 (MAX_EXPR_LENGTH,)，多轨迹并行需要 batch 处理，实现上有些复杂。AlphaSAGE 用“多 episode 累积”代替“多轨迹 batch”，达到了类似的随机性。</p><h2>小结</h2><p>本章讲解了训练主循环：从 WeightScheduler 的调度器复用技巧到 train 函数的初始化与主循环。看到了“采样-累积-反向传播-退火”这个完整闭环。</p><p>下一章我们会看 Alpha 动态组合，看训练产出的 pool_*.json 如何被用来做滚动回归生成 Mega-Alpha。</p><div class="nav-footer"><a href="06.html">← 上一章</a><a href="index.html">目录</a><a href="08.html">下一章 →</a></div>
+</main>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 1 章：数据与特征加载 | AlphaSAGE</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {{delimiters:[{{left:'$$',right:'$$',display:true}},{{left:'$',right:'$',display:false}}]}});"></script>
+<style>
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    padding: 0;
+    background: #FBFBFD;
+    color: #1D1D1F;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+                 "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+}
+main.content {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 64px 28px 120px;
+}
+h1 {
+    font-size: 38px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+    line-height: 1.15;
+}
+h2 {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 56px 0 16px;
+    color: #1D1D1F;
+}
+h3 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 36px 0 12px;
+    color: #1D1D1F;
+}
+p {
+    margin: 0 0 16px;
+    color: #1D1D1F;
+}
+.subtitle {
+    color: #86868B;
+    font-size: 19px;
+    margin: 0 0 32px;
+    font-weight: 400;
+}
+.muted { color: #86868B; }
+code.inline {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: #F5F5F7;
+    color: #1D1D1F;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.92em;
+}
+pre {
+    background: #F5F5F7;
+    border-radius: 10px;
+    padding: 18px 20px;
+    overflow-x: auto;
+    margin: 0 0 20px;
+    border: 1px solid #E8E8ED;
+}
+pre code {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: #1D1D1F;
+    background: transparent;
+    padding: 0;
+}
+.math-block {
+    background: #F5F5F7;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin: 0 0 20px;
+    text-align: center;
+    overflow-x: auto;
+}
+.callout {
+    background: #F5F5F7;
+    border-left: 3px solid #0071e3;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 0 0 20px;
+    color: #1D1D1F;
+}
+.callout .label {
+    color: #0071e3;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: block;
+    margin-bottom: 4px;
+}
+ul, ol {
+    margin: 0 0 20px;
+    padding-left: 24px;
+}
+li { margin-bottom: 8px; }
+a {
+    color: #0071e3;
+    text-decoration: none;
+}
+a:hover { text-decoration: underline; }
+.nav-footer {
+    margin-top: 72px;
+    padding-top: 24px;
+    border-top: 1px solid #E8E8ED;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.nav-footer a {
+    color: #0071e3;
+    font-size: 15px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: #F5F5F7;
+}
+.nav-footer a:hover { background: #E8E8ED; }
+.toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 24px 0;
+}
+.toc-list li {
+    margin-bottom: 14px;
+    padding: 16px 20px;
+    background: #F5F5F7;
+    border-radius: 12px;
+    transition: background 0.15s;
+}
+.toc-list li:hover { background: #ECECEF; }
+.toc-list a {
+    font-size: 17px;
+    font-weight: 600;
+    color: #1D1D1F;
+    display: block;
+}
+.toc-list .desc {
+    color: #86868B;
+    font-size: 14px;
+    font-weight: 400;
+    margin-top: 4px;
+    display: block;
+}
+.toc-list .num {
+    color: #0071e3;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+.hero {
+    text-align: center;
+    padding: 32px 0 8px;
+}
+.hero .badge {
+    color: #0071e3;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+img.diagram {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    margin: 16px 0;
+    border: 1px solid #E8E8ED;
+}
+.section-intro {
+    color: #86868B;
+    font-size: 15px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid #E8E8ED;
+    padding-bottom: 20px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 20px;
+    font-size: 15px;
+}
+th, td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid #E8E8ED;
+}
+th { color: #86868B; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
+</style>
+</head>
+<body>
+<main class="content">
+<div class="hero"><div class="badge">第 1 章 · 数据层</div></div><h1>第 1 章：数据与特征加载</h1><p class="subtitle">StockData —— 把 Qlib 行情原料整理成张量，是整个 AlphaSAGE 的数据源头</p><h2>欢迎</h2><p>欢迎来到第 1 章！本章是整个教程的起点，我们会从最基础的数据加载讲起。量化研究中有一句话叫“Garbage in, garbage out”，如果输入数据质量不行，再尽心尽力的模型也无法挑救。AlphaSAGE 的一切都从 <code class='inline'>StockData</code> 开始：它负责把 Qlib 的原始行情数据加载、清洗、重塑成为统一格式的张量，供下游表达式求值与模型训练使用。</p><p>我们会一步步进入 <code class='inline'>stock_data.py</code> 的真实实现，看它如何与 Qlib 交互、如何处理时间窗口与前瞋天数，以及为什么要把数据重塑成 <code class='inline'>(n_days, n_features, n_stocks)</code> 这样的三维张量。读完本章，你会明白 AlphaSAGE 数据流的第一站。</p><h2>它解决什么问题？</h2><p>类比来说，<code class='inline'>StockData</code> 就像菜市场的进货清单：各种股票行情原料被按统一规格整理好供下游取用。</p><p>在量化研究中，我们面临一个常见难题：股票数据通常以“宽表”形式存储（每一行一个股票×一天×一个特征），但下游深度学习模型需要的是“块状”张量：一个轴是时间、一个轴是股票、一个轴是特征。同时，表达式如 <code class='inline'>TsMean($close, 20)</code> 会引用过去 20 天的数据，因此需要预留 <code class='inline'>max_backtrack_days</code> 天的缓冲；预测标签 <code class='inline'>Ref(close, -20)</code> 需要未来 20 天，因此还需要 <code class='inline'>max_future_days</code> 的前瞋区。这些看似琐碎的需求，被 <code class='inline'>StockData</code> 统一封装成一个干净接口。</p><h2>核心设计思路</h2><p><code class='inline'>StockData</code> 的设计思路可以总结为三点：<b>统一表达、统一张量、统一时间窗口</b>。</p><p><b>统一表达</b>：Qlib 原生接口要求传入字符串列表如 <code class='inline'>['$close', '$open']</code>，<code class='inline'>StockData</code> 把内部的 <code class='inline'>FeatureType</code> 枚举转成字符串，并支持 <code class='inline'>raw=True</code> 时复原价（乘 <code class='inline'>$Factor</code>）或复权成交易量（除以 <code class='inline'>/1000000</code>），让上层不必关心复权细节。</p><p><b>统一张量</b>：调用 <code class='inline'>df.stack().unstack(level=1)</code> 把“股票×特征”的宽表转成以股票为列的 DataFrame，再 reshape 为 <code class='inline'>(n_days, n_features, n_stocks)</code> 的 torch 张量。这个维度顺序与 PyTorch 卷积习惯一致，下游可以直接使用 <code class='inline'>Conv1d</code> 或 <code class='inline'>Linear</code>。</p><p><b>统一时间窗口</b>：通过 <code class='inline'>max_backtrack_days</code> 和 <code class='inline'>max_future_days</code> 掩藏了“表达式需要的前置缓冲”与“标签需要的后置前瞋”，外部看到的 <code class='inline'>n_days</code> 是净时间窗口，不会误用了未来信息，避免了 lookahead bias。</p><h2>代码深入</h2><h3>类定义与构造函数</h3><p>先看 <code class='inline'>StockData</code> 类的骨架。它使用 <code class='inline'>FeatureType</code> 枚举列出六种基本特征，构造时传入股票、时间范围与前后置窗口大小，然后立即调用 <code class='inline'>_get_data()</code> 加载数据。</p><pre><code>class FeatureType(IntEnum):
+    OPEN = 0
+    CLOSE = 1
+    HIGH = 2
+    LOW = 3
+    VOLUME = 4
+    VWAP = 5
+</code></pre><p><code class='inline'>FeatureType</code> 继承 <code class='inline'>IntEnum</code>，这样枚举值既可以当作索引使用，也可以与整型对比。下面的 <code class='inline'>change_to_raw</code> 函数用于处理复权：价格类乘以 <code class='inline'>$Factor</code>，成交量除以 <code class='inline'>$Factor</code> 再除以 1000000（转换为百万手），让不同量级的数据在同一尺度下比较。</p><pre><code>class StockData:
+    _qlib_initialized: bool = False
+
+    def __init__(self,
+                 instrument: Union[str, List[str]],
+                 start_time: str,
+                 end_time: str,
+                 max_backtrack_days: int = 100,
+                 max_future_days: int = 30,
+                 features: Optional[List[FeatureType]] = None,
+                 device: torch.device = torch.device(&#x27;cuda:0&#x27;),
+                 raw:bool = False,
+                 qlib_path:Union[str,Dict] = &quot;&quot;,
+                 freq:str = &#x27;day&#x27;,
+                 ) -&gt; None:
+        self._init_qlib(qlib_path)
+        self.df_bak = None
+        self.raw = raw
+        self._instrument = instrument
+        self.max_backtrack_days = max_backtrack_days
+        self.max_future_days = max_future_days
+        self._start_time = start_time
+        self._end_time = end_time
+        self._features = features if features is not None else list(FeatureType)
+        self.device = device
+        self.freq = freq
+        self.data, self._dates, self._stock_ids = self._get_data()</code></pre><p>重点看构造函数的参数与最后一行。<code class='inline'>max_backtrack_days=100</code> 表示预留 100 天的前置数据，足够支撑如 <code class='inline'>TsStd($close, 50)</code> 这类需要 50 天回望的表达式；<code class='inline'>max_future_days=30</code> 为预测标签预留 30 天前瞋。最后一行调用 <code class='inline'>_get_data()</code>，该方法返回三元组 <code class='inline'>(data, dates, stock_ids)</code>，其中 <code class='inline'>data</code> 就是贴在 GPU 上的 torch 张量。</p><p>设计上有一个细节值得注意：构造函数中封装了 <code class='inline'>_init_qlib</code>，该方法是 <code class='inline'>classmethod</code> 且使用 <code class='inline'>_qlib_initialized</code> 类变量保证 Qlib 只被初始化一次。多个 <code class='inline'>StockData</code> 实例共享同一个 Qlib runtime，避免了重复加载数据目录导致的内存浪费。</p><h3>_load_exprs：连接 Qlib 的桥梁</h3><p>这个方法是 StockData 与 Qlib 之间的桥梁。它接收表达式列表，计算真实起止时间，调用 <code class='inline'>QlibDataLoader</code> 加载。</p><pre><code>    def _load_exprs(self, exprs: Union[str, List[str]]) -&gt; pd.DataFrame:
+        # This evaluates an expression on the data and returns the dataframe
+        # It might throw on illegal expressions like &quot;Ref(constant, dtime)&quot;
+        from qlib.data.dataset.loader import QlibDataLoader
+        from qlib.data import D
+        if not isinstance(exprs, list):
+            exprs = [exprs]
+        cal: np.ndarray = D.calendar(freq=self.freq)
+        start_index = cal.searchsorted(pd.Timestamp(self._start_time))  # type: ignore
+        end_index = cal.searchsorted(pd.Timestamp(self._end_time))  # type: ignore
+        real_start_time = cal[start_index - self.max_backtrack_days]
+        if cal[end_index] != pd.Timestamp(self._end_time):
+            end_index -= 1
+        real_end_time = cal[end_index + self.max_future_days]
+        result =  (QlibDataLoader(config=exprs,freq=self.freq)  # type: ignore
+                .load(self._instrument, real_start_time, real_end_time))
+        return result</code></pre><p>重点看几个关键点：</p><p><b>日历对齐</b>：<code class='inline'>D.calendar(freq=self.freq)</code> 获取 Qlib 的交易日历，<code class='inline'>searchsorted</code> 找找到起止时间在日历中的位置。为什么不能直接用字符串时间？因为 Qlib 日历只含交易日，起止时间可能落在非交易日，需要 searchsorted 找到最近的交易日。</p><p><b>前后置窗口</b>：<code class='inline'>real_start_time = cal[start_index - self.max_backtrack_days]</code> 向前扩大加载范围，这部分数据不会暴露给下游，只是表达式求值的辅助缓冲。同理 <code class='inline'>real_end_time</code> 向后扩大，为预测标签提供前瞋。</p><p><b>QlibDataLoader</b>：这是 Qlib 提供的标准表达式求值器，传入 <code class='inline'>config=exprs</code> 后会返回一个多层索引的 DataFrame。</p><h3>_get_data：张量重塑的关键</h3><p>这是整个类的核心。它调用 <code class='inline'>_load_exprs</code> 拿到 DataFrame，然后用 stack/unstack 重塑并转 torch 张量。</p><pre><code>    def _get_data(self) -&gt; Tuple[torch.Tensor, pd.Index, pd.Index]:
+        features = [&#x27;$&#x27; + f.name.lower() for f in self._features]
+        if self.raw and self.freq == &#x27;day&#x27;:
+            features = change_to_raw(features)
+        elif self.raw:
+            features = change_to_raw_min(features)
+        df = self._load_exprs(features)
+        self.df_bak = df
+        # print(df)
+        df = df.stack().unstack(level=1)
+        dates = df.index.levels[0]                                      # type: ignore
+        stock_ids = df.columns
+        values = df.values
+        values = values.reshape((-1, len(features), values.shape[-1]))  # type: ignore
+        return torch.tensor(values, dtype=torch.float, device=self.device), dates, stock_ids</code></pre><p>这段代码看似简单，却藏着一个重要的维度转换技巧。默认 <code class='inline'>QlibDataLoader</code> 返回的 DataFrame 索引是 <code class='inline'>(date, stock)</code> 的多层索引，列是各个特征。<code class='inline'>df.stack().unstack(level=1)</code> 这个看似奇怪的操作其实是为了把列从“特征”转成“股票”，以股票为列之后才能 reshape 成 <code class='inline'>(n_days, n_features, n_stocks)</code>。</p><p>最后一行 <code class='inline'>torch.tensor(values, dtype=torch.float, device=self.device)</code> 把 numpy 数组转成了贴在 GPU 上的 torch 张量。这里有一个隐式假设：整个训练过程中特征张量一直驻留在 GPU 上，下游的表达式求值与 IC 计算都不会频繁跨 CPU/GPU 复制，这对训练速度至关重要。</p><h3>属性与辅助接口</h3><pre><code>    @property
+    def n_features(self) -&gt; int:
+        return len(self._features)
+
+    @property
+    def n_stocks(self) -&gt; int:
+        return self.data.shape[-1]
+
+    @property
+    def n_days(self) -&gt; int:
+        return self.data.shape[0] - self.max_backtrack_days - self.max_future_days
+
+    def add_data(self,data:torch.Tensor,dates:pd.Index):
+        data = data.to(self.device)
+        self.data = torch.cat([self.data,data],dim=0)
+        self._dates = pd.Index(self._dates.append(dates))
+</code></pre><p>这些属性是外部访问数据形状的标准接口。<code class='inline'>n_days</code> 的计算很妙：总天数减去前后置窗口，得到的是下游可用的净天数。这个值会被下游 <code class='inline'>make_dataframe</code> 检查：如果传入的张量天数与 <code class='inline'>n_days</code> 不匹配，会抛 ValueError。这是一个防御性检查，避免上下游天数不一致造成的难以调试的 bug。</p><h2>数据流</h2><p>数据流可以用一句话概括：<b>Qlib 磁盘 → QlibDataLoader → DataFrame → stack/unstack → numpy → torch 张量（GPU）</b>。</p><p>具体来说：用户传入 <code class='inline'>instrument='csi300', start_time='2010-01-01', end_time='2016-12-31'</code>，<code class='inline'>StockData</code> 调用 <code class='inline'>_get_data</code>，后者调用 <code class='inline'>_load_exprs</code>。<code class='inline'>_load_exprs</code> 计算真实加载范围 <code class='inline'>[2009-某月, 2017-某月]</code>（向前后各扩 100/30 天），调用 Qlib 返回原始 DataFrame。然后 <code class='inline'>_get_data</code> 把 DataFrame 重塑为 torch 张量，返回给构造函数。这个张量会被 <code class='inline'>AlphaPoolGFN</code>、<code class='inline'>QLibStockDataCalculator</code> 和环境 <code class='inline'>GFNEnvCore</code> 共享。</p><h2>设计权衡</h2><p><b>为什么选择 Qlib 作为数据底层？</b>除了 Qlib 本身提供高性能的表达式求值与卷积操作（如 <code class='inline'>TsMean</code>、<code class='inline'>TsStd</code>）外，它还提供统一的数据格式与复权体系，这让 AlphaSAGE 不必重复造轮子。</p><p><b>为什么选择 (n_days, n_features, n_stocks) 而非 (n_days, n_stocks, n_features)？</b>这与下游使用习惯相关。下游的 IC 计算、<code class='inline'>batch_pearsonr</code> 都默认最后一维是股票，这样可以直接跨股票做点积、跨股票计算相关系数，与业界习惯一致。</p><p><b>为什么把前后置窗口隐藏在内部？</b>因为如果让上层自己管理，很容易出现“忘记预留前置天数导致表达式越界”或“不小心用到了未来标签”这两类 bug。隐藏后，外部看到的 <code class='inline'>n_days</code> 就是可以安全使用的净天数，不容易犯错。</p><h2>小结</h2><p>本章讲解了 AlphaSAGE 的数据底层：从 <code class='inline'>FeatureType</code> 枚举到 <code class='inline'>_load_exprs</code> 与 Qlib 交互，再到 <code class='inline'>_get_data</code> 重塑为张量。这些看似基础的代码是整个框架运转的地基。</p><p>下一章我们会进入“表达式与算子体系”，看 <code class='inline'>QLibStockDataCalculator</code> 如何使用这个张量计算出 alpha 因子值与 IC 指标。</p><div class="nav-footer"><span></span><a href="index.html">目录</a><a href="02.html">下一章 →</a></div>
+</main>
+</body>
+</html>

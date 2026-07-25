@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 10 章：Baseline 对比 | AlphaSAGE</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {{delimiters:[{{left:'$$',right:'$$',display:true}},{{left:'$',right:'$',display:false}}]}});"></script>
+<style>
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    padding: 0;
+    background: #FBFBFD;
+    color: #1D1D1F;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+                 "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+}
+main.content {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 64px 28px 120px;
+}
+h1 {
+    font-size: 38px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+    line-height: 1.15;
+}
+h2 {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 56px 0 16px;
+    color: #1D1D1F;
+}
+h3 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 36px 0 12px;
+    color: #1D1D1F;
+}
+p {
+    margin: 0 0 16px;
+    color: #1D1D1F;
+}
+.subtitle {
+    color: #86868B;
+    font-size: 19px;
+    margin: 0 0 32px;
+    font-weight: 400;
+}
+.muted { color: #86868B; }
+code.inline {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: #F5F5F7;
+    color: #1D1D1F;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.92em;
+}
+pre {
+    background: #F5F5F7;
+    border-radius: 10px;
+    padding: 18px 20px;
+    overflow-x: auto;
+    margin: 0 0 20px;
+    border: 1px solid #E8E8ED;
+}
+pre code {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: #1D1D1F;
+    background: transparent;
+    padding: 0;
+}
+.math-block {
+    background: #F5F5F7;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin: 0 0 20px;
+    text-align: center;
+    overflow-x: auto;
+}
+.callout {
+    background: #F5F5F7;
+    border-left: 3px solid #0071e3;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 0 0 20px;
+    color: #1D1D1F;
+}
+.callout .label {
+    color: #0071e3;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: block;
+    margin-bottom: 4px;
+}
+ul, ol {
+    margin: 0 0 20px;
+    padding-left: 24px;
+}
+li { margin-bottom: 8px; }
+a {
+    color: #0071e3;
+    text-decoration: none;
+}
+a:hover { text-decoration: underline; }
+.nav-footer {
+    margin-top: 72px;
+    padding-top: 24px;
+    border-top: 1px solid #E8E8ED;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.nav-footer a {
+    color: #0071e3;
+    font-size: 15px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: #F5F5F7;
+}
+.nav-footer a:hover { background: #E8E8ED; }
+.toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 24px 0;
+}
+.toc-list li {
+    margin-bottom: 14px;
+    padding: 16px 20px;
+    background: #F5F5F7;
+    border-radius: 12px;
+    transition: background 0.15s;
+}
+.toc-list li:hover { background: #ECECEF; }
+.toc-list a {
+    font-size: 17px;
+    font-weight: 600;
+    color: #1D1D1F;
+    display: block;
+}
+.toc-list .desc {
+    color: #86868B;
+    font-size: 14px;
+    font-weight: 400;
+    margin-top: 4px;
+    display: block;
+}
+.toc-list .num {
+    color: #0071e3;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+.hero {
+    text-align: center;
+    padding: 32px 0 8px;
+}
+.hero .badge {
+    color: #0071e3;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+img.diagram {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    margin: 16px 0;
+    border: 1px solid #E8E8ED;
+}
+.section-intro {
+    color: #86868B;
+    font-size: 15px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid #E8E8ED;
+    padding-bottom: 20px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 20px;
+    font-size: 15px;
+}
+th, td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid #E8E8ED;
+}
+th { color: #86868B; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
+</style>
+</head>
+<body>
+<main class="content">
+<div class="hero"><div class="badge">第 10 章 · IO 层</div></div><h1>第 10 章：Baseline 对比</h1><p class="subtitle">PPO、QCM、AFF 三类基线 —— 与 GFlowNet 同台竞技的对照组</p><h2>欢迎</h2><p>欢迎来到第 10 章！这是本教程的最后一章。前面九章我们讲了 AlphaSAGE 的各个组件，但要证明“GFlowNet + RGCN + 多维奖励”这套组合有效，就得与其他方法同台竞技。AlphaSAGE 仓库提供了三类基线：PPO（传统 RL）、QCM（分位式 RL）、AFF（融合组合基线）。本章会依次读它们的入口脚本，看它们与 GFlowNet 共享哪些接口、又在哪里分道扬镳。</p><p>本章会进入 <code class='inline'>train_ppo.py</code>、<code class='inline'>train_qcm.py</code>、<code class='inline'>combine_AFF.py</code>，看它们如何复用 <code class='inline'>StockData</code>、<code class='inline'>AlphaPool</code>、<code class='inline'>AlphaEnv</code>，以及各自的策略估计与组合逻辑。</p><h2>它解决什么问题？</h2><p>类比来说，Baseline 对比像同场竞技的对照组，PPO、QCM、AFF 各显神通，用以衡量 GFlowNet 的优势。</p><p>研究项目需要“对比实验”才能证明方法的优越性。AlphaSAGE 提出了“GFlowNet + RGCN + 多维奖励”这一套新方法，需要与传统 RL（PPO）、分位式 RL（QCM）、融合组合（AFF）对照，才能说明“多样化生成”与“结构感知”的价值。这些基线复用了 AlphaSAGE 的数据与池接口，保证了“同起点”的公平性。</p><h2>核心设计思路</h2><p>Baseline 的设计思路是<b>共享接口 + 差异化策略 + 同框架评估</b>。</p><p><b>共享接口</b>：所有基线都使用同一个 <code class='inline'>StockData</code>、同一个 target（<code class='inline'>Ref(close, -20) / close - 1</code>）、同一个 <code class='inline'>AlphaPool</code>、同一个 <code class='inline'>AlphaEnv</code>。这让对比只反映“策略不同”的影响，排除了数据与环境的差异。</p><p><b>差异化策略</b>：PPO 用 MaskablePPO 训练 LSTM 策略；QCM 用 QR-DQN/IQN/FQF 估计 Q 值分位；AFF 用 GAN 生成 alpha 并加权融合。它们在“怎么生成 alpha”上各有侧重。</p><p><b>同框架评估</b>：所有基线都用第 9 章的 <code class='inline'>get_tensor_metrics</code> 计算 IC、ICIR、夏普、MDD，输出可比指标。这让对比结果公平、可复现。</p><h2>代码深入</h2><h3>PPO 基线：传统 RL 的代表</h3><p>PPO 是 Stable-Baselines3 中的 MaskablePPO，使用 LSTM 编码器。它是 AlphaSAGE 与传统 RL 对照的基线。</p><pre><code>def run(args):
+    reseed_everything(args.seed)
+
+    if args.instruments == &#x27;sp500&#x27;:
+        QLIB_PATH = &#x27;/your_path/data/qlib_data/us_data_qlib&#x27;
+    else:
+        QLIB_PATH = &#x27;/your_path/data/qlib_data/cn_data_rolling&#x27;
+    device = torch.device(&#x27;cuda&#x27;)
+    close = Feature(FeatureType.CLOSE)
+    target = Ref(close, -20) / close - 1
+
+    # You can re-implement AlphaCalculator instead of using QLibStockDataCalculator.
+    data_train = StockData(instrument=args.instruments,
+                           start_time=&#x27;2010-01-01&#x27;,
+                           end_time=&#x27;2020-12-31&#x27;,
+                           qlib_path = QLIB_PATH)
+    data_valid = StockData(instrument=args.instruments,
+                           start_time=&#x27;2021-01-01&#x27;,
+                           end_time=&#x27;2021-12-31&#x27;,
+                           qlib_path = QLIB_PATH)
+    data_test = StockData(instrument=args.instruments,
+                          start_time=&#x27;2022-01-01&#x27;,
+                          end_time=&#x27;2024-12-31&#x27;,
+                          qlib_path = QLIB_PATH)
+    # calculator_train = QLibStockDataCalculator(data_train, target)
+    # calculator_valid = QLibStockDataCalculator(data_valid, target)
+    # calculator_test = QLibStockDataCalculator(data_test, target)
+
+    pool = AlphaPool(
+        capacity=args.pool,
+        stock_data=data_train,
+        target=target,
+        ic_lower_bound=None
+    )
+    env = AlphaEnv(pool=pool, device=device, print_expr=True)
+</code></pre><p>看 PPO 入口。第 96-104 行是共享部分：设备、target、数据加载都与 GFlowNet 一致。这保证了同起点。</p><p>第 123-128 行创建 <code class='inline'>AlphaPool</code>（不是 AlphaPoolGFN）。这里只用了父类，没有 SSL 与新颖度逻辑，反映了 PPO “只看 IC”的简单策略。</p><p>第 129 行创建 <code class='inline'>AlphaEnv</code>。这个环境与 GFlowNet 的 <code class='inline'>GFNEnvCore</code> 共享同一个 AlphaPool 实例，但接口不同：PPO 调用 <code class='inline'>step(action)</code>，而 GFlowNet 调用 <code class='inline'>reward(state)</code>。</p><p>第 139-149 行创建 <code class='inline'>CustomCallback</code>，定期在测试集上评估、保存 checkpoint。这个 callback 会调用 <code class='inline'>pool.test_ensemble(test_data, target)</code>，计算 IC 与 rIC，是与 GFlowNet 同框架评估的体现。</p><h3>PPO 策略：LSTM + MaskablePPO</h3><pre><code>    model = MaskablePPO(
+        &#x27;MlpPolicy&#x27;,
+        env,
+        policy_kwargs=dict(
+            features_extractor_class=LSTMSharedNet,
+            features_extractor_kwargs=dict(
+                n_layers=2,
+                d_model=128,
+                dropout=0.1,
+                device=device,
+            ),
+        ),
+        gamma=1.,
+        ent_coef=0.01,
+        batch_size=128,
+        tensorboard_log=log_dir,
+        device=device,
+        verbose=1,
+    )
+    model.learn(
+        total_timesteps=args.steps,
+        callback=checkpoint_callback,
+        tb_log_name=f&#x27;{name_prefix}_{timestamp}&#x27;,
+    )</code></pre><p>第 151-169 行创建 MaskablePPO 模型。<code class='inline'>MaskablePPO</code> 是支持动作掩蔽的 PPO 变体，它能根据当前表达式结构屏蔽非法动作（如一元算子不能选二元算子的操作数）。</p><p><code class='inline'>features_extractor_class=LSTMSharedNet</code> 是 AlphaSAGE 自定义的 LSTM 特征提取器。它与 GFlowNet 的 RGCN 形成鲜明对比：LSTM 是序列模型，RGCN 是图模型。AlphaSAGE 试图通过这个对比证明“结构感知”的价值。</p><p><code class='inline'>gamma=1.</code> 是抵扣因子，表示不折未来奖励。这是 alpha 生成任务的特点：每个动作都直接影响最终表达式，不需要折未来。<code class='inline'>ent_coef=0.01</code> 是熵系数，与 GFlowNet 的熵正则项引入同一思想，但 PPO 是在上下文中软性加入，而非 GFlowNet 的 TB 损失中直接减去。</p><h3>QCM 基线：分位式 RL</h3><p>QCM 是另一类强化学习基线，使用 QR-DQN、IQN、FQF 估计 Q 值的分位。它们与 PPO 的区别是：不估计期望值，而是估计分布。</p><pre><code>def run(args):
+    if args.instruments == &#x27;sp500&#x27;:
+        QLIB_PATH = &#x27;/your_path/data/qlib_data/us_data_qlib&#x27;
+    else:
+        QLIB_PATH = &#x27;/your_path/data/qlib_data/cn_data_rolling&#x27;
+    # torch.cuda.set_device(args.cuda)
+    config_path = os.path.join(&#x27;config/qcm_config&#x27;, f&#x27;{args.model}.yaml&#x27;)
+
+    with open(config_path) as f:
+        config = yaml.load(f, Loader=yaml.SafeLoader)
+
+    # Create environments.
+    device = torch.device(f&#x27;cuda&#x27;)
+    close = Feature(FeatureType.CLOSE)
+    target = Ref(close, -20) / close - 1
+    
+    
+    data_train = StockData(instrument=args.instruments,
+                           start_time=&#x27;2010-01-01&#x27;,
+                           end_time=&#x27;2020-12-31&#x27;,
+                           qlib_path = QLIB_PATH)
+    data_valid = StockData(instrument=args.instruments,
+                           start_time=&#x27;2021-01-01&#x27;,
+                           end_time=&#x27;2021-12-31&#x27;,
+                           qlib_path = QLIB_PATH)
+    data_test = StockData(instrument=args.instruments,
+                          start_time=&#x27;2022-01-01&#x27;,
+                          end_time=&#x27;2024-12-31&#x27;,
+                          qlib_path = QLIB_PATH)
+    # calculator_train = QLibStockDataCalculator(data_train, target)
+    # calculator_valid = QLibStockDataCalculator(data_valid, target)
+    # calculator_test = QLibStockDataCalculator(data_test, target)
+
+    train_pool = AlphaPool(
+        capacity=args.pool,
+        stock_data=data_train,
+        target=target,
+        ic_lower_bound=None
+    )
+    train_env = AlphaEnv(pool=train_pool, device=device, print_expr=True)</code></pre><p>看 QCM 入口。共享部分同样是数据与 target。第 47-53 行创建 <code class='inline'>AlphaPool</code> 与 <code class='inline'>AlphaEnv</code>，与 PPO 一致。</p><p>与 GFlowNet 的区别在于：QCM 是值基 RL，学习 Q(s, a)；GFlowNet 是生成模型，学习 P_F(τ)。值基 RL 倾向于找到单一最优动作，而 GFlowNet 采样多样轨迹。这个对比是 AlphaSAGE 论文的核心论点之一。</p><p>QCM 皂型训练与 GFlowNet 同样需要大量迭代与调超参数，但它们不需要后向策略（P_B），实现上更简单。但代价是它们并不保证多样性。</p><h3>AFF 基线：融合组合</h3><p>AFF 是另一类基线，用 GAN 生成 alpha 并用加权融合。它与 GFlowNet 的区别在于“怎么生成”与“怎么组合”。</p><pre><code>def run(args):
+    window = args.window
+    if isinstance(window, str):
+        assert window == &#x27;inf&#x27;
+        window = float(&#x27;inf&#x27;)
+
+    os.environ[&quot;CUDA_VISIBLE_DEVICES&quot;]=str(args.cuda)
+
+    close = Feature(FeatureType.CLOSE)
+    target = Ref(close, -20) / close - 1
+
+    # read data
+    train_end_time = f&#x27;{args.train_end_year}-12-31&#x27;
+    valid_start_time = f&#x27;{args.train_end_year + 1}-01-01&#x27;
+    valid_end_time = f&#x27;{args.train_end_year + 1}-12-31&#x27;
+    test_start_time = f&#x27;{args.train_end_year + 2}-01-01&#x27;
+    test_end_time = f&#x27;{args.train_end_year + 4}-12-31&#x27;
+
+    data_all = StockData(instrument=args.instruments,
+                         start_time=&#x27;2010-01-01&#x27;,
+                         end_time=test_end_time,
+                         qlib_path=QLIB_PATH)
+    data = StockData(instrument=args.instruments,
+                     start_time=&#x27;2010-01-01&#x27;,
+                     end_time=train_end_time,
+                     qlib_path=QLIB_PATH)
+    data_valid = StockData(instrument=args.instruments,
+                           start_time=valid_start_time,
+                           end_time=valid_end_time,
+                           qlib_path=QLIB_PATH)
+    data_test = StockData(instrument=args.instruments,
+                          start_time=test_start_time,
+                          end_time=test_end_time,
+                          qlib_path=QLIB_PATH)
+
+    path = f&quot;out/{args.save_name}_{args.instruments}_{args.train_end_year}_{args.seed}/z_bld_zoo_final.pkl&quot;
+    tensor_save_path = f&quot;out/{args.save_name}_{args.instruments}_{args.train_end_year}_{args.seed}/&quot;
+    name = f&quot;{args.train_end_year}_{args.n_factors}_{args.window}_{args.seed}&quot;
+    zoo = load_pickle(path)
+    
+    df = get_blds_list_df([zoo]).sort_values(&#x27;score&#x27;,ascending=False,key=lambda x:abs(x))
+    from gan.utils.builder import exprs2tensor
+    fct_tensor = exprs2tensor(df[&#x27;exprs&#x27;],data_all,normalize=True)
+    tgt_tensor = exprs2tensor([target],data_all,normalize=False)
+</code></pre><p>看 AFF 的 <code class='inline'>run</code> 函数。第 114-115 行定义了 target，与 GFlowNet 一致。第 117-139 行加载三段数据（训练/验证/测试），共享同一个 instrument。</p><p>第 141-148 行加载 GAN 生成的 alpha 池，转成因子张量。这里的 alpha 不是 GFlowNet 生成的，而是 GAN 生成的，是“替代生成器”基线。</p><p>第 152-160 行逐 alpha 计算 IC、RankIC、收益，这里使用了 <code class='inline'>get_tensor_metrics_raw</code> 而非 GFlowNet 使用的 <code class='inline'>get_tensor_metrics</code>。这个区别反映了 AFF 以 “每个 alpha ” 为单位评估，而 GFlowNet 以 “组合后” 为单位评估。</p><p>这里的设计是 AFF 在评估阶段采用了与 GFlowNet 不同的路径，但最终输出仍是 ret_s 序列，与 GFlowNet 同框架。</p><h3>AFF 的动态组合逻辑</h3><pre><code>    pbar = tqdm(range(len(fct_tensor)-data_test.n_days-data_valid.n_days,len(fct_tensor)))
+    for cur in pbar:
+
+        # control the past window that we use to evaluate the factors in order to filter factors and generate the weights
+        if np.isfinite(window):
+            begin = cur-window-shift
+        else:
+            begin = 0
+
+        cur_ic = ic_s[begin:cur-shift]
+        cur_ric = ric_s[begin:cur-shift]
+        cur_ret = ret_s[begin:cur-shift]
+
+        ic_mean = cur_ic.mean(dim=0)
+        ic_std = cur_ic.std(dim=0)
+        ric_mean = cur_ric.mean(dim=0)
+        ric_std = cur_ric.std(dim=0)
+        ret_mean = cur_ret.mean(dim=0)
+        ret_std = cur_ret.std(dim=0)
+
+        icir = ic_mean/ic_std
+        ricir = ric_mean/ric_std
+        retir = ret_mean/ret_std
+
+        metrics = dict(
+            ic = ic_mean.detach().cpu().numpy(),
+            ic_std = ic_std.detach().cpu().numpy(),
+            icir = icir.detach().cpu().numpy(),
+            ric = ric_mean.detach().cpu().numpy(),
+            ric_std = ric_std.detach().cpu().numpy(),
+            ricir = ricir.detach().cpu().numpy(),
+            ret = ret_mean.detach().cpu().numpy(),
+            ret_std = ret_std.detach().cpu().numpy(),
+            retir = retir.detach().cpu().numpy(),
+        )
+        tmp = pd.DataFrame(metrics).sort_values(&#x27;ricir&#x27;,ascending=False,key=lambda x:abs(x))
+        
+
+        # filter the factors
+        aaaa = tmp[(tmp[&#x27;ric&#x27;]&gt;0.02)&amp;(tmp[&#x27;ricir&#x27;]&gt;0.2)] 
+        if len(aaaa)&lt;1:
+            aaaa = tmp.iloc[:1]
+
+        # select the best &#x27;n_factors&#x27; alpha factors
+        good_idx = aaaa.iloc[:args.n_factors].index.to_list()
+        good_idx_list.append(good_idx)
+
+        # prepare the linear regression data
+        x = fct_tensor[begin:cur-shift,:,good_idx]
+        y = tgt_tensor[begin:cur-shift,]#.flatten()
+        to_pred = fct_tensor[cur,:,good_idx]
+        y_true = tgt_tensor[cur,]
+        y = y.reshape(-1,y.shape[-1])
+        x = x.reshape(-1,x.shape[-1])
+
+        to_select = torch.isfinite(y)[:,0]
+        y = y[to_select]
+        x = x[to_select]
+
+        to_pred = torch.nan_to_num(to_pred,nan=0)
+
+        # add the constant term
+        ones = torch.ones_like(x[...,0:1])
+        x = torch.cat([x,ones],dim=-1)
+        ones = torch.ones_like(to_pred[...,0:1])
+        to_pred = torch.cat([to_pred,ones],dim=-1)
+
+        # train the linear regression model to get weights
+        coef = torch.linalg.lstsq(x,y).solution
+
+        # predict the target of the next day
+        pred = to_pred @ coef
+        weights_list.append(coef.detach().cpu().numpy())
+
+        # calculate the metrics of the prediction
+        cur_ic = batch_pearsonr(pred.T,y_true.T)[0]
+        cur_ric = batch_spearmanr(pred.T,y_true.T)[0]
+        ics_list.append(cur_ic.detach().cpu().numpy())
+        rics_list.append(cur_ric.detach().cpu().numpy())
+
+        pbar.set_description(
+            f&quot;ic:{np.nanmean(ics_list):.3f} ric:{np.nanmean(rics_list):.3f} n:{len(good_idx)}&quot;
+            )
+        pred_list.append(pred[:,0])</code></pre><p>这里是 AFF 的滚动组合逻辑，与 GFlowNet 的 <code class='inline'>run_adaptive_combination.py</code> 高度对称。第 182-185 行定义滚动窗口。第 187-200 行计算窗口内 IC 与 ICIR。第 213-222 行筛选优质 alpha，使用 RankIC 与 RankICIR 阈值，与 GFlowNet 的逻辑完全一致。</p><p>第 226-243 行准备回归数据，添加常数项。第 246 行调用 <code class='inline'>torch.linalg.lstsq</code> 求解 OLS，与 GFlowNet 完全一致。这里可以看出，AFF 与 GFlowNet 在“组合阶段”完全同框架，区别只在“生成阶段”（GAN vs GFlowNet）。</p><p>这个设计让对比变得公平：如果 GFlowNet 生成的 alpha 池在同一个组合器（OLS 回归）下表现更优，那么可以确定是“生成”环节的优势，而非“组合”环节的优势。</p><h2>数据流</h2><p>三类基线的共享数据流：<b>StockData → target → AlphaPool → AlphaEnv → 策略 → 训练 → pool_*.json → 组合 → 指标</b>。</p><p>具体来说，三类基线都使用同一个 instrument（如 csi300）与同一个 target（未来 20 天收益），训练后输出各自的 pool_*.json。组合阶段都用 <code class='inline'>torch.linalg.lstsq</code> 求解 OLS，输出 ret_s.npy。最后用 <code class='inline'>get_tensor_metrics</code> 计算 IC、ICIR、夏普、MDD，进行同框架对比。</p><h2>设计权衡</h2><p><b>为什么选择 PPO 作为传统 RL 基线？</b>PPO 是强化学习中最被广泛使用的算法之一，它性能稳定、调超参数少。与之对比可以说明 GFlowNet 相对于传统 RL 的优势。</p><p><b>为什么选择 QCM 作为分位式 RL 基线？</b>QCM 代表了“估计 Q 值分布”这一类方法，与 PPO 代表的“估计期望值”互为补充。与 GFlowNet 对比可以说明“生成模型”相对于“值基 RL”的优势。</p><p><b>为什么选择 AFF 作为生成器基线？</b>AFF 代表了“用 GAN 生成 alpha”这一类方法。与 GFlowNet 对比可以说明“路径采样”相对于“GAN 生成”的优势。且 AFF 复用了 GFlowNet 的组合逻辑，让对比变得公平。</p><p><b>为什么三类基线共享 AlphaPool 与 AlphaEnv？</b>因为这样可以排除环境与池的差异，只让“策略与生成器”成为变量。如果各自实现不同的池与环境，就难以说明“结果差异是由策略造成的”。</p><h2>小结</h2><p>本章讲解了 AlphaSAGE 的三类基线：PPO、QCM、AFF。它们共享 StockData、AlphaPool、AlphaEnv 接口，各自用不同策略生成 alpha，最后都用同一个组合器与指标评估。</p><p>这套设计让 AlphaSAGE 的“GFlowNet + RGCN + 多维奖励”与其他方法公平同台竞技。读者可以根据这些对比评估自己的判断。</p><div class="callout"><span class="label">结语</span>教程到此结束。从数据加载到评估指标，从 GFlowNet 生成到 Mega-Alpha 组合，AlphaSAGE 的完整数据流与设计思想已经讲完。希望本教程能帮助你理解这个项目。</div><div class="nav-footer"><a href="09.html">← 上一章</a><a href="index.html">目录</a><span></span></div>
+</main>
+</body>
+</html>
