@@ -41,15 +41,43 @@ which xelatex || echo "XELATEX_NOT_FOUND"
 
 ### 步骤 1.5: 降级渲染 HTML（xelatex 不可用时）
 
+> **多页 HTML + 侧边导航 + Apple 极简风格**（P0-1 改造）。
+> - deep 模式：按概念分页（`index.html` + 每个概念一个 `concept-<id>.html`），侧边导航按 `reading_path` 排序。
+> - standard 模式：单页 `index.html`，侧边导航为目录锚点。
+> - `<details>` 折叠区默认收起；blockquote 正确渲染；图片自适应；KaTeX 渲染公式。
+> - 风格遵循 Apple 极简：#FBFBFD 背景、#1D1D1F 正文、#86868B 次要文本、克制强调色、微圆角、无投影。
+
 ```python
-import os, re
+# REPOGUIDE_HTML_RENDER_START
+import os, re, json
 from pathlib import Path
 
 work_dir = Path(os.environ.get("WORK_DIR", "_repoguide"))
 repo_name = os.environ.get("REPO_NAME", "repo")
 md_path = work_dir / "manual.md"
-html_path = work_dir / f"{repo_name}-manual.html"
+html_dir = work_dir / "html"
+html_dir.mkdir(parents=True, exist_ok=True)
 
+# 读取概念层数据（决定是否分页 + 侧边导航顺序）
+concepts_path = work_dir / "analysis_concepts.json"
+HAS_CONCEPTS = concepts_path.exists()
+concepts_data = {}
+if HAS_CONCEPTS:
+    try:
+        concepts_data = json.loads(concepts_path.read_text(encoding="utf-8"))
+    except Exception:
+        HAS_CONCEPTS = False
+        concepts_data = {}
+
+depth = os.environ.get("DEPTH_OVERRIDE", "")
+if not depth:
+    try:
+        depth = json.loads((work_dir / "profile.json").read_text(encoding="utf-8")).get("depth", "standard")
+    except Exception:
+        depth = "standard"
+IS_DEEP = depth == "deep"
+
+# 读取 manual.md
 text = md_path.read_text(encoding="utf-8", errors="ignore")
 if text.startswith("---"):
     parts = text.split("---", 2)
@@ -65,60 +93,68 @@ def inline(s):
     s = re.sub(r"`([^`]+)`", lambda m: f"<code>{escape_html(m.group(1))}</code>", s)
     s = re.sub(r"\*\*(.+?)\*\*", lambda m: f"<strong>{escape_html(m.group(1))}</strong>", s)
     s = re.sub(r"\*(.+?)\*", lambda m: f"<em>{escape_html(m.group(1))}</em>", s)
-    s = re.sub(r"!\[([^\]]*)\]\(([^)]+)\)", lambda m: f'<img src="{escape_html(m.group(2))}" alt="{escape_html(m.group(1))}" style="max-width:100%;height:auto">', s)
+    s = re.sub(r"!\[([^\]]*)\]\(([^)]+)\)", lambda m: f'<img src="../{escape_html(m.group(2))}" alt="{escape_html(m.group(1))}">', s)
     s = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", lambda m: f'<a href="{escape_html(m.group(2))}">{escape_html(m.group(1))}</a>', s)
     s = s.replace("\x00MATH\x01", '<span class="math">\\(').replace("\x02MATH\x00", '\\)</span>')
     return s
 
-lines = text.splitlines()
-body = []
-i = 0
-while i < len(lines):
+def parse_block(lines, i):
+    """解析一个块级元素，返回 (html_str, next_i)。"""
     line = lines[i]
     s = line.strip()
     # 块级数学 $$...$$
     if s.startswith("$$"):
         math_lines = [s[2:]]
         if s.endswith("$$") and len(s) > 2:
-            pass
-        else:
-            i += 1
-            while i < len(lines) and not lines[i].strip().endswith("$$"):
-                math_lines.append(lines[i]); i += 1
-            if i < len(lines):
-                math_lines.append(lines[i].rstrip()[:-2]); i += 1
-        body.append(f'<div class="math">\\[{escape_html(" ".join(math_lines))}\\]</div>')
-        continue
+            return f'<div class="math">\\[{escape_html(" ".join(math_lines))}\\]</div>', i + 1
+        i += 1
+        while i < len(lines) and not lines[i].strip().endswith("$$"):
+            math_lines.append(lines[i]); i += 1
+        if i < len(lines):
+            math_lines.append(lines[i].rstrip()[:-2]); i += 1
+        return f'<div class="math">\\[{escape_html(" ".join(math_lines))}\\]</div>', i
+    # 代码块
     if s.startswith("```"):
         i += 1
         code = []
         while i < len(lines) and not lines[i].strip().startswith("```"):
             code.append(lines[i]); i += 1
-        body.append(f"<pre><code>{escape_html(chr(10).join(code))}</code></pre>")
-        i += 1; continue
+        i += 1
+        return f"<pre><code>{escape_html(chr(10).join(code))}</code></pre>", i
+    # HTML 锚点（<a id=...>）原样保留
+    if s.startswith("<a id=") and "</a>" in s:
+        return s, i + 1
+    # 标题
     if s.startswith("#"):
         level = len(s) - len(s.lstrip("#"))
         if level <= 6 and s[level:].startswith(" "):
-            body.append(f"<h{level}>{inline(s[level+1:].strip())}</h{level}>")
-            i += 1; continue
+            return f"<h{level}>{inline(s[level+1:].strip())}</h{level}>", i + 1
+    # 分割线
     if s in ("---", "***", "___"):
-        body.append("<hr>"); i += 1; continue
+        return "<hr>", i + 1
+    # 空行
     if not s:
-        i += 1; continue
+        return "", i + 1
+    # blockquote（P1-5：正确渲染 > 引用）
+    if s.startswith(">"):
+        items = [s[1:].strip()]; i += 1
+        while i < len(lines) and lines[i].strip().startswith(">"):
+            items.append(lines[i].strip()[1:].strip()); i += 1
+        return f"<blockquote>{inline(' '.join(items))}</blockquote>", i
+    # 无序列表
     if s.startswith(("- ", "* ", "+ ")):
         items = [s[2:]]; i += 1
         while i < len(lines) and lines[i].strip().startswith(("- ", "* ", "+ ")):
             items.append(lines[i].strip()[2:]); i += 1
-        body.append("<ul>")
-        for item in items:
-            body.append(f"<li>{inline(item)}</li>")
-        body.append("</ul>"); continue
+        ul = "<ul>" + "".join(f"<li>{inline(item)}</li>" for item in items) + "</ul>"
+        return ul, i
+    # 表格
     if s.startswith("|"):
-        tbl = ['<div class="table-wrap"><table>']; i += 0
         rows = []
         while i < len(lines) and lines[i].strip().startswith("|"):
             rows.append(lines[i].strip()); i += 1
         if len(rows) >= 2:
+            tbl = ['<div class="table-wrap"><table>']
             tbl.append("<tr>")
             for c in rows[0].split("|")[1:-1]:
                 tbl.append(f"<th>{inline(c.strip())}</th>")
@@ -128,37 +164,266 @@ while i < len(lines):
                 for c in r.split("|")[1:-1]:
                     tbl.append(f"<td>{inline(c.strip())}</td>")
                 tbl.append("</tr>")
-        tbl.append("</table></div>")
-        body.extend(tbl); continue
+            tbl.append("</table></div>")
+            return "".join(tbl), i
+        return "", i
+    # <details> 折叠区（原样保留，内部内容递归解析）
+    if s == "<details>":
+        inner = []; i += 1
+        while i < len(lines) and lines[i].strip() != "</details>":
+            html_str, i = parse_block(lines, i)
+            if html_str:
+                inner.append(html_str)
+        if i < len(lines):
+            i += 1  # skip </details>
+        return "<details>" + "".join(inner) + "</details>", i
+    if s.startswith("<summary>") and s.endswith("</summary>"):
+        return s, i + 1
+    # 段落
     para = [line]; i += 1
-    while i < len(lines) and lines[i].strip() and not lines[i].strip().startswith(("#","```","|","- ","* ","$$")):
+    while i < len(lines) and lines[i].strip() and not lines[i].strip().startswith(("#","```","|","- ","* ","$$",">","<details>","<summary>","<a id=")):
         para.append(lines[i]); i += 1
-    body.append(f"<p>{inline(' '.join(para))}</p>")
+    return f"<p>{inline(' '.join(para))}</p>", i
 
-html = f"""<!DOCTYPE html>
-<html lang="zh-CN"><head>
-<meta charset="UTF-8"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{repo_name} 仓库手册指南</title>
+# ===== 将 manual.md 切分为块列表，记录标题层级用于侧边导航 =====
+lines = text.splitlines()
+blocks = []  # [(html_str, heading_info_or_None)]
+i = 0
+while i < len(lines):
+    start_i = i
+    html_str, i = parse_block(lines, i)
+    # 检测是否是标题块
+    orig = lines[start_i].strip() if start_i < len(lines) else ""
+    heading_info = None
+    if orig.startswith("#"):
+        level = len(orig) - len(orig.lstrip("#"))
+        if level <= 6 and orig[level:].startswith(" "):
+            title = orig[level+1:].strip()
+            heading_info = {"level": level, "title": title, "line": start_i}
+    blocks.append((html_str, heading_info))
+
+# ===== 侧边导航构建 =====
+# 概念页导航（deep 分页模式）
+concept_nav = []  # [{"id","name","file","order}]
+if HAS_CONCEPTS and IS_DEEP:
+    reading_path = concepts_data.get("reading_path", [])
+    concepts_by_id = {c["id"]: c for c in concepts_data.get("concepts", [])}
+    for cid in reading_path:
+        c = concepts_by_id.get(cid, {})
+        concept_nav.append({
+            "id": cid,
+            "name": c.get("name", cid),
+            "file": f"concept-{cid}.html",
+            "order": c.get("teaching_order", 0),
+        })
+
+# 单页模式：从标题提取目录
+toc_nav = []
+for _, h in blocks:
+    if h and h["level"] <= 3:
+        toc_nav.append(h)
+
+# ===== Apple 极简风格 CSS =====
+CSS = """
+:root { --bg: #FBFBFD; --text: #1D1D1F; --muted: #86868B; --accent: #0071e3; --border: #d2d2d7; --code-bg: #f5f5f7; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, "SF Pro Display", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif; margin: 0; background: var(--bg); color: var(--text); line-height: 1.6; font-weight: 400; }
+.layout { display: flex; min-height: 100vh; }
+.sidebar { width: 260px; flex-shrink: 0; background: var(--bg); border-right: 1px solid var(--border); position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 2rem 1.25rem; }
+.sidebar h2 { font-size: 1.05rem; font-weight: 600; margin: 0 0 1rem; color: var(--text); }
+.sidebar a { display: block; color: var(--muted); text-decoration: none; font-size: 0.85rem; padding: 0.35rem 0.5rem; border-radius: 6px; transition: all 0.15s; }
+.sidebar a:hover { color: var(--text); background: var(--code-bg); }
+.sidebar a.active { color: var(--accent); font-weight: 500; }
+.sidebar .nav-order { display: inline-block; width: 1.5rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.sidebar .nav-section { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 1.25rem 0 0.5rem; font-weight: 600; }
+.content { flex: 1; max-width: 820px; margin: 0 auto; padding: 3rem 2.5rem; }
+h1 { font-size: 2rem; font-weight: 600; letter-spacing: -0.02em; margin-top: 0; }
+h2 { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.01em; margin-top: 2.5rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1.2rem; font-weight: 600; margin-top: 2rem; }
+h4 { font-size: 1.05rem; font-weight: 600; margin-top: 1.5rem; }
+h5 { font-size: 0.95rem; font-weight: 600; margin-top: 1.2rem; }
+p { font-size: 0.95rem; color: var(--text); }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+strong { font-weight: 600; }
+code { font-family: "SF Mono", Consolas, Monaco, monospace; font-size: 0.85em; background: var(--code-bg); padding: 0.15em 0.35em; border-radius: 4px; }
+pre { background: var(--code-bg); padding: 1rem 1.25rem; border-radius: 10px; overflow-x: auto; margin: 1rem 0; }
+pre code { background: none; padding: 0; font-size: 0.85rem; line-height: 1.5; }
+.table-wrap { width: 100%; overflow-x: auto; margin: 1.25rem 0; }
+table { border-collapse: collapse; width: max-content; min-width: 100%; font-size: 0.88rem; }
+th, td { border-bottom: 1px solid var(--border); padding: 0.6rem 0.9rem; text-align: left; }
+th { font-weight: 600; color: var(--muted); border-bottom: 2px solid var(--border); }
+tr:last-child td { border-bottom: none; }
+img { max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 1.25rem auto; }
+blockquote { border-left: 3px solid var(--accent); margin: 1.25rem 0; padding: 0.5rem 1.25rem; color: var(--muted); background: none; }
+blockquote strong { color: var(--text); }
+hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+details { margin: 1rem 0; border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 1rem; }
+summary { cursor: pointer; font-weight: 500; color: var(--accent); padding: 0.25rem 0; }
+details[open] summary { margin-bottom: 0.5rem; }
+.math { margin: 1rem 0; text-align: center; }
+.nav-footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 0.85rem; }
+.nav-footer a { color: var(--accent); }
+@media (max-width: 768px) { .sidebar { display: none; } .content { padding: 1.5rem; } }
+"""
+
+KATEX = """
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-  onload="renderMathInElement(document.body,{{delimiters:[{{left:'$$',right:'$$',display:true}},{{left:'\\\\(',right:'\\\\)',display:false}},{{left:'\\\\[',right:'\\\\]',display:true}}]}});"></script>
-<style>
-body {{ font-family: -apple-system, "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif; max-width: 920px; margin: 0 auto; padding: 2rem; line-height: 1.75; color: #24292f; }}
-h1,h2,h3,h4 {{ color: #94070A; margin-top: 1.5em; border-bottom: 1px solid #eadeda; padding-bottom: .3em; }}
-pre {{ background: #f6f8fa; padding: 1rem; border-radius: 6px; overflow-x: auto; }}
-code {{ font-family: Consolas, Monaco, monospace; font-size: .92em; }}
-.table-wrap {{ width: 100%; overflow-x: auto; margin: 1em 0; }}
-table {{ border-collapse: collapse; width: max-content; min-width: 100%; margin: 0; }}
-th, td {{ border: 1px solid #d0d7de; padding: .5em .7em; text-align: left; }}
-th {{ background: #f8efeb; }}
-img {{ max-width: 100%; max-height: 82vh; height: auto; object-fit: contain; display: block; margin: 1em auto; }}
-blockquote {{ border-left: 4px solid #94070A; margin: 1em 0; padding: .5em 1em; background: #fcf7f5; color: #444; }}
-</style></head><body>
-{chr(10).join(body)}
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\\\(',right:'\\\\)',display:false},{left:'\\\\[',right:'\\\\]',display:true}]});"></script>
+"""
+
+def build_sidebar(active_id=None, active_href=None):
+    """构建侧边导航 HTML。"""
+    parts = [f'<aside class="sidebar">', f'<h2>{repo_name}</h2>']
+    if HAS_CONCEPTS and IS_DEEP and concept_nav:
+        # deep 分页模式：按 reading_path 排列概念
+        parts.append('<div class="nav-section">推荐阅读路径</div>')
+        for item in concept_nav:
+            cls = " active" if item["id"] == active_id else ""
+            parts.append(f'<a href="{item["file"]}" class="{cls}"><span class="nav-order">{item["order"]}.</span>{item["name"]}</a>')
+        parts.append(f'<a href="index.html" class="{"" if active_href != "index.html" else "active"}"><span class="nav-order">★</span>总览与附录</a>')
+    else:
+        # 单页模式：从标题提取目录
+        parts.append('<div class="nav-section">目录</div>')
+        for h in toc_nav:
+            indent = "  " * (h["level"] - 1)
+            title = h["title"]
+            # 生成锚点
+            anchor = re.sub(r'[^\w\u4e00-\u9fff]+', '-', title.lower()).strip('-')
+            parts.append(f'<a href="#{anchor}">{indent}{title}</a>')
+    parts.append('</aside>')
+    return "\n".join(parts)
+
+def build_page(title, body_html, sidebar_html, prev_link="", next_link=""):
+    """组装完整 HTML 页面。"""
+    nav_footer = ""
+    if prev_link or next_link:
+        nav_footer = '<div class="nav-footer">'
+        nav_footer += prev_link or "<span></span>"
+        nav_footer += next_link or "<span></span>"
+        nav_footer += "</div>"
+    return f"""<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{title}</title>
+{KATEX}
+<style>{CSS}</style>
+</head><body>
+<div class="layout">
+{sidebar_html}
+<main class="content">
+{body_html}
+{nav_footer}
+</main>
+</div>
 </body></html>"""
-html_path.write_bytes("\ufeff".encode("utf-8") + html.encode("utf-8"))
+
+# ===== 分页策略 =====
+# deep + 概念层：每个概念卡片单独一页，其余内容归入 index.html
+# 否则：单页 index.html
+
+if HAS_CONCEPTS and IS_DEEP:
+    # 找到 "## 四、核心概念导览" 和 "## 五、文件速览表" 的位置
+    sec4_start = None
+    sec5_start = None
+    for idx, (_, h) in enumerate(blocks):
+        if h and h["level"] == 2 and "核心概念导览" in h["title"]:
+            sec4_start = idx
+        if h and h["level"] == 2 and "文件速览表" in h["title"]:
+            sec5_start = idx
+
+    # index.html = 标题 + 一二三章 + 概念关系图(4.1) + 五六七章 + 论文 + 附录
+    index_blocks = []
+    concept_blocks = {}  # cid -> [blocks]
+
+    if sec4_start is not None and sec5_start is not None:
+        # 第四章前的内容
+        index_blocks.extend(blocks[:sec4_start])
+        # 4.1 概念关系图（sec4_start 到第一个概念卡片标题之前）
+        idx = sec4_start + 1
+        # 跳过 4.1 标题和概念关系图，归入 index
+        while idx < sec5_start:
+            _, h = blocks[idx]
+            if h and h["level"] == 3 and h["title"].startswith("概念 "):
+                break
+            index_blocks.append(blocks[idx])
+            idx += 1
+        # 每个概念卡片单独分页
+        reading_path = concepts_data.get("reading_path", [])
+        concepts_by_id = {c["id"]: c for c in concepts_data.get("concepts", [])}
+        current_concept_id = None
+        current_blocks = []
+        while idx < sec5_start:
+            blk, h = blocks[idx]
+            if h and h["level"] == 3 and h["title"].startswith("概念 "):
+                # 保存上一个概念
+                if current_concept_id:
+                    concept_blocks[current_concept_id] = current_blocks
+                # 提取概念 id（从锚点或 title）
+                current_concept_id = None
+                # 向前找锚点
+                if current_blocks and "<a id=" in (current_blocks[-1][0] if current_blocks else ""):
+                    pass
+                # 从 reading_path 顺序推断
+                next_idx = len(concept_blocks)
+                if next_idx < len(reading_path):
+                    current_concept_id = reading_path[next_idx]
+                current_blocks = []
+            current_blocks.append(blocks[idx])
+            idx += 1
+        if current_concept_id:
+            concept_blocks[current_concept_id] = current_blocks
+        # 第五章及以后归入 index
+        index_blocks.extend(blocks[sec5_start:])
+    else:
+        index_blocks = blocks
+
+    # 生成 index.html
+    index_body = "\n".join(b[0] for b in index_blocks if b[0])
+    index_sidebar = build_sidebar(active_href="index.html")
+    index_html = build_page(f"{repo_name} 仓库手册指南", index_body, index_sidebar)
+    (html_dir / "index.html").write_bytes("\ufeff".encode("utf-8") + index_html.encode("utf-8"))
+
+    # 生成每个概念页
+    for cid in concepts_data.get("reading_path", []):
+        c = concepts_by_id.get(cid, {})
+        cblocks = concept_blocks.get(cid, [])
+        cbody = "\n".join(b[0] for b in cblocks if b[0])
+        csidebar = build_sidebar(active_id=cid)
+        # 前后导航
+        path_idx = concepts_data.get("reading_path", []).index(cid)
+        prev_link = ""
+        next_link = ""
+        if path_idx > 0:
+            prev_cid = concepts_data["reading_path"][path_idx - 1]
+            prev_name = concepts_by_id.get(prev_cid, {}).get("name", "")
+            prev_link = f'<a href="concept-{prev_cid}.html">← {prev_name}</a>'
+        if path_idx < len(concepts_data.get("reading_path", [])) - 1:
+            next_cid = concepts_data["reading_path"][path_idx + 1]
+            next_name = concepts_by_id.get(next_cid, {}).get("name", "")
+            next_link = f'<a href="concept-{next_cid}.html">{next_name} →</a>'
+        ctitle = f"概念 {c.get('teaching_order','')}：{c.get('name','')} - {repo_name}"
+        chtml = build_page(ctitle, cbody, csidebar, prev_link, next_link)
+        (html_dir / f"concept-{cid}.html").write_bytes("\ufeff".encode("utf-8") + chtml.encode("utf-8"))
+
+    # 复制 images 目录引用（HTML 在 html/ 子目录，图片在上一级 images/）
+    print(f"OK: deep mode, {1 + len(concept_blocks)} pages in {html_dir}")
+else:
+    # 单页模式（standard 或无概念层）
+    body = "\n".join(b[0] for b in blocks if b[0])
+    sidebar = build_sidebar()
+    html = build_page(f"{repo_name} 仓库手册指南", body, sidebar)
+    (html_dir / "index.html").write_bytes("\ufeff".encode("utf-8") + html.encode("utf-8"))
+    print(f"OK: single page in {html_dir}")
+
+# 同时保留单文件 HTML（兼容旧契约：repo_name-manual.html）
+single_path = work_dir / f"{repo_name}-manual.html"
+single_path.write_bytes((html_dir / "index.html").read_bytes())
+print(f"OK: {single_path}")
+# REPOGUIDE_HTML_RENDER_END
 ```
 
 ### 步骤 2: 读取元数据

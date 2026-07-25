@@ -51,12 +51,15 @@ version: 2.0.0
 Phase 0: 输入归一化（主 agent）
 Phase 1: 仓库画像（profiler agent）
 Phase 2: 并行深度分析（architect + code-analyst agents）
+Phase 2c: 概念抽取（concept-extractor agent，与 Phase 2.5 并行）
 Phase 2.5: 图片处理（image-handler agent，可选）
 Phase 3: 论文解析与映射（paper-analyst + paper-code-mapper，可选）
 Phase 4: 手册组装（writer agent）
 Phase 5: LaTeX PDF 渲染（renderer agent）
 Phase 6: 输出到用户工作目录（主 agent）
 ```
+
+> Phase 2c 解决"代码详解平铺臃肿"问题：识别 5-12 个核心概念，每个概念关联文件/函数/公式并附类比，手册先讲概念再深入代码，明星函数展开、其余函数折叠。
 
 ## 环境检测
 
@@ -77,6 +80,7 @@ Phase 6: 输出到用户工作目录（主 agent）
 | 1: 仓库画像 | `sub-skills/tasks/phase-1-profiler.md` |
 | 2a: 架构与数据流 | `sub-skills/tasks/phase-2-architect.md` |
 | 2b: 代码详解 | `sub-skills/tasks/phase-2-code-analyst.md` |
+| 2c: 概念抽取 | `sub-skills/tasks/phase-2c-concept-extractor.md` |
 | 2.5: 图片处理 | `sub-skills/tasks/phase-2-5-image-handler.md` |
 | 3: 论文解析与映射 | `sub-skills/tasks/phase-3-paper.md` |
 | 4: 手册组装 | `sub-skills/tasks/phase-4-writer.md` |
@@ -120,8 +124,10 @@ Phase 6: 输出到用户工作目录（主 agent）
 
 1. **全中文面向人**: 手册中面向读者的叙述必须为简体中文；代码标识符、命令、专有名词可保留原文。
 2. **必须确认细致度**: Phase 0 必须询问 standard / deep，不得静默默认。
-3. **论文自动发现**: 未显式提供论文时，先扫描 README、CITATION、docs、paper(s) 等元文件；发现后进入论文-代码联合分析。
-4. **注释化目录树优先**: 仓库结构以每行带用途注释的目录树展示；不用树状 mermaid 依赖图。
-5. **结构化代码详解**: 类与函数输出签名、职责、参数、返回值和关键逻辑片段。
-6. **LaTeX 渲染**: 使用 xelatex 生成中文 PDF；不可用时保留 Markdown 并降级 HTML。
-7. **隔离产物**: 中间产物写入 `_repoguide/`，不写入被分析仓库。
+3. **概念驱动优先**: 代码详解不得平铺所有文件所有函数；先识别 5-12 个核心概念（含类比、教学顺序、关系图），明星函数展开 key_logic，其余函数折叠或表格化。
+4. **论文自动发现**: 未显式提供论文时，先扫描 README、CITATION、docs、paper(s) 等元文件；发现后进入论文-代码联合分析。
+5. **注释化目录树优先**: 仓库结构以每行带用途注释的目录树展示；不用树状 mermaid 依赖图。
+6. **结构化代码详解**: 类与函数输出签名、职责、参数、返回值和关键逻辑片段。
+7. **LaTeX 渲染**: 使用 xelatex 生成中文 PDF；不可用时保留 Markdown 并降级 HTML。
+8. **隔离产物**: 中间产物写入 `_repoguide/`，不写入被分析仓库。
+9. **LLM 响应缓存**: 概念抽取（Phase 2c）与代码分析（Phase 2）的 LLM 调用结果按 prompt hash 缓存到 `_repoguide/.cache/<phase>/<hash>.json`。首次运行启用缓存；重试同一任务时跳过缓存（避免脏数据）。缓存仅用于迭代调试加速，不作为正式产物提交。

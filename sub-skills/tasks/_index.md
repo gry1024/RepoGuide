@@ -93,6 +93,7 @@ description: RepoGuide 任务总览。定义触发条件、输入解析、细致
 | 1 | [phase-1-profiler.md](phase-1-profiler.md) | profiler | `profile.json` |
 | 2a | [phase-2-architect.md](phase-2-architect.md) | architect | `analysis_arch.json` |
 | 2b | [phase-2-code-analyst.md](phase-2-code-analyst.md) | code-analyst | `analysis_code.json` |
+| 2c | [phase-2c-concept-extractor.md](phase-2c-concept-extractor.md) | concept-extractor | `analysis_concepts.json` |
 | 2.5 | [phase-2-5-image-handler.md](phase-2-5-image-handler.md) | image-handler | `images/`, `image-manifest.json` |
 | 3 | [phase-3-paper.md](phase-3-paper.md) | paper-analyst + paper-code-mapper | `analysis_paper.json`, `analysis_map.json` |
 | 4 | [phase-4-writer.md](phase-4-writer.md) | writer | `manual.md` |
@@ -104,8 +105,10 @@ description: RepoGuide 任务总览。定义触发条件、输入解析、细致
 主 agent（coordinator）负责按以下规则调度各 Phase：
 
 ```
-Phase 0 串行 → Phase 1 串行 → (Phase 2a ∥ Phase 2b) → Phase 2.5 → [Phase 3 条件] → Phase 4 → Phase 5 → Phase 6
+Phase 0 串行 → Phase 1 串行 → (Phase 2a ∥ Phase 2b) → (Phase 2c ∥ Phase 2.5) → [Phase 3 条件] → Phase 4 → Phase 5 → Phase 6
 ```
+
+> Phase 2c（概念抽取）与 Phase 2.5（图片处理）可并行，二者均依赖 Phase 2a/2b 完成。
 
 ### 等待与进入条件
 
@@ -113,9 +116,10 @@ Phase 0 串行 → Phase 1 串行 → (Phase 2a ∥ Phase 2b) → Phase 2.5 → 
 |------------|----------------|----------|
 | Phase 1 | Phase 0 完成 | `$WORK_DIR/profile.json` 已存在（初步） |
 | Phase 2a/2b | Phase 1 完成 | `$WORK_DIR/profile.json` 完整可读 |
+| Phase 2c | Phase 2a/2b 完成 | `analysis_arch.json` + `analysis_code.json` 存在可解析 |
 | Phase 2.5 | Phase 2a/2b 完成 | `analysis_arch.json` 或 `paper.pdf` 存在 |
-| Phase 3 | Phase 2.5 完成且 `paper_found == true` | `paper.pdf` 存在 |
-| Phase 4 | Phase 2.5（及 Phase 3，如有）完成 | `analysis_arch.json` + `analysis_code.json` 存在 |
+| Phase 3 | Phase 2c/2.5 完成且 `paper_found == true` | `paper.pdf` 存在 |
+| Phase 4 | Phase 2c/2.5（及 Phase 3，如有）完成 | `analysis_arch.json` + `analysis_code.json` + `analysis_concepts.json` 存在 |
 | Phase 5 | Phase 4 完成 | `$WORK_DIR/manual.md` 存在 |
 | Phase 6 | Phase 5 完成 | PDF 或 HTML 或 Markdown 至少一个存在 |
 
@@ -230,7 +234,7 @@ ok, errs = validate_json(
 # Phase 2a
 ok, errs = validate_json(
     "$WORK_DIR/analysis_arch.json",
-    required_fields=["annotated_tree", "architecture_overview_dot",
+    required_fields=["annotated_tree", "code_tree_dot", "architecture_overview_dot",
                      "data_flow_narrative", "data_flow_table",
                      "key_state_points", "design_decisions", "limitation_notes"],
 )
@@ -241,6 +245,13 @@ ok, errs = validate_json(
     required_fields=["core_files", "peripheral_files", "directory_tree", "limitation_notes"],
 )
 ```
+
+### analysis_code 附加校验
+
+- `core_files[*].file_role_summary` 必须非空，先讲清文件职责。
+- `core_files[*].core_flow` 必须非空；脚本入口文件至少 8 步。
+- `core_files[*].main_steps` 对 `train_*.py`、`run_*.py`、`combine_*.py` 等入口脚本必须非空。
+- `classes[*].methods[*].purpose` 与 `functions[*].purpose` 不得为空字符串。
 
 ### Markdown / PDF / HTML 产物校验
 

@@ -9,7 +9,7 @@ description: RepoGuide 图像处理工具：按区域裁剪论文图、过滤碎
 
 1. **论文图按区域裁剪**：不再用 `get_images` 抽裸 raster（会得到碎片/满页图）。改用 `page.get_image_info()` 拿到每张图在页面上的 bbox，再以该 bbox 为 clip 用 `page.get_pixmap(clip=rect, dpi=200)` 渲染，得到完整且尺寸合适的图。
 2. **过滤碎片**：丢弃面积过小（如 < 80×80）的图标/公式片段；合并同页距离很近的多个 bbox（同一张图被切片的情况）。
-3. **架构总览图用 graphviz**：从 `analysis_arch.json.architecture_overview_dot` 读取 DOT，调用系统 `dot` 命令生成 `architecture_overview.png`（不依赖 mermaid-cli）。
+3. **所有结构图用 graphviz**：从 `analysis_arch.json.architecture_overview_dot` 与 `code_tree_dot` 读取 DOT，生成 `architecture_overview.png` 与 `code_tree.png`（不依赖 mermaid-cli）。
 4. **图片统一放 `$WORK_DIR/images/`**，手册用相对路径引用。
 
 ## 依赖
@@ -115,7 +115,7 @@ for ext in ("*.png", "*.jpg", "*.jpeg", "*.svg", "*.gif", "*.webp"):
                           "type": f.suffix.lstrip("."), "size": f.stat().st_size})
 ```
 
-## 3. graphviz 渲染架构总览图（替代 mermaid）
+## 3. graphviz 渲染结构图（替代 mermaid）
 
 ```python
 # REPOGUIDE_GRAPHVIZ_RENDER_START
@@ -127,28 +127,55 @@ out_dir = work_dir / "images"
 out_dir.mkdir(parents=True, exist_ok=True)
 
 arch = json.loads((work_dir / "analysis_arch.json").read_text(encoding="utf-8"))
-dot_src = arch.get("architecture_overview_dot", "")
 generated = []
 
-if dot_src and dot_src.strip().startswith("digraph"):
-    dot_path = work_dir / "architecture_overview.dot"
-    png_path = out_dir / "architecture_overview.png"
+def render_dot(field, filename, caption, required_rankdir):
+    dot_src = arch.get(field, "")
+    if not dot_src or not dot_src.strip().startswith("digraph"):
+        generated.append({"path": "", "source": "graphviz", "caption": f"缺少 {field}"})
+        return
+    if required_rankdir not in dot_src:
+        generated.append({"path": "", "source": "graphviz", "caption": f"{caption} 缺少 {required_rankdir}"})
+        return
+
+    dot_path = work_dir / f"{Path(filename).stem}.dot"
+    png_path = out_dir / filename
     dot_path.write_text(dot_src, encoding="utf-8")
     try:
         subprocess.run(
             ["dot", "-Tpng", "-Gdpi=150", "-o", str(png_path), str(dot_path)],
             check=True, capture_output=True, timeout=120,
         )
-        if png_path.exists():
-            generated.append({"path": "images/architecture_overview.png",
-                              "source": "graphviz", "caption": "架构总览图"})
+        if png_path.exists() and png_path.stat().st_size > 0:
+            generated.append({"path": f"images/{filename}", "source": "graphviz", "caption": caption})
         else:
-            generated.append({"path": "", "source": "graphviz", "caption": "架构总览图渲染失败"})
+            generated.append({"path": "", "source": "graphviz", "caption": f"{caption} 渲染失败"})
     except Exception as e:
-        generated.append({"path": "", "source": "graphviz",
-                          "caption": f"架构总览图渲染失败：{e}"})
-else:
-    generated.append({"path": "", "source": "graphviz", "caption": "缺少 architecture_overview_dot"})
+        generated.append({"path": "", "source": "graphviz", "caption": f"{caption} 渲染失败：{e}"})
+
+render_dot("architecture_overview_dot", "architecture_overview.png", "架构总览图", "rankdir=LR")
+render_dot("code_tree_dot", "code_tree.png", "代码树图", "rankdir=TB")
+
+# 概念关系图（Phase 2c 产物，若 analysis_concepts.json 存在）
+concepts_path = work_dir / "analysis_concepts.json"
+if concepts_path.exists():
+    try:
+        concepts = json.loads(concepts_path.read_text(encoding="utf-8"))
+        concept_dot = concepts.get("concept_map_dot", "")
+        if concept_dot and concept_dot.strip().startswith("digraph"):
+            cdot_path = work_dir / "concept_map.dot"
+            cpng_path = out_dir / "concept_map.png"
+            cdot_path.write_text(concept_dot, encoding="utf-8")
+            subprocess.run(
+                ["dot", "-Tpng", "-Gdpi=150", "-o", str(cpng_path), str(cdot_path)],
+                check=True, capture_output=True, timeout=120,
+            )
+            if cpng_path.exists() and cpng_path.stat().st_size > 0:
+                generated.append({"path": "images/concept_map.png", "source": "graphviz", "caption": "概念关系图"})
+            else:
+                generated.append({"path": "", "source": "graphviz", "caption": "概念关系图 渲染失败"})
+    except Exception as e:
+        generated.append({"path": "", "source": "graphviz", "caption": f"概念关系图 渲染失败：{e}"})
 
 print(json.dumps(generated, ensure_ascii=False, indent=2))
 # REPOGUIDE_GRAPHVIZ_RENDER_END
@@ -177,6 +204,8 @@ for f in sorted(img_dir.glob("*.png")):
         repo_figures.append({"path": rel, "type": "png", "size": size})
     elif f.name == "architecture_overview.png":
         generated_diagrams.append({"path": rel, "source": "graphviz", "caption": "架构总览图"})
+    elif f.name == "code_tree.png":
+        generated_diagrams.append({"path": rel, "source": "graphviz", "caption": "代码树图"})
     elif f.name.startswith("generated_"):
         generated_diagrams.append({"path": rel, "source": "graphviz", "caption": f.name[:-4]})
 
@@ -239,7 +268,7 @@ for f in sorted(img_dir.glob("*.png")):
 | 错误 | 处理 |
 |------|------|
 | PDF 无图 | `paper_figures` 为空列表 |
-| `dot` 不可用 | 跳过架构图，记录 limitation，手册改用数据流叙述 |
+| `dot` 不可用 | 跳过 graphviz 图，记录 limitation，手册改用数据流叙述和注释化目录树 |
 | 图片格式无法识别 | 跳过并记录 |
 
 ## 输出

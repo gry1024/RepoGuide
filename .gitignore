@@ -5,6 +5,7 @@ __pycache__/
 *.pdf
 _repoguide/
 _repoguide_eval/
+.cache/
 *-manual.md
 *-manual.pdf
 *-manual.html

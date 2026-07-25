@@ -1,6 +1,6 @@
 ---
 name: repoguide-tool-code-analyzer
-description: RepoGuide 的代码分析策略：如何读取文件、提取类/函数/依赖、判断核心文件与周边文件。
+description: RepoGuide 的代码分析策略：如何读取文件、提取文件职责、核心流程、类/方法/函数、依赖，并判断核心文件与周边文件。
 ---
 
 # RepoGuide · 代码分析策略
@@ -25,19 +25,38 @@ description: RepoGuide 的代码分析策略：如何读取文件、提取类/�
 
 得分 ≥ 5 为核心文件。
 
-## 提取内容（结构化 schema）
+## 提取内容（紧凑结构化 schema）
 
-对每个核心文件输出。**`purpose` 不得为空、不得输出空字符串，必须中文**；`key_logic` 为 3-12 行原代码片段：
+对每个核心文件输出。先写文件职责和流程，再列符号。**`purpose` 不得为空、不得输出空字符串，必须中文**；`key_logic` 为 3-10 行原代码片段：
 
 ```json
 {
   "path": "src/foo.py",
   "one_liner": "一句话作用（中文）",
-  "classes": [{"name": "Foo", "line": 10, "signature": "class Foo:", "purpose": "中文职责，不得为空"}],
-  "functions": [{"name": "bar", "line": 20, "signature": "def bar(self, x):", "purpose": "中文职责，不得输出空字符串", "params": [{"name": "x", "meaning": "中文含义"}], "returns": "中文说明", "key_logic": "def bar(self, x):\n    return x+1"}],
+  "file_role_summary": "3-6 句中文总述，讲清文件职责、输入、输出、与其他入口的关系。",
+  "core_flow": ["按执行顺序写核心步骤", "必须覆盖训练/评估/IO/防泄漏等关键逻辑"],
+  "classes": [
+    {
+      "name": "Foo",
+      "line": 10,
+      "signature": "class Foo:",
+      "purpose": "中文职责，不得为空",
+      "methods": [
+        {"name": "fit", "line": 20, "signature": "def fit(self, x):", "purpose": "中文职责", "params": [{"name": "x", "meaning": "中文含义"}], "returns": "中文说明", "key_logic": "def fit(self, x):\n    return self"}
+      ]
+    }
+  ],
+  "functions": [
+    {"name": "bar", "line": 40, "signature": "def bar(x):", "purpose": "中文职责，不得输出空字符串", "params": [{"name": "x", "meaning": "中文含义"}], "returns": "中文说明", "key_logic": "def bar(x):\n    return x + 1"}
+  ],
+  "main_steps": ["解析参数", "读取数据", "执行核心流程", "保存结果"],
   "dependencies": ["src/baz.py"]
 }
 ```
+
+### 入口脚本特别要求
+
+对 `train_*.py`、`run_*.py`、`combine_*.py` 等脚本，必须写清 `main_steps`。例如 `run_adaptive_combination.py` 要说明它逐日滚动筛 alpha、只用 `cur - shift` 前历史避免未来信息泄漏、回归权重、预测收益、计算 IC/RankIC 和保存 `ret_s.npy`。
 
 ## 周边文件清单
 

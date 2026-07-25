@@ -83,6 +83,8 @@ def test_image_manifest_reconciliation_records_existing_paper_images_and_removes
     images = work_dir / "images"
     images.mkdir(parents=True)
     (images / "paper_p5_img1.png").write_bytes(b"\x89PNG\r\n\x1a\nsample")
+    (images / "architecture_overview.png").write_bytes(b"\x89PNG\r\n\x1a\narch")
+    (images / "code_tree.png").write_bytes(b"\x89PNG\r\n\x1a\ntree")
     (work_dir / "image-manifest.json").write_text(
         json.dumps(
             {
@@ -112,12 +114,19 @@ def test_image_manifest_reconciliation_records_existing_paper_images_and_removes
             "size": 14,
         }
     ]
+    assert {item["path"] for item in manifest["generated_diagrams"]} == {
+        "images/architecture_overview.png",
+        "images/code_tree.png",
+    }
     assert not any("论文原图未从 PDF 中提取" in item for item in manifest["limitations"])
 
 
 def test_image_handler_contains_image_optimization_contract():
     text = read_rel("sub-skills/tools/image-handler.md")
     assert "REPOGUIDE_IMAGE_OPTIMIZE_START" in text
+    assert "REPOGUIDE_GRAPHVIZ_RENDER_START" in text
+    assert "code_tree_dot" in text
+    assert "code_tree.png" in text
     assert "MAX_W" in text or "max_width" in text
     assert "MAX_H" in text
     assert "optimized_images" in text
@@ -136,8 +145,12 @@ def test_architect_uses_annotated_tree_and_graphviz_not_mermaid_trees():
     text = read_rel("sub-skills/tasks/phase-2-architect.md")
     assert "annotated_tree" in text
     assert "architecture_overview_dot" in text
+    assert "code_tree_dot" in text
+    assert "代码树图" in text
     assert "rankdir=LR" in text
     assert "cluster_" in text
+    assert "data_flow_table" in text
+    assert "6-12 行" in text
     # 废弃树状 mermaid 依赖/数据流图
     assert "module_dependency_graph" not in text
     assert "data_flow_graph" not in text
@@ -148,6 +161,12 @@ def test_code_analyzer_forbids_empty_symbol_descriptions_and_uses_purpose_schema
     assert "不得输出空字符串" in text
     assert '"purpose"' in text
     assert '"key_logic"' in text
+    assert '"file_role_summary"' in text
+    assert '"core_flow"' in text
+    assert '"main_steps"' in text
+    assert '"methods"' in text
+    assert "run_adaptive_combination.py" in text
+    assert "避免未来信息泄漏" in text
     assert '"description": ""' not in text
 
 
@@ -159,20 +178,70 @@ def test_depth_rules_treat_training_and_experiment_scripts_as_core_files():
     assert "不得仅放入 scripts 清单" in text
 
 
+def test_concept_extractor_schema_and_orchestration():
+    """Phase 2c 概念抽取器契约测试。"""
+    # 1. phase-2c 任务文件存在且含关键字段
+    text = read_rel("sub-skills/tasks/phase-2c-concept-extractor.md")
+    assert "analysis_concepts.json" in text
+    assert "concept_map_dot" in text
+    assert "reading_path" in text
+    assert "star_functions" in text
+    assert "teaching_order" in text
+    assert "analogy" in text  # 必须有类比
+    # 不得用 mermaid 代码块（允许出现"不得用 mermaid"这类说明文字）
+    assert "```mermaid" not in text
+
+    # 2. 编排表与 skill.md 加入 Phase 2c
+    idx = read_rel("sub-skills/tasks/_index.md")
+    assert "phase-2c-concept-extractor.md" in idx
+    skill = read_rel("skill.md")
+    assert "概念抽取" in skill
+    assert "概念驱动" in skill
+
+    # 3. 模板含三层结构
+    tmpl = read_rel("references/manual-template.md")
+    assert "核心概念导览" in tmpl
+    assert "文件速览表" in tmpl
+    assert "明星函数" in tmpl
+    assert "concept_map.png" in tmpl
+    assert "<details>" in tmpl  # 折叠区
+
+    # 4. depth-rules 含概念数量档位
+    dr = read_rel("references/depth-rules.md")
+    assert "概念抽取档位" in dr
+    assert "5-8" in dr
+    assert "8-12" in dr
+
+    # 5. image-handler 含 concept_map 渲染
+    ih = read_rel("sub-skills/tools/image-handler.md")
+    assert "concept_map_dot" in ih
+    assert "concept_map.png" in ih
+
+    # 6. writer 引用 concepts
+    w = read_rel("sub-skills/tasks/phase-4-writer.md")
+    assert "analysis_concepts.json" in w
+    assert "明星函数" in w
+
+
 def test_template_enforces_chinese_and_structured_code_layout():
     text = read_rel("references/manual-template.md")
     assert "全中文" in text
-    assert "函数条目" in text
-    assert "关键逻辑" in text
+    # 三层结构关键字段
+    assert "核心概念导览" in text
+    assert "文件速览表" in text
+    assert "明星函数" in text
+    assert "折叠区" in text or "<details>" in text
+    assert "teaching_order" in text
+    assert "concept_map.png" in text
+    assert "architecture_overview.png" in text
     assert "annotated_tree" in text or "注释化目录树" in text
     # 论文公式以 $$ 写入
     assert "$$" in text
     visible_template = text.split("## writer 组装规则", 1)[0]
+    # 不得保留旧"按文件平铺"模式痕迹
     forbidden = [
         "## 四、核心代码详解（卡片式）",
         "每个核心文件一张",
-        "函数签名+职责+参数+关键逻辑",
-        "`key_logic` 超",
     ]
     for phrase in forbidden:
         assert phrase not in visible_template
@@ -549,12 +618,21 @@ def test_latex_renderer_uses_longtable_for_long_tables(tmp_path, monkeypatch):
 
 def test_html_renderer_contract_wraps_wide_tables_and_images():
     text = read_rel("sub-skills/tools/latex-renderer.md")
+    # 表格横向滚动 + 图片自适应（P0-1 Apple 极简风格）
     assert "table-wrap" in text
     assert "overflow-x: auto" in text
-    assert "max-height: 82vh" in text
-    assert "object-fit: contain" in text
-    assert "#94070A" in text
-    assert "#0b3d91" not in text
+    assert "max-width: 100%" in text
+    assert "border-radius" in text  # 微圆角
+    # Apple 极简配色：#FBFBFD 背景、#1D1D1F 正文、#86868B 次要文本
+    assert "#FBFBFD" in text
+    assert "#1D1D1F" in text
+    assert "#86868B" in text
+    # 多页 + 侧边导航（P0-1）
+    assert "sidebar" in text
+    assert "nav-section" in text
+    assert "reading_path" in text or "concept_nav" in text
+    # 折叠区
+    assert "<details>" in text
 
 
 def test_phase5_requires_visual_pdf_validation():
