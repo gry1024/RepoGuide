@@ -128,7 +128,9 @@ def parse_block(lines, i):
     if s.startswith("#"):
         level = len(s) - len(s.lstrip("#"))
         if level <= 6 and s[level:].startswith(" "):
-            return f"<h{level}>{inline(s[level+1:].strip())}</h{level}>", i + 1
+            title = s[level+1:].strip()
+            anchor = re.sub(r'[^\w\u4e00-\u9fff]+', '-', title.lower()).strip('-')
+            return f'<h{level} id="{anchor}">{inline(title)}</h{level}>', i + 1
     # 分割线
     if s in ("---", "***", "___"):
         return "<hr>", i + 1
@@ -335,23 +337,18 @@ if HAS_CONCEPTS and IS_DEEP:
         if h and h["level"] == 2 and "文件速览表" in h["title"]:
             sec5_start = idx
 
-    # index.html = 标题 + 一二三章 + 概念关系图(4.1) + 五六七章 + 论文 + 附录
     index_blocks = []
-    concept_blocks = {}  # cid -> [blocks]
+    concept_blocks = {}
 
     if sec4_start is not None and sec5_start is not None:
-        # 第四章前的内容
         index_blocks.extend(blocks[:sec4_start])
-        # 4.1 概念关系图（sec4_start 到第一个概念卡片标题之前）
         idx = sec4_start + 1
-        # 跳过 4.1 标题和概念关系图，归入 index
         while idx < sec5_start:
             _, h = blocks[idx]
             if h and h["level"] == 3 and h["title"].startswith("概念 "):
                 break
             index_blocks.append(blocks[idx])
             idx += 1
-        # 每个概念卡片单独分页
         reading_path = concepts_data.get("reading_path", [])
         concepts_by_id = {c["id"]: c for c in concepts_data.get("concepts", [])}
         current_concept_id = None
@@ -359,15 +356,9 @@ if HAS_CONCEPTS and IS_DEEP:
         while idx < sec5_start:
             blk, h = blocks[idx]
             if h and h["level"] == 3 and h["title"].startswith("概念 "):
-                # 保存上一个概念
                 if current_concept_id:
                     concept_blocks[current_concept_id] = current_blocks
-                # 提取概念 id（从锚点或 title）
                 current_concept_id = None
-                # 向前找锚点
-                if current_blocks and "<a id=" in (current_blocks[-1][0] if current_blocks else ""):
-                    pass
-                # 从 reading_path 顺序推断
                 next_idx = len(concept_blocks)
                 if next_idx < len(reading_path):
                     current_concept_id = reading_path[next_idx]
@@ -376,24 +367,21 @@ if HAS_CONCEPTS and IS_DEEP:
             idx += 1
         if current_concept_id:
             concept_blocks[current_concept_id] = current_blocks
-        # 第五章及以后归入 index
         index_blocks.extend(blocks[sec5_start:])
     else:
         index_blocks = blocks
 
-    # 生成 index.html
+    # ===== 1. 生成 html/ 多页目录（deep 模式，浏览器分页浏览） =====
     index_body = "\n".join(b[0] for b in index_blocks if b[0])
     index_sidebar = build_sidebar(active_href="index.html")
     index_html = build_page(f"{repo_name} 仓库手册指南", index_body, index_sidebar)
     (html_dir / "index.html").write_bytes("\ufeff".encode("utf-8") + index_html.encode("utf-8"))
 
-    # 生成每个概念页
     for cid in concepts_data.get("reading_path", []):
         c = concepts_by_id.get(cid, {})
         cblocks = concept_blocks.get(cid, [])
         cbody = "\n".join(b[0] for b in cblocks if b[0])
         csidebar = build_sidebar(active_id=cid)
-        # 前后导航
         path_idx = concepts_data.get("reading_path", []).index(cid)
         prev_link = ""
         next_link = ""
@@ -409,20 +397,37 @@ if HAS_CONCEPTS and IS_DEEP:
         chtml = build_page(ctitle, cbody, csidebar, prev_link, next_link)
         (html_dir / f"concept-{cid}.html").write_bytes("\ufeff".encode("utf-8") + chtml.encode("utf-8"))
 
-    # 复制 images 目录引用（HTML 在 html/ 子目录，图片在上一级 images/）
-    print(f"OK: deep mode, {1 + len(concept_blocks)} pages in {html_dir}")
+    print(f"OK: deep multi-page, {1 + len(concept_blocks)} pages in {html_dir}")
+
+    # ===== 2. 生成自包含单页 <repo_name>-manual.html（所有内容+锚点导航，兼容契约） =====
+    all_body = "\n".join(b[0] for b in blocks if b[0])
+    single_sidebar_parts = [f'<aside class="sidebar">', f'<h2>{repo_name}</h2>']
+    single_sidebar_parts.append('<div class="nav-section">推荐阅读路径</div>')
+    for cid in concepts_data.get("reading_path", []):
+        c = concepts_by_id.get(cid, {})
+        single_sidebar_parts.append(f'<a href="#concept-{cid}"><span class="nav-order">{c.get("teaching_order",0)}.</span>{c.get("name",cid)}</a>')
+    single_sidebar_parts.append('<div class="nav-section">章节</div>')
+    for h in toc_nav:
+        if h["level"] == 2:
+            anchor = re.sub(r'[^\w\u4e00-\u9fff]+', '-', h["title"].lower()).strip('-')
+            single_sidebar_parts.append(f'<a href="#{anchor}">{h["title"]}</a>')
+    single_sidebar_parts.append('</aside>')
+    single_sidebar = "\n".join(single_sidebar_parts)
+    single_html = build_page(f"{repo_name} 仓库手册指南", all_body, single_sidebar)
+    single_path = work_dir / f"{repo_name}-manual.html"
+    single_path.write_bytes("\ufeff".encode("utf-8") + single_html.encode("utf-8"))
+    print(f"OK: single-page {single_path}")
 else:
-    # 单页模式（standard 或无概念层）
+    # ===== standard 或无概念层：单页 =====
     body = "\n".join(b[0] for b in blocks if b[0])
     sidebar = build_sidebar()
     html = build_page(f"{repo_name} 仓库手册指南", body, sidebar)
     (html_dir / "index.html").write_bytes("\ufeff".encode("utf-8") + html.encode("utf-8"))
     print(f"OK: single page in {html_dir}")
 
-# 同时保留单文件 HTML（兼容旧契约：repo_name-manual.html）
-single_path = work_dir / f"{repo_name}-manual.html"
-single_path.write_bytes((html_dir / "index.html").read_bytes())
-print(f"OK: {single_path}")
+    single_path = work_dir / f"{repo_name}-manual.html"
+    single_path.write_bytes((html_dir / "index.html").read_bytes())
+    print(f"OK: {single_path}")
 # REPOGUIDE_HTML_RENDER_END
 ```
 

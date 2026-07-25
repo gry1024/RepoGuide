@@ -6,6 +6,7 @@ __pycache__/
 _repoguide/
 _repoguide_eval/
 .cache/
+pytest_tmp/
 *-manual.md
 *-manual.pdf
 *-manual.html
