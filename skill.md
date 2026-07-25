@@ -113,12 +113,20 @@ Phase 6: 输出到用户工作目录（主 agent）
 
 ## 输出
 
-假设仓库名为 `<repo_name>`，最终产物为：
+参考 PocketFlow 的章节式组织，最终产物输出到 `outputs/<repo_name>/` 目录：
 
-- `<cwd>/<repo_name>-manual.pdf`（需要 xelatex）
-- `<cwd>/<repo_name>-manual.html`（xelatex 不可用时降级输出）
-- `<cwd>/<repo_name>-manual.md`
-- `<cwd>/_repoguide/`（中间产物目录，默认保留）
+```
+outputs/<repo_name>/
+├── index.md              首页（项目简介 + 概念关系图 + 目录 + 推荐阅读路径）
+├── 01_<概念名>.md         每个概念一个独立文件，按教学顺序编号
+├── 02_<概念名>.md         像一本书的章节：欢迎引导→它解决什么问题→明星函数→关联公式→前后导航
+├── ...
+├── 99_附录_全函数索引.md   全函数索引表，明星函数标 ★
+└── images/               图片同目录，相对路径引用，确保能加载
+```
+
+- 中间产物（analysis_*.json 等）写入 `_repoguide/`，不作为最终产物
+- 每个概念文件自包含、可独立阅读、有前后章节导航
 
 ## 核心原则
 
