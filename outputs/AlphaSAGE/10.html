@@ -1,36 +1,92 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>第 10 章：Baseline 对比 | AlphaSAGE</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-        onload="renderMathInElement(document.body, {{delimiters:[{{left:'$$',right:'$$',display:true}},{{left:'$',right:'$',display:false}}]}});"></script>
-<style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第10章：Baseline 对比 | AlphaSAGE</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <style>
 * { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
 body {
-    margin: 0;
-    padding: 0;
     background: #FBFBFD;
     color: #1D1D1F;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
                  "PingFang SC", "Microsoft YaHei", sans-serif;
     font-size: 17px;
-    line-height: 1.65;
+    line-height: 1.7;
     -webkit-font-smoothing: antialiased;
 }
+/* 侧边栏 */
+.sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    width: 240px;
+    height: 100vh;
+    overflow-y: auto;
+    background: #F5F5F7;
+    border-right: 1px solid #E8E8ED;
+    padding: 28px 18px 40px;
+    z-index: 100;
+}
+.sidebar-title {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0 0 4px;
+    color: #1D1D1F;
+}
+.sidebar-sub {
+    font-size: 12px;
+    color: #86868B;
+    margin: 0 0 22px;
+    letter-spacing: 0.02em;
+}
+.sidebar a {
+    display: block;
+    color: #1D1D1F;
+    font-size: 13.5px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    margin-bottom: 2px;
+    text-decoration: none;
+    line-height: 1.4;
+}
+.sidebar a:hover { background: #E8E8ED; text-decoration: none; }
+.sidebar a.active {
+    color: #0071e3;
+    font-weight: 600;
+    background: #E8E8ED;
+}
+.sidebar .group-label {
+    font-size: 11px;
+    color: #86868B;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 18px 12px 6px;
+}
+/* 主内容 */
 main.content {
     max-width: 820px;
-    margin: 0 auto;
-    padding: 64px 28px 120px;
+    margin: 0 0 0 240px;
+    padding: 64px 40px 120px;
+}
+.hero { margin-bottom: 8px; }
+.badge {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0071e3;
+    background: rgba(0,113,227,0.08);
+    padding: 4px 12px;
+    border-radius: 980px;
+    letter-spacing: 0.02em;
 }
 h1 {
-    font-size: 38px;
+    font-size: 36px;
     font-weight: 700;
     letter-spacing: -0.02em;
-    margin: 0 0 8px;
+    margin: 14px 0 8px;
     line-height: 1.15;
 }
 h2 {
@@ -41,7 +97,7 @@ h2 {
     color: #1D1D1F;
 }
 h3 {
-    font-size: 19px;
+    font-size: 20px;
     font-weight: 600;
     margin: 36px 0 12px;
     color: #1D1D1F;
@@ -55,382 +111,461 @@ p {
     font-size: 19px;
     margin: 0 0 32px;
     font-weight: 400;
+    line-height: 1.5;
 }
 .muted { color: #86868B; }
+strong { font-weight: 600; color: #1D1D1F; }
+em { font-style: italic; }
+a { color: #0071e3; text-decoration: none; }
+a:hover { text-decoration: underline; }
 code.inline {
     font-family: "SF Mono", Menlo, Consolas, monospace;
     background: #F5F5F7;
     color: #1D1D1F;
     padding: 2px 6px;
     border-radius: 4px;
-    font-size: 0.92em;
+    font-size: 0.9em;
 }
-pre {
-    background: #F5F5F7;
-    border-radius: 10px;
-    padding: 18px 20px;
-    overflow-x: auto;
-    margin: 0 0 20px;
+/* 代码卡片 */
+.code-card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    margin: 0 0 24px;
+    overflow: hidden;
     border: 1px solid #E8E8ED;
 }
-pre code {
+.code-header {
+    background: #F5F5F7;
+    border-bottom: 1px solid #E8E8ED;
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12.5px;
+}
+.code-file {
     font-family: "SF Mono", Menlo, Consolas, monospace;
-    font-size: 13.5px;
-    line-height: 1.55;
+    color: #1D1D1F;
+    font-weight: 600;
+}
+.code-lines { color: #86868B; }
+.code-block {
+    margin: 0;
+    padding: 16px 18px;
+    overflow-x: auto;
+    background: #FFFFFF;
+}
+.code-block code {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.6;
     color: #1D1D1F;
     background: transparent;
     padding: 0;
+    white-space: pre;
+    display: block;
 }
-.math-block {
-    background: #F5F5F7;
-    border-radius: 10px;
-    padding: 18px 20px;
-    margin: 0 0 20px;
-    text-align: center;
-    overflow-x: auto;
+.code-block .line { display: block; white-space: pre; }
+.code-block .ln {
+    display: inline-block;
+    width: 3em;
+    text-align: right;
+    color: #BBB;
+    user-select: none;
+    margin-right: 18px;
+    font-variant-numeric: tabular-nums;
 }
+.code-block .code { white-space: pre; }
+.code-block .cmt { color: #5a9e6f; white-space: pre-wrap; }
+/* callout */
 .callout {
     background: #F5F5F7;
     border-left: 3px solid #0071e3;
     border-radius: 8px;
     padding: 14px 18px;
-    margin: 0 0 20px;
+    margin: 0 0 24px;
     color: #1D1D1F;
 }
-.callout .label {
+.callout-label {
     color: #0071e3;
     font-weight: 600;
     font-size: 13px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
-ul, ol {
-    margin: 0 0 20px;
-    padding-left: 24px;
-}
-li { margin-bottom: 8px; }
-a {
-    color: #0071e3;
-    text-decoration: none;
-}
-a:hover { text-decoration: underline; }
-.nav-footer {
-    margin-top: 72px;
-    padding-top: 24px;
-    border-top: 1px solid #E8E8ED;
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-.nav-footer a {
-    color: #0071e3;
-    font-size: 15px;
-    padding: 8px 14px;
-    border-radius: 8px;
+.callout p:last-child { margin-bottom: 0; }
+/* 数学块 */
+.math-block {
     background: #F5F5F7;
-}
-.nav-footer a:hover { background: #E8E8ED; }
-.toc-list {
-    list-style: none;
-    padding: 0;
-    margin: 24px 0;
-}
-.toc-list li {
-    margin-bottom: 14px;
-    padding: 16px 20px;
-    background: #F5F5F7;
-    border-radius: 12px;
-    transition: background 0.15s;
-}
-.toc-list li:hover { background: #ECECEF; }
-.toc-list a {
-    font-size: 17px;
-    font-weight: 600;
-    color: #1D1D1F;
-    display: block;
-}
-.toc-list .desc {
-    color: #86868B;
-    font-size: 14px;
-    font-weight: 400;
-    margin-top: 4px;
-    display: block;
-}
-.toc-list .num {
-    color: #0071e3;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-}
-.hero {
+    border-radius: 10px;
+    padding: 20px;
+    margin: 0 0 24px;
     text-align: center;
-    padding: 32px 0 8px;
+    overflow-x: auto;
 }
-.hero .badge {
-    color: #0071e3;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
-img.diagram {
-    max-width: 100%;
-    height: auto;
-    border-radius: 12px;
-    margin: 16px 0;
-    border: 1px solid #E8E8ED;
-}
-.section-intro {
-    color: #86868B;
-    font-size: 15px;
-    margin-bottom: 32px;
-    border-bottom: 1px solid #E8E8ED;
-    padding-bottom: 20px;
-}
+/* 列表 */
+ul, ol { margin: 0 0 20px; padding-left: 24px; }
+li { margin-bottom: 8px; }
+/* 表格 */
 table {
     width: 100%;
     border-collapse: collapse;
-    margin: 0 0 20px;
+    margin: 0 0 24px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #E8E8ED;
     font-size: 15px;
 }
-th, td {
-    text-align: left;
-    padding: 10px 14px;
-    border-bottom: 1px solid #E8E8ED;
+th, td { padding: 11px 16px; text-align: left; border-bottom: 1px solid #E8E8ED; }
+th { background: #F5F5F7; font-weight: 600; }
+tr:last-child td { border-bottom: none; }
+/* 图片 */
+img { max-width: 100%; border-radius: 12px; }
+/* 导航底栏 */
+.nav-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid #E8E8ED;
+    font-size: 15px;
 }
-th { color: #86868B; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
+.nav-footer a { color: #0071e3; }
+/* 目录卡片 */
+.toc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 24px 0;
+}
+.toc-card {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    text-decoration: none;
+    color: #1D1D1F;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.toc-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.08); text-decoration: none; }
+.toc-card .tc-num { font-size: 12px; color: #86868B; font-weight: 600; letter-spacing: 0.04em; }
+.toc-card .tc-title { font-size: 17px; font-weight: 600; margin: 4px 0 6px; }
+.toc-card .tc-desc { font-size: 13.5px; color: #86868B; line-height: 1.5; }
+/* 概念关系图（HTML/CSS） */
+.concept-map { margin: 24px 0; }
+.cm-layer {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: stretch;
+}
+.cm-layer-label {
+    width: 92px;
+    flex: 0 0 92px;
+    font-size: 12px;
+    color: #86868B;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-top: 14px;
+}
+.cm-nodes { flex: 1; display: flex; gap: 10px; flex-wrap: wrap; }
+.cm-node {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 10px;
+    padding: 10px 14px;
+    min-width: 150px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.cm-node .cm-id { font-size: 11px; color: #0071e3; font-weight: 700; }
+.cm-node .cm-name { font-size: 14px; font-weight: 600; color: #1D1D1F; }
+.cm-arrow {
+    text-align: center;
+    color: #86868B;
+    font-size: 12px;
+    margin: 8px 0 8px 92px;
+}
+.cm-rels { margin-top: 20px; }
+.cm-rel {
+    display: inline-block;
+    background: #F5F5F7;
+    border-radius: 8px;
+    padding: 5px 11px;
+    margin: 4px 6px 4px 0;
+    font-size: 12.5px;
+    color: #1D1D1F;
+}
+.cm-rel b { color: #0071e3; }
+/* 架构树 */
+.arch-tree {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 12px;
+    padding: 20px 24px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    overflow-x: auto;
+    white-space: pre;
+    color: #1D1D1F;
+}
+.arch-tree .c { color: #86868B; }
+@media (max-width: 860px) {
+    .sidebar { position: static; width: 100%; height: auto; }
+    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .toc-grid { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
+<aside class="sidebar"><h2 class="sidebar-title">AlphaSAGE</h2><p class="sidebar-sub">深度代码教程</p><a href="index.html">首页</a>
+<div class="group-label">数据层</div>
+<a href="01.html">第1章 数据与特征加载</a>
+<a href="02.html">第2章 表达式与算子体系</a>
+<div class="group-label">核心层</div>
+<a href="03.html">第3章 GFlowNet 生成框架</a>
+<a href="04.html">第4章 RGCN 结构编码器</a>
+<a href="05.html">第5章 Alpha 池管理</a>
+<a href="06.html">第6章 多维奖励函数</a>
+<div class="group-label">应用层</div>
+<a href="07.html">第7章 训练主循环</a>
+<a href="08.html">第8章 Alpha 动态组合</a>
+<a href="09.html">第9章 评估指标</a>
+<a href="10.html" class="active">第10章 Baseline 对比</a></aside>
 <main class="content">
-<div class="hero"><div class="badge">第 10 章 · IO 层</div></div><h1>第 10 章：Baseline 对比</h1><p class="subtitle">PPO、QCM、AFF 三类基线 —— 与 GFlowNet 同台竞技的对照组</p><h2>欢迎</h2><p>欢迎来到第 10 章！这是本教程的最后一章。前面九章我们讲了 AlphaSAGE 的各个组件，但要证明“GFlowNet + RGCN + 多维奖励”这套组合有效，就得与其他方法同台竞技。AlphaSAGE 仓库提供了三类基线：PPO（传统 RL）、QCM（分位式 RL）、AFF（融合组合基线）。本章会依次读它们的入口脚本，看它们与 GFlowNet 共享哪些接口、又在哪里分道扬镳。</p><p>本章会进入 <code class='inline'>train_ppo.py</code>、<code class='inline'>train_qcm.py</code>、<code class='inline'>combine_AFF.py</code>，看它们如何复用 <code class='inline'>StockData</code>、<code class='inline'>AlphaPool</code>、<code class='inline'>AlphaEnv</code>，以及各自的策略估计与组合逻辑。</p><h2>它解决什么问题？</h2><p>类比来说，Baseline 对比像同场竞技的对照组，PPO、QCM、AFF 各显神通，用以衡量 GFlowNet 的优势。</p><p>研究项目需要“对比实验”才能证明方法的优越性。AlphaSAGE 提出了“GFlowNet + RGCN + 多维奖励”这一套新方法，需要与传统 RL（PPO）、分位式 RL（QCM）、融合组合（AFF）对照，才能说明“多样化生成”与“结构感知”的价值。这些基线复用了 AlphaSAGE 的数据与池接口，保证了“同起点”的公平性。</p><h2>核心设计思路</h2><p>Baseline 的设计思路是<b>共享接口 + 差异化策略 + 同框架评估</b>。</p><p><b>共享接口</b>：所有基线都使用同一个 <code class='inline'>StockData</code>、同一个 target（<code class='inline'>Ref(close, -20) / close - 1</code>）、同一个 <code class='inline'>AlphaPool</code>、同一个 <code class='inline'>AlphaEnv</code>。这让对比只反映“策略不同”的影响，排除了数据与环境的差异。</p><p><b>差异化策略</b>：PPO 用 MaskablePPO 训练 LSTM 策略；QCM 用 QR-DQN/IQN/FQF 估计 Q 值分位；AFF 用 GAN 生成 alpha 并加权融合。它们在“怎么生成 alpha”上各有侧重。</p><p><b>同框架评估</b>：所有基线都用第 9 章的 <code class='inline'>get_tensor_metrics</code> 计算 IC、ICIR、夏普、MDD，输出可比指标。这让对比结果公平、可复现。</p><h2>代码深入</h2><h3>PPO 基线：传统 RL 的代表</h3><p>PPO 是 Stable-Baselines3 中的 MaskablePPO，使用 LSTM 编码器。它是 AlphaSAGE 与传统 RL 对照的基线。</p><pre><code>def run(args):
-    reseed_everything(args.seed)
-
-    if args.instruments == &#x27;sp500&#x27;:
-        QLIB_PATH = &#x27;/your_path/data/qlib_data/us_data_qlib&#x27;
-    else:
-        QLIB_PATH = &#x27;/your_path/data/qlib_data/cn_data_rolling&#x27;
-    device = torch.device(&#x27;cuda&#x27;)
-    close = Feature(FeatureType.CLOSE)
-    target = Ref(close, -20) / close - 1
-
-    # You can re-implement AlphaCalculator instead of using QLibStockDataCalculator.
-    data_train = StockData(instrument=args.instruments,
-                           start_time=&#x27;2010-01-01&#x27;,
-                           end_time=&#x27;2020-12-31&#x27;,
-                           qlib_path = QLIB_PATH)
-    data_valid = StockData(instrument=args.instruments,
-                           start_time=&#x27;2021-01-01&#x27;,
-                           end_time=&#x27;2021-12-31&#x27;,
-                           qlib_path = QLIB_PATH)
-    data_test = StockData(instrument=args.instruments,
-                          start_time=&#x27;2022-01-01&#x27;,
-                          end_time=&#x27;2024-12-31&#x27;,
-                          qlib_path = QLIB_PATH)
-    # calculator_train = QLibStockDataCalculator(data_train, target)
-    # calculator_valid = QLibStockDataCalculator(data_valid, target)
-    # calculator_test = QLibStockDataCalculator(data_test, target)
-
-    pool = AlphaPool(
-        capacity=args.pool,
-        stock_data=data_train,
-        target=target,
-        ic_lower_bound=None
-    )
-    env = AlphaEnv(pool=pool, device=device, print_expr=True)
-</code></pre><p>看 PPO 入口。第 96-104 行是共享部分：设备、target、数据加载都与 GFlowNet 一致。这保证了同起点。</p><p>第 123-128 行创建 <code class='inline'>AlphaPool</code>（不是 AlphaPoolGFN）。这里只用了父类，没有 SSL 与新颖度逻辑，反映了 PPO “只看 IC”的简单策略。</p><p>第 129 行创建 <code class='inline'>AlphaEnv</code>。这个环境与 GFlowNet 的 <code class='inline'>GFNEnvCore</code> 共享同一个 AlphaPool 实例，但接口不同：PPO 调用 <code class='inline'>step(action)</code>，而 GFlowNet 调用 <code class='inline'>reward(state)</code>。</p><p>第 139-149 行创建 <code class='inline'>CustomCallback</code>，定期在测试集上评估、保存 checkpoint。这个 callback 会调用 <code class='inline'>pool.test_ensemble(test_data, target)</code>，计算 IC 与 rIC，是与 GFlowNet 同框架评估的体现。</p><h3>PPO 策略：LSTM + MaskablePPO</h3><pre><code>    model = MaskablePPO(
-        &#x27;MlpPolicy&#x27;,
-        env,
-        policy_kwargs=dict(
-            features_extractor_class=LSTMSharedNet,
-            features_extractor_kwargs=dict(
-                n_layers=2,
-                d_model=128,
-                dropout=0.1,
-                device=device,
-            ),
-        ),
-        gamma=1.,
-        ent_coef=0.01,
-        batch_size=128,
-        tensorboard_log=log_dir,
-        device=device,
-        verbose=1,
-    )
-    model.learn(
-        total_timesteps=args.steps,
-        callback=checkpoint_callback,
-        tb_log_name=f&#x27;{name_prefix}_{timestamp}&#x27;,
-    )</code></pre><p>第 151-169 行创建 MaskablePPO 模型。<code class='inline'>MaskablePPO</code> 是支持动作掩蔽的 PPO 变体，它能根据当前表达式结构屏蔽非法动作（如一元算子不能选二元算子的操作数）。</p><p><code class='inline'>features_extractor_class=LSTMSharedNet</code> 是 AlphaSAGE 自定义的 LSTM 特征提取器。它与 GFlowNet 的 RGCN 形成鲜明对比：LSTM 是序列模型，RGCN 是图模型。AlphaSAGE 试图通过这个对比证明“结构感知”的价值。</p><p><code class='inline'>gamma=1.</code> 是抵扣因子，表示不折未来奖励。这是 alpha 生成任务的特点：每个动作都直接影响最终表达式，不需要折未来。<code class='inline'>ent_coef=0.01</code> 是熵系数，与 GFlowNet 的熵正则项引入同一思想，但 PPO 是在上下文中软性加入，而非 GFlowNet 的 TB 损失中直接减去。</p><h3>QCM 基线：分位式 RL</h3><p>QCM 是另一类强化学习基线，使用 QR-DQN、IQN、FQF 估计 Q 值的分位。它们与 PPO 的区别是：不估计期望值，而是估计分布。</p><pre><code>def run(args):
-    if args.instruments == &#x27;sp500&#x27;:
-        QLIB_PATH = &#x27;/your_path/data/qlib_data/us_data_qlib&#x27;
-    else:
-        QLIB_PATH = &#x27;/your_path/data/qlib_data/cn_data_rolling&#x27;
-    # torch.cuda.set_device(args.cuda)
-    config_path = os.path.join(&#x27;config/qcm_config&#x27;, f&#x27;{args.model}.yaml&#x27;)
-
-    with open(config_path) as f:
-        config = yaml.load(f, Loader=yaml.SafeLoader)
-
-    # Create environments.
-    device = torch.device(f&#x27;cuda&#x27;)
-    close = Feature(FeatureType.CLOSE)
-    target = Ref(close, -20) / close - 1
-    
-    
-    data_train = StockData(instrument=args.instruments,
-                           start_time=&#x27;2010-01-01&#x27;,
-                           end_time=&#x27;2020-12-31&#x27;,
-                           qlib_path = QLIB_PATH)
-    data_valid = StockData(instrument=args.instruments,
-                           start_time=&#x27;2021-01-01&#x27;,
-                           end_time=&#x27;2021-12-31&#x27;,
-                           qlib_path = QLIB_PATH)
-    data_test = StockData(instrument=args.instruments,
-                          start_time=&#x27;2022-01-01&#x27;,
-                          end_time=&#x27;2024-12-31&#x27;,
-                          qlib_path = QLIB_PATH)
-    # calculator_train = QLibStockDataCalculator(data_train, target)
-    # calculator_valid = QLibStockDataCalculator(data_valid, target)
-    # calculator_test = QLibStockDataCalculator(data_test, target)
-
-    train_pool = AlphaPool(
-        capacity=args.pool,
-        stock_data=data_train,
-        target=target,
-        ic_lower_bound=None
-    )
-    train_env = AlphaEnv(pool=train_pool, device=device, print_expr=True)</code></pre><p>看 QCM 入口。共享部分同样是数据与 target。第 47-53 行创建 <code class='inline'>AlphaPool</code> 与 <code class='inline'>AlphaEnv</code>，与 PPO 一致。</p><p>与 GFlowNet 的区别在于：QCM 是值基 RL，学习 Q(s, a)；GFlowNet 是生成模型，学习 P_F(τ)。值基 RL 倾向于找到单一最优动作，而 GFlowNet 采样多样轨迹。这个对比是 AlphaSAGE 论文的核心论点之一。</p><p>QCM 皂型训练与 GFlowNet 同样需要大量迭代与调超参数，但它们不需要后向策略（P_B），实现上更简单。但代价是它们并不保证多样性。</p><h3>AFF 基线：融合组合</h3><p>AFF 是另一类基线，用 GAN 生成 alpha 并用加权融合。它与 GFlowNet 的区别在于“怎么生成”与“怎么组合”。</p><pre><code>def run(args):
-    window = args.window
-    if isinstance(window, str):
-        assert window == &#x27;inf&#x27;
-        window = float(&#x27;inf&#x27;)
-
-    os.environ[&quot;CUDA_VISIBLE_DEVICES&quot;]=str(args.cuda)
-
-    close = Feature(FeatureType.CLOSE)
-    target = Ref(close, -20) / close - 1
-
-    # read data
-    train_end_time = f&#x27;{args.train_end_year}-12-31&#x27;
-    valid_start_time = f&#x27;{args.train_end_year + 1}-01-01&#x27;
-    valid_end_time = f&#x27;{args.train_end_year + 1}-12-31&#x27;
-    test_start_time = f&#x27;{args.train_end_year + 2}-01-01&#x27;
-    test_end_time = f&#x27;{args.train_end_year + 4}-12-31&#x27;
-
-    data_all = StockData(instrument=args.instruments,
-                         start_time=&#x27;2010-01-01&#x27;,
-                         end_time=test_end_time,
-                         qlib_path=QLIB_PATH)
-    data = StockData(instrument=args.instruments,
-                     start_time=&#x27;2010-01-01&#x27;,
-                     end_time=train_end_time,
-                     qlib_path=QLIB_PATH)
-    data_valid = StockData(instrument=args.instruments,
-                           start_time=valid_start_time,
-                           end_time=valid_end_time,
-                           qlib_path=QLIB_PATH)
-    data_test = StockData(instrument=args.instruments,
-                          start_time=test_start_time,
-                          end_time=test_end_time,
-                          qlib_path=QLIB_PATH)
-
-    path = f&quot;out/{args.save_name}_{args.instruments}_{args.train_end_year}_{args.seed}/z_bld_zoo_final.pkl&quot;
-    tensor_save_path = f&quot;out/{args.save_name}_{args.instruments}_{args.train_end_year}_{args.seed}/&quot;
-    name = f&quot;{args.train_end_year}_{args.n_factors}_{args.window}_{args.seed}&quot;
-    zoo = load_pickle(path)
-    
-    df = get_blds_list_df([zoo]).sort_values(&#x27;score&#x27;,ascending=False,key=lambda x:abs(x))
-    from gan.utils.builder import exprs2tensor
-    fct_tensor = exprs2tensor(df[&#x27;exprs&#x27;],data_all,normalize=True)
-    tgt_tensor = exprs2tensor([target],data_all,normalize=False)
-</code></pre><p>看 AFF 的 <code class='inline'>run</code> 函数。第 114-115 行定义了 target，与 GFlowNet 一致。第 117-139 行加载三段数据（训练/验证/测试），共享同一个 instrument。</p><p>第 141-148 行加载 GAN 生成的 alpha 池，转成因子张量。这里的 alpha 不是 GFlowNet 生成的，而是 GAN 生成的，是“替代生成器”基线。</p><p>第 152-160 行逐 alpha 计算 IC、RankIC、收益，这里使用了 <code class='inline'>get_tensor_metrics_raw</code> 而非 GFlowNet 使用的 <code class='inline'>get_tensor_metrics</code>。这个区别反映了 AFF 以 “每个 alpha ” 为单位评估，而 GFlowNet 以 “组合后” 为单位评估。</p><p>这里的设计是 AFF 在评估阶段采用了与 GFlowNet 不同的路径，但最终输出仍是 ret_s 序列，与 GFlowNet 同框架。</p><h3>AFF 的动态组合逻辑</h3><pre><code>    pbar = tqdm(range(len(fct_tensor)-data_test.n_days-data_valid.n_days,len(fct_tensor)))
-    for cur in pbar:
-
-        # control the past window that we use to evaluate the factors in order to filter factors and generate the weights
-        if np.isfinite(window):
-            begin = cur-window-shift
-        else:
-            begin = 0
-
-        cur_ic = ic_s[begin:cur-shift]
-        cur_ric = ric_s[begin:cur-shift]
-        cur_ret = ret_s[begin:cur-shift]
-
-        ic_mean = cur_ic.mean(dim=0)
-        ic_std = cur_ic.std(dim=0)
-        ric_mean = cur_ric.mean(dim=0)
-        ric_std = cur_ric.std(dim=0)
-        ret_mean = cur_ret.mean(dim=0)
-        ret_std = cur_ret.std(dim=0)
-
-        icir = ic_mean/ic_std
-        ricir = ric_mean/ric_std
-        retir = ret_mean/ret_std
-
-        metrics = dict(
-            ic = ic_mean.detach().cpu().numpy(),
-            ic_std = ic_std.detach().cpu().numpy(),
-            icir = icir.detach().cpu().numpy(),
-            ric = ric_mean.detach().cpu().numpy(),
-            ric_std = ric_std.detach().cpu().numpy(),
-            ricir = ricir.detach().cpu().numpy(),
-            ret = ret_mean.detach().cpu().numpy(),
-            ret_std = ret_std.detach().cpu().numpy(),
-            retir = retir.detach().cpu().numpy(),
-        )
-        tmp = pd.DataFrame(metrics).sort_values(&#x27;ricir&#x27;,ascending=False,key=lambda x:abs(x))
-        
-
-        # filter the factors
-        aaaa = tmp[(tmp[&#x27;ric&#x27;]&gt;0.02)&amp;(tmp[&#x27;ricir&#x27;]&gt;0.2)] 
-        if len(aaaa)&lt;1:
-            aaaa = tmp.iloc[:1]
-
-        # select the best &#x27;n_factors&#x27; alpha factors
-        good_idx = aaaa.iloc[:args.n_factors].index.to_list()
-        good_idx_list.append(good_idx)
-
-        # prepare the linear regression data
-        x = fct_tensor[begin:cur-shift,:,good_idx]
-        y = tgt_tensor[begin:cur-shift,]#.flatten()
-        to_pred = fct_tensor[cur,:,good_idx]
-        y_true = tgt_tensor[cur,]
-        y = y.reshape(-1,y.shape[-1])
-        x = x.reshape(-1,x.shape[-1])
-
-        to_select = torch.isfinite(y)[:,0]
-        y = y[to_select]
-        x = x[to_select]
-
-        to_pred = torch.nan_to_num(to_pred,nan=0)
-
-        # add the constant term
-        ones = torch.ones_like(x[...,0:1])
-        x = torch.cat([x,ones],dim=-1)
-        ones = torch.ones_like(to_pred[...,0:1])
-        to_pred = torch.cat([to_pred,ones],dim=-1)
-
-        # train the linear regression model to get weights
-        coef = torch.linalg.lstsq(x,y).solution
-
-        # predict the target of the next day
-        pred = to_pred @ coef
-        weights_list.append(coef.detach().cpu().numpy())
-
-        # calculate the metrics of the prediction
-        cur_ic = batch_pearsonr(pred.T,y_true.T)[0]
-        cur_ric = batch_spearmanr(pred.T,y_true.T)[0]
-        ics_list.append(cur_ic.detach().cpu().numpy())
-        rics_list.append(cur_ric.detach().cpu().numpy())
-
-        pbar.set_description(
-            f&quot;ic:{np.nanmean(ics_list):.3f} ric:{np.nanmean(rics_list):.3f} n:{len(good_idx)}&quot;
-            )
-        pred_list.append(pred[:,0])</code></pre><p>这里是 AFF 的滚动组合逻辑，与 GFlowNet 的 <code class='inline'>run_adaptive_combination.py</code> 高度对称。第 182-185 行定义滚动窗口。第 187-200 行计算窗口内 IC 与 ICIR。第 213-222 行筛选优质 alpha，使用 RankIC 与 RankICIR 阈值，与 GFlowNet 的逻辑完全一致。</p><p>第 226-243 行准备回归数据，添加常数项。第 246 行调用 <code class='inline'>torch.linalg.lstsq</code> 求解 OLS，与 GFlowNet 完全一致。这里可以看出，AFF 与 GFlowNet 在“组合阶段”完全同框架，区别只在“生成阶段”（GAN vs GFlowNet）。</p><p>这个设计让对比变得公平：如果 GFlowNet 生成的 alpha 池在同一个组合器（OLS 回归）下表现更优，那么可以确定是“生成”环节的优势，而非“组合”环节的优势。</p><h2>数据流</h2><p>三类基线的共享数据流：<b>StockData → target → AlphaPool → AlphaEnv → 策略 → 训练 → pool_*.json → 组合 → 指标</b>。</p><p>具体来说，三类基线都使用同一个 instrument（如 csi300）与同一个 target（未来 20 天收益），训练后输出各自的 pool_*.json。组合阶段都用 <code class='inline'>torch.linalg.lstsq</code> 求解 OLS，输出 ret_s.npy。最后用 <code class='inline'>get_tensor_metrics</code> 计算 IC、ICIR、夏普、MDD，进行同框架对比。</p><h2>设计权衡</h2><p><b>为什么选择 PPO 作为传统 RL 基线？</b>PPO 是强化学习中最被广泛使用的算法之一，它性能稳定、调超参数少。与之对比可以说明 GFlowNet 相对于传统 RL 的优势。</p><p><b>为什么选择 QCM 作为分位式 RL 基线？</b>QCM 代表了“估计 Q 值分布”这一类方法，与 PPO 代表的“估计期望值”互为补充。与 GFlowNet 对比可以说明“生成模型”相对于“值基 RL”的优势。</p><p><b>为什么选择 AFF 作为生成器基线？</b>AFF 代表了“用 GAN 生成 alpha”这一类方法。与 GFlowNet 对比可以说明“路径采样”相对于“GAN 生成”的优势。且 AFF 复用了 GFlowNet 的组合逻辑，让对比变得公平。</p><p><b>为什么三类基线共享 AlphaPool 与 AlphaEnv？</b>因为这样可以排除环境与池的差异，只让“策略与生成器”成为变量。如果各自实现不同的池与环境，就难以说明“结果差异是由策略造成的”。</p><h2>小结</h2><p>本章讲解了 AlphaSAGE 的三类基线：PPO、QCM、AFF。它们共享 StockData、AlphaPool、AlphaEnv 接口，各自用不同策略生成 alpha，最后都用同一个组合器与指标评估。</p><p>这套设计让 AlphaSAGE 的“GFlowNet + RGCN + 多维奖励”与其他方法公平同台竞技。读者可以根据这些对比评估自己的判断。</p><div class="callout"><span class="label">结语</span>教程到此结束。从数据加载到评估指标，从 GFlowNet 生成到 Mega-Alpha 组合，AlphaSAGE 的完整数据流与设计思想已经讲完。希望本教程能帮助你理解这个项目。</div><div class="nav-footer"><a href="09.html">← 上一章</a><a href="index.html">目录</a><span></span></div>
+<div class="hero"><span class="badge">第 10 章 · 应用层</span></div>
+<h1>第10章：Baseline 对比</h1>
+<p class="subtitle">像同场竞技的对照组，PPO、QCM、AFF 各显神通，用以衡量 GFlowNet 的优势。</p>
+<h2>欢迎</h2>
+<p>GFlowNet 是 AlphaSAGE 的主角，但要证明它真的更好，必须有对照组。仓库提供了三类基线：<strong>PPO</strong>（经典策略梯度）、<strong>QCM</strong>（分布式强化学习）、<strong>AFF</strong>（注意力因子融合）。它们与 GFlowNet 共享同一套数据接口、同一套 AlphaPool、同一套评估指标，只换生成或组合方法——这样对比才公平。</p>
+<p>本章快速过一遍三个基线的入口，重点看它们与 GFlowNet 的异同。你会发现：PPO 与 GFlowNet 共享环境与池，只是采样器不同；QCM 用分布式 RL 建模回报分布；AFF 则在组合层做注意力融合，对照 Mega-Alpha 的线性回归组合。</p>
+<h2>它解决什么问题？</h2>
+<p>没有基线的实验是空中楼阁。AlphaSAGE 的核心论断是「GFlowNet 比 RL 更能生成多样化的 alpha」。要支持这个论断，必须让 GFlowNet 与 PPO 在完全相同的环境（AlphaPool、reward、数据切分）下跑，比池的多样性、IC 分布、最终组合 Sharpe。</p>
+<p>QCM 提供另一维对照：分布式 RL 不只预测期望回报，还预测回报的分位数分布，理论上信息量更大。AFF 则对照组合方法——它用注意力机制学习因子间的非线性融合权重，对照 Mega-Alpha 的线性最小二乘回归。三个基线从生成到组合全面覆盖了对比空间。</p>
+<h2>核心设计思路</h2>
+<p>设计上有三个要点。第一，<strong>共享环境接口</strong>：PPO/QCM 都用 <code class="inline">AlphaEnv</code> 包装 <code class="inline">AlphaPool</code>，与 GFlowNet 的 <code class="inline">GFNEnvCore</code> 同源。第二，<strong>共享数据与目标</strong>：所有方法用相同的 <code class="inline">StockData</code> 与 <code class="inline">Ref(close,-20)/close-1</code> 目标，保证可比。第三，<strong>共享评估口径</strong>：最终都用 <code class="inline">get_tensor_metrics</code> 算指标，没有任何方法有自己的「私房指标」。</p>
+<h2>代码深入</h2>
+<h3>PPO 基线 —— 与 GFN 共享环境</h3>
+<p>PPO 入口几乎与 GFlowNet 训练同构：同样的 StockData、同样的 target、同样的 AlphaPool。区别只在用 <code class="inline">MaskablePPO</code> 代替 GFlowNet 采样器。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">train_ppo.py</span><span class="code-lines">第 95-165 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">95</span><span class="code">def run(args):<span class="cmt">  # PPO 基线入口：与 GFN 共享 StockData/AlphaPool/环境</span></span></span>
+<span class="line"><span class="ln">96</span><span class="code">    reseed_everything(args.seed)</span></span>
+<span class="line"><span class="ln">97</span><span class="code"></span></span>
+<span class="line"><span class="ln">98</span><span class="code">    if args.instruments == &#x27;sp500&#x27;:</span></span>
+<span class="line"><span class="ln">99</span><span class="code">        QLIB_PATH = &#x27;/your_path/data/qlib_data/us_data_qlib&#x27;</span></span>
+<span class="line"><span class="ln">100</span><span class="code">    else:</span></span>
+<span class="line"><span class="ln">101</span><span class="code">        QLIB_PATH = &#x27;/your_path/data/qlib_data/cn_data_rolling&#x27;</span></span>
+<span class="line"><span class="ln">102</span><span class="code">    device = torch.device(&#x27;cuda&#x27;)</span></span>
+<span class="line"><span class="ln">103</span><span class="code">    close = Feature(FeatureType.CLOSE)<span class="cmt">  # 目标同为未来 20 天收益，保证可比</span></span></span>
+<span class="line"><span class="ln">104</span><span class="code">    target = Ref(close, -20) / close - 1</span></span>
+<span class="line"><span class="ln">105</span><span class="code"></span></span>
+<span class="line"><span class="ln">106</span><span class="code">    # You can re-implement AlphaCalculator instead of using QLibStockDataCalculator.</span></span>
+<span class="line"><span class="ln">107</span><span class="code">    data_train = StockData(instrument=args.instruments,<span class="cmt">  # 训练数据 2010-2020</span></span></span>
+<span class="line"><span class="ln">108</span><span class="code">                           start_time=&#x27;2010-01-01&#x27;,</span></span>
+<span class="line"><span class="ln">109</span><span class="code">                           end_time=&#x27;2020-12-31&#x27;,</span></span>
+<span class="line"><span class="ln">110</span><span class="code">                           qlib_path = QLIB_PATH)</span></span>
+<span class="line"><span class="ln">111</span><span class="code">    data_valid = StockData(instrument=args.instruments,</span></span>
+<span class="line"><span class="ln">112</span><span class="code">                           start_time=&#x27;2021-01-01&#x27;,</span></span>
+<span class="line"><span class="ln">113</span><span class="code">                           end_time=&#x27;2021-12-31&#x27;,</span></span>
+<span class="line"><span class="ln">114</span><span class="code">                           qlib_path = QLIB_PATH)</span></span>
+<span class="line"><span class="ln">115</span><span class="code">    data_test = StockData(instrument=args.instruments,</span></span>
+<span class="line"><span class="ln">116</span><span class="code">                          start_time=&#x27;2022-01-01&#x27;,</span></span>
+<span class="line"><span class="ln">117</span><span class="code">                          end_time=&#x27;2024-12-31&#x27;,</span></span>
+<span class="line"><span class="ln">118</span><span class="code">                          qlib_path = QLIB_PATH)</span></span>
+<span class="line"><span class="ln">119</span><span class="code">    # calculator_train = QLibStockDataCalculator(data_train, target)</span></span>
+<span class="line"><span class="ln">120</span><span class="code">    # calculator_valid = QLibStockDataCalculator(data_valid, target)</span></span>
+<span class="line"><span class="ln">121</span><span class="code">    # calculator_test = QLibStockDataCalculator(data_test, target)</span></span>
+<span class="line"><span class="ln">122</span><span class="code"></span></span>
+<span class="line"><span class="ln">123</span><span class="code">    pool = AlphaPool(<span class="cmt">  # AlphaPool 容量固定，PPO 仅做单 alpha 生成</span></span></span>
+<span class="line"><span class="ln">124</span><span class="code">        capacity=args.pool,</span></span>
+<span class="line"><span class="ln">125</span><span class="code">        stock_data=data_train,</span></span>
+<span class="line"><span class="ln">126</span><span class="code">        target=target,</span></span>
+<span class="line"><span class="ln">127</span><span class="code">        ic_lower_bound=None</span></span>
+<span class="line"><span class="ln">128</span><span class="code">    )</span></span>
+<span class="line"><span class="ln">129</span><span class="code">    env = AlphaEnv(pool=pool, device=device, print_expr=True)<span class="cmt">  # AlphaEnv 把池封装成 step 环境</span></span></span>
+<span class="line"><span class="ln">130</span><span class="code"></span></span>
+<span class="line"><span class="ln">131</span><span class="code">    name_prefix = f&quot;ppo_{args.instruments}_{args.pool}_{args.seed}&quot;</span></span>
+<span class="line"><span class="ln">132</span><span class="code">    timestamp = datetime.now().strftime(&#x27;%Y%m%d%H%M%S&#x27;)</span></span>
+<span class="line"><span class="ln">133</span><span class="code"></span></span>
+<span class="line"><span class="ln">134</span><span class="code">    # Create log directory</span></span>
+<span class="line"><span class="ln">135</span><span class="code">    log_dir = os.path.join(&#x27;data/ppo_logs&#x27;,</span></span>
+<span class="line"><span class="ln">136</span><span class="code">                           f&quot;pool_{args.pool}&quot;,</span></span>
+<span class="line"><span class="ln">137</span><span class="code">                           f&quot;{name_prefix}-{timestamp}&quot;)</span></span>
+<span class="line"><span class="ln">138</span><span class="code"></span></span>
+<span class="line"><span class="ln">139</span><span class="code">    checkpoint_callback = CustomCallback(</span></span>
+<span class="line"><span class="ln">140</span><span class="code">        save_freq=10000,</span></span>
+<span class="line"><span class="ln">141</span><span class="code">        show_freq=10000,</span></span>
+<span class="line"><span class="ln">142</span><span class="code">        save_path=log_dir,</span></span>
+<span class="line"><span class="ln">143</span><span class="code">        valid_data=data_valid,</span></span>
+<span class="line"><span class="ln">144</span><span class="code">        test_data=data_test,</span></span>
+<span class="line"><span class="ln">145</span><span class="code">        target=target,</span></span>
+<span class="line"><span class="ln">146</span><span class="code">        name_prefix=name_prefix,</span></span>
+<span class="line"><span class="ln">147</span><span class="code">        timestamp=timestamp,</span></span>
+<span class="line"><span class="ln">148</span><span class="code">        verbose=1,</span></span>
+<span class="line"><span class="ln">149</span><span class="code">    )</span></span>
+<span class="line"><span class="ln">150</span><span class="code"></span></span>
+<span class="line"><span class="ln">151</span><span class="code">    model = MaskablePPO(<span class="cmt">  # MaskablePPO：动作掩码保证只生成合法表达式</span></span></span>
+<span class="line"><span class="ln">152</span><span class="code">        &#x27;MlpPolicy&#x27;,</span></span>
+<span class="line"><span class="ln">153</span><span class="code">        env,</span></span>
+<span class="line"><span class="ln">154</span><span class="code">        policy_kwargs=dict(</span></span>
+<span class="line"><span class="ln">155</span><span class="code">            features_extractor_class=LSTMSharedNet,<span class="cmt">  # LSTMSharedNet 作为策略特征提取器，与 GFN 同构</span></span></span>
+<span class="line"><span class="ln">156</span><span class="code">            features_extractor_kwargs=dict(</span></span>
+<span class="line"><span class="ln">157</span><span class="code">                n_layers=2,</span></span>
+<span class="line"><span class="ln">158</span><span class="code">                d_model=128,</span></span>
+<span class="line"><span class="ln">159</span><span class="code">                dropout=0.1,</span></span>
+<span class="line"><span class="ln">160</span><span class="code">                device=device,</span></span>
+<span class="line"><span class="ln">161</span><span class="code">            ),</span></span>
+<span class="line"><span class="ln">162</span><span class="code">        ),</span></span>
+<span class="line"><span class="ln">163</span><span class="code">        gamma=1.,<span class="cmt">  # gamma=1：无折扣，关注最终奖励</span></span></span>
+<span class="line"><span class="ln">164</span><span class="code">        ent_coef=0.01,</span></span>
+<span class="line"><span class="ln">165</span><span class="code">        batch_size=128,</span></span></code></pre></div>
+<p>第 151 行的 <code class="inline">MaskablePPO</code> 是关键。GFlowNet 用状态掩码保证动作合法，PPO 也必须用动作掩码（maskable PPO）才能在同样的动作空间里工作——否则它会尝试生成非法 token，训练直接崩溃。第 155 行的 <code class="inline">LSTMSharedNet</code> 与 GFlowNet 的 <code class="inline">SequenceEncoder</code> 同构，保证编码能力相当。这种「只换采样器、不换其他」的对照设计，让结论「GFlowNet 比 PPO 多样性强」有说服力。</p>
+<p>第 163 行 <code class="inline">gamma=1.</code> 也是值得注意的细节。PPO 通常用折扣因子 gamma&lt;1 衰减未来奖励，但 alpha 生成的轨迹短（≤20 步）、奖励只在终点给出（稀疏），折扣会让信号几乎消失。设 gamma=1 等于不衰减，让终点的 IC 奖励完整传回——这是稀疏奖励任务的常见配置。</p>
+<h3>QCM 基线 —— 分布式 RL</h3>
+<p>QCM（Quantile/Categorical Model）用分布式 RL 建模回报分布。它按 model 参数选择 QRDQN/IQN/FQF 三种算子。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">train_qcm.py</span><span class="code-lines">第 14-70 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">14</span><span class="code">def run(args):<span class="cmt">  # QCM 分布式 RL 基线入口</span></span></span>
+<span class="line"><span class="ln">15</span><span class="code">    if args.instruments == &#x27;sp500&#x27;:</span></span>
+<span class="line"><span class="ln">16</span><span class="code">        QLIB_PATH = &#x27;/your_path/data/qlib_data/us_data_qlib&#x27;</span></span>
+<span class="line"><span class="ln">17</span><span class="code">    else:</span></span>
+<span class="line"><span class="ln">18</span><span class="code">        QLIB_PATH = &#x27;/your_path/data/qlib_data/cn_data_rolling&#x27;</span></span>
+<span class="line"><span class="ln">19</span><span class="code">    # torch.cuda.set_device(args.cuda)</span></span>
+<span class="line"><span class="ln">20</span><span class="code">    config_path = os.path.join(&#x27;config/qcm_config&#x27;, f&#x27;{args.model}.yaml&#x27;)<span class="cmt">  # 从 YAML 读分布式 RL 超参</span></span></span>
+<span class="line"><span class="ln">21</span><span class="code"></span></span>
+<span class="line"><span class="ln">22</span><span class="code">    with open(config_path) as f:</span></span>
+<span class="line"><span class="ln">23</span><span class="code">        config = yaml.load(f, Loader=yaml.SafeLoader)</span></span>
+<span class="line"><span class="ln">24</span><span class="code"></span></span>
+<span class="line"><span class="ln">25</span><span class="code">    # Create environments.</span></span>
+<span class="line"><span class="ln">26</span><span class="code">    device = torch.device(f&#x27;cuda&#x27;)</span></span>
+<span class="line"><span class="ln">27</span><span class="code">    close = Feature(FeatureType.CLOSE)<span class="cmt">  # 目标同为未来 20 天收益</span></span></span>
+<span class="line"><span class="ln">28</span><span class="code">    target = Ref(close, -20) / close - 1</span></span>
+<span class="line"><span class="ln">29</span><span class="code">    </span></span>
+<span class="line"><span class="ln">30</span><span class="code">    </span></span>
+<span class="line"><span class="ln">31</span><span class="code">    data_train = StockData(instrument=args.instruments,<span class="cmt">  # 训练数据 2010-2020，与 PPO/GFN 一致</span></span></span>
+<span class="line"><span class="ln">32</span><span class="code">                           start_time=&#x27;2010-01-01&#x27;,</span></span>
+<span class="line"><span class="ln">33</span><span class="code">                           end_time=&#x27;2020-12-31&#x27;,</span></span>
+<span class="line"><span class="ln">34</span><span class="code">                           qlib_path = QLIB_PATH)</span></span>
+<span class="line"><span class="ln">35</span><span class="code">    data_valid = StockData(instrument=args.instruments,</span></span>
+<span class="line"><span class="ln">36</span><span class="code">                           start_time=&#x27;2021-01-01&#x27;,</span></span>
+<span class="line"><span class="ln">37</span><span class="code">                           end_time=&#x27;2021-12-31&#x27;,</span></span>
+<span class="line"><span class="ln">38</span><span class="code">                           qlib_path = QLIB_PATH)</span></span>
+<span class="line"><span class="ln">39</span><span class="code">    data_test = StockData(instrument=args.instruments,</span></span>
+<span class="line"><span class="ln">40</span><span class="code">                          start_time=&#x27;2022-01-01&#x27;,</span></span>
+<span class="line"><span class="ln">41</span><span class="code">                          end_time=&#x27;2024-12-31&#x27;,</span></span>
+<span class="line"><span class="ln">42</span><span class="code">                          qlib_path = QLIB_PATH)</span></span>
+<span class="line"><span class="ln">43</span><span class="code">    # calculator_train = QLibStockDataCalculator(data_train, target)</span></span>
+<span class="line"><span class="ln">44</span><span class="code">    # calculator_valid = QLibStockDataCalculator(data_valid, target)</span></span>
+<span class="line"><span class="ln">45</span><span class="code">    # calculator_test = QLibStockDataCalculator(data_test, target)</span></span>
+<span class="line"><span class="ln">46</span><span class="code"></span></span>
+<span class="line"><span class="ln">47</span><span class="code">    train_pool = AlphaPool(<span class="cmt">  # AlphaPool 与 GFN/PPO 完全一致，保证可比</span></span></span>
+<span class="line"><span class="ln">48</span><span class="code">        capacity=args.pool,</span></span>
+<span class="line"><span class="ln">49</span><span class="code">        stock_data=data_train,</span></span>
+<span class="line"><span class="ln">50</span><span class="code">        target=target,</span></span>
+<span class="line"><span class="ln">51</span><span class="code">        ic_lower_bound=None</span></span>
+<span class="line"><span class="ln">52</span><span class="code">    )</span></span>
+<span class="line"><span class="ln">53</span><span class="code">    train_env = AlphaEnv(pool=train_pool, device=device, print_expr=True)<span class="cmt">  # AlphaEnv 封装，同 PPO</span></span></span>
+<span class="line"><span class="ln">54</span><span class="code"></span></span>
+<span class="line"><span class="ln">55</span><span class="code">    # Specify the directory to log.</span></span>
+<span class="line"><span class="ln">56</span><span class="code">    name = args.model</span></span>
+<span class="line"><span class="ln">57</span><span class="code">    time = datetime.now().strftime(&quot;%Y%m%d-%H%M&quot;)</span></span>
+<span class="line"><span class="ln">58</span><span class="code">    if name in [&#x27;qrdqn&#x27;, &#x27;iqn&#x27;]:</span></span>
+<span class="line"><span class="ln">59</span><span class="code">        log_dir = os.path.join(f&#x27;data/{args.instruments}_logs&#x27;,</span></span>
+<span class="line"><span class="ln">60</span><span class="code">                           f&#x27;pool_{args.pool}_QCM_{args.std_lam}&#x27;,</span></span>
+<span class="line"><span class="ln">61</span><span class="code">                           f&quot;{name}-seed{args.seed}-{time}-N{config[&#x27;N&#x27;]}-lr{config[&#x27;lr&#x27;]}-per{config[&#x27;use_per&#x27;]}-gamma{config[&#x27;gamma&#x27;]}-step{config[&#x27;multi_step&#x27;]}&quot;)</span></span>
+<span class="line"><span class="ln">62</span><span class="code">    elif name == &#x27;fqf&#x27;:</span></span>
+<span class="line"><span class="ln">63</span><span class="code">        log_dir = os.path.join(f&#x27;data/{args.instruments}_logs&#x27;,</span></span>
+<span class="line"><span class="ln">64</span><span class="code">                           f&#x27;pool_{args.pool}_QCM_{args.std_lam}&#x27;,</span></span>
+<span class="line"><span class="ln">65</span><span class="code">                           f&quot;{name}-seed{args.seed}-{time}-N{config[&#x27;N&#x27;]}-lr{config[&#x27;quantile_lr&#x27;]}-per{config[&#x27;use_per&#x27;]}-gamma{config[&#x27;gamma&#x27;]}-step{config[&#x27;multi_step&#x27;]}&quot;)</span></span>
+<span class="line"><span class="ln">66</span><span class="code"></span></span>
+<span class="line"><span class="ln">67</span><span class="code">    # Create the agent and run.</span></span>
+<span class="line"><span class="ln">68</span><span class="code">    if name == &#x27;qrdqn&#x27;:<span class="cmt">  # 按 model 选择分布式 RL 算子</span></span></span>
+<span class="line"><span class="ln">69</span><span class="code">        agent = QRQCMAgent(env=train_env,<span class="cmt">  # QRDQN：分位回归 DQN，建模回报分布</span></span></span>
+<span class="line"><span class="ln">70</span><span class="code">                           data_valid=data_valid,</span></span></code></pre></div>
+<p>第 68-95 行按 <code class="inline">--model</code> 选择三种分布式 RL 算子。QRDQN 把回报分布离散成固定分位数；IQN 用隐式函数预测任意分位；FQF 让分位位置也可学习。三者都比传统 DQN 信息量更大——它们不只预测期望回报，还预测回报的不确定性。对 alpha 生成，这意味着策略能感知「这个动作的回报有多稳」。不过分布式 RL 同样面临模式崩塌问题——它优化的是期望，不是多样性，这正是 GFlowNet 的比较优势所在。</p>
+<h3>AFF 基线 —— 注意力因子融合</h3>
+<p>AFF 在组合层做对照：用注意力机制学习因子间的非线性融合权重，对照 Mega-Alpha 的线性最小二乘回归。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">combine_AFF.py</span><span class="code-lines">第 106-165 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">106</span><span class="code">def run(args):<span class="cmt">  # AFF 融合组合入口：对照 Mega-Alpha 效果</span></span></span>
+<span class="line"><span class="ln">107</span><span class="code">    window = args.window</span></span>
+<span class="line"><span class="ln">108</span><span class="code">    if isinstance(window, str):</span></span>
+<span class="line"><span class="ln">109</span><span class="code">        assert window == &#x27;inf&#x27;</span></span>
+<span class="line"><span class="ln">110</span><span class="code">        window = float(&#x27;inf&#x27;)</span></span>
+<span class="line"><span class="ln">111</span><span class="code"></span></span>
+<span class="line"><span class="ln">112</span><span class="code">    os.environ[&quot;CUDA_VISIBLE_DEVICES&quot;]=str(args.cuda)</span></span>
+<span class="line"><span class="ln">113</span><span class="code"></span></span>
+<span class="line"><span class="ln">114</span><span class="code">    close = Feature(FeatureType.CLOSE)</span></span>
+<span class="line"><span class="ln">115</span><span class="code">    target = Ref(close, -20) / close - 1<span class="cmt">  # 目标未来 20 天收益</span></span></span>
+<span class="line"><span class="ln">116</span><span class="code"></span></span>
+<span class="line"><span class="ln">117</span><span class="code">    # read data</span></span>
+<span class="line"><span class="ln">118</span><span class="code">    train_end_time = f&#x27;{args.train_end_year}-12-31&#x27;<span class="cmt">  # 训练段截止年</span></span></span>
+<span class="line"><span class="ln">119</span><span class="code">    valid_start_time = f&#x27;{args.train_end_year + 1}-01-01&#x27;</span></span>
+<span class="line"><span class="ln">120</span><span class="code">    valid_end_time = f&#x27;{args.train_end_year + 1}-12-31&#x27;</span></span>
+<span class="line"><span class="ln">121</span><span class="code">    test_start_time = f&#x27;{args.train_end_year + 2}-01-01&#x27;</span></span>
+<span class="line"><span class="ln">122</span><span class="code">    test_end_time = f&#x27;{args.train_end_year + 4}-12-31&#x27;<span class="cmt">  # 测试段截止年</span></span></span>
+<span class="line"><span class="ln">123</span><span class="code"></span></span>
+<span class="line"><span class="ln">124</span><span class="code">    data_all = StockData(instrument=args.instruments,<span class="cmt">  # 加载全段数据</span></span></span>
+<span class="line"><span class="ln">125</span><span class="code">                         start_time=&#x27;2010-01-01&#x27;,</span></span>
+<span class="line"><span class="ln">126</span><span class="code">                         end_time=test_end_time,</span></span>
+<span class="line"><span class="ln">127</span><span class="code">                         qlib_path=QLIB_PATH)</span></span>
+<span class="line"><span class="ln">128</span><span class="code">    data = StockData(instrument=args.instruments,</span></span>
+<span class="line"><span class="ln">129</span><span class="code">                     start_time=&#x27;2010-01-01&#x27;,</span></span>
+<span class="line"><span class="ln">130</span><span class="code">                     end_time=train_end_time,</span></span>
+<span class="line"><span class="ln">131</span><span class="code">                     qlib_path=QLIB_PATH)</span></span>
+<span class="line"><span class="ln">132</span><span class="code">    data_valid = StockData(instrument=args.instruments,</span></span>
+<span class="line"><span class="ln">133</span><span class="code">                           start_time=valid_start_time,</span></span>
+<span class="line"><span class="ln">134</span><span class="code">                           end_time=valid_end_time,</span></span>
+<span class="line"><span class="ln">135</span><span class="code">                           qlib_path=QLIB_PATH)</span></span>
+<span class="line"><span class="ln">136</span><span class="code">    data_test = StockData(instrument=args.instruments,</span></span>
+<span class="line"><span class="ln">137</span><span class="code">                          start_time=test_start_time,</span></span>
+<span class="line"><span class="ln">138</span><span class="code">                          end_time=test_end_time,</span></span>
+<span class="line"><span class="ln">139</span><span class="code">                          qlib_path=QLIB_PATH)</span></span>
+<span class="line"><span class="ln">140</span><span class="code"></span></span>
+<span class="line"><span class="ln">141</span><span class="code">    path = f&quot;out/{args.save_name}_{args.instruments}_{args.train_end_year}_{args.seed}/z_bld_zoo_final.pkl&quot;<span class="cmt">  # 从 zoo 加载 AFF 训练产物的表达式集合</span></span></span>
+<span class="line"><span class="ln">142</span><span class="code">    tensor_save_path = f&quot;out/{args.save_name}_{args.instruments}_{args.train_end_year}_{args.seed}/&quot;</span></span>
+<span class="line"><span class="ln">143</span><span class="code">    name = f&quot;{args.train_end_year}_{args.n_factors}_{args.window}_{args.seed}&quot;</span></span>
+<span class="line"><span class="ln">144</span><span class="code">    zoo = load_pickle(path)<span class="cmt">  # load_pickle 读取表达式 zoo</span></span></span>
+<span class="line"><span class="ln">145</span><span class="code">    </span></span>
+<span class="line"><span class="ln">146</span><span class="code">    df = get_blds_list_df([zoo]).sort_values(&#x27;score&#x27;,ascending=False,key=lambda x:abs(x))<span class="cmt">  # 按分数排序，取强因子</span></span></span>
+<span class="line"><span class="ln">147</span><span class="code">    from gan.utils.builder import exprs2tensor</span></span>
+<span class="line"><span class="ln">148</span><span class="code">    fct_tensor = exprs2tensor(df[&#x27;exprs&#x27;],data_all,normalize=True)<span class="cmt">  # exprs2tensor 批量求值成因子矩阵</span></span></span>
+<span class="line"><span class="ln">149</span><span class="code">    tgt_tensor = exprs2tensor([target],data_all,normalize=False)<span class="cmt">  # 目标张量</span></span></span>
+<span class="line"><span class="ln">150</span><span class="code"></span></span>
+<span class="line"><span class="ln">151</span><span class="code"></span></span>
+<span class="line"><span class="ln">152</span><span class="code">    ic_list = []</span></span>
+<span class="line"><span class="ln">153</span><span class="code">    ric_list = []</span></span>
+<span class="line"><span class="ln">154</span><span class="code">    ret_list = []</span></span>
+<span class="line"><span class="ln">155</span><span class="code">    from tqdm import tqdm</span></span>
+<span class="line"><span class="ln">156</span><span class="code">    for cur in tqdm(range(fct_tensor.shape[-1])):<span class="cmt">  # 逐因子算原始指标</span></span></span>
+<span class="line"><span class="ln">157</span><span class="code">        ic_s,ric_s,ret_s = get_tensor_metrics_raw(fct_tensor[...,cur],tgt_tensor[...,0])<span class="cmt">  # IC/RankIC/收益三路序列</span></span></span>
+<span class="line"><span class="ln">158</span><span class="code">        ic_list.append(ic_s)</span></span>
+<span class="line"><span class="ln">159</span><span class="code">        ric_list.append(ric_s)</span></span>
+<span class="line"><span class="ln">160</span><span class="code">        ret_list.append(ret_s)</span></span>
+<span class="line"><span class="ln">161</span><span class="code"></span></span>
+<span class="line"><span class="ln">162</span><span class="code">    ic_s = torch.stack(ic_list,dim=-1)</span></span>
+<span class="line"><span class="ln">163</span><span class="code">    ric_s = torch.stack(ric_list,dim=-1)<span class="cmt">  # stack 成 (days, n_factors) 矩阵</span></span></span>
+<span class="line"><span class="ln">164</span><span class="code">    ret_s = torch.stack(ret_list,dim=-1)</span></span>
+<span class="line"><span class="ln">165</span><span class="code">    torch.cuda.empty_cache()</span></span></code></pre></div>
+<p>第 141-146 行的 <code class="inline">zoo</code> 是 AFF 训练保存的表达式集合。AFF 的核心思想是用注意力机制学习因子间的融合权重——比 Mega-Alpha 的线性回归更灵活，能捕捉因子间的非线性协同。但代价是参数更多、更容易过拟合。第 156-163 行逐因子算指标后 stack 成矩阵，为后续的注意力融合或对照评估做准备。</p>
+<p>AFF 与 Mega-Alpha 的对比回答了一个问题：「组合层是否需要非线性？」如果 AFF 显著优于 Mega-Alpha，说明因子间存在重要的非线性协同；如果两者相当，说明线性回归已足够。这种对照让 AlphaSAGE 的组合方法选择有据可依，而不是拍脑袋。</p>
+<div class="callout"><span class="callout-label">设计权衡</span>为什么基线要共享环境与数据？因为只有这样，差异才能归因于方法本身。如果 PPO 用不同的池容量或不同的目标，它的劣势可能是配置而非方法。AlphaSAGE 严格对齐所有可控变量，只让「生成器」或「组合器」不同——这是实验设计的基本功，也是论文结论可信的前提。</div>
+<div class="callout"><span class="callout-label">小结</span>PPO/QCM/AFF 三类基线分别对照生成（PPO/QCM vs GFlowNet）与组合（AFF vs Mega-Alpha）。共享环境、数据、评估口径，保证对比公平。GFlowNet 的多样性优势、Mega-Alpha 的线性组合简洁性，都在这套对照里得到验证。</div>
+<h2>关联公式</h2>
+<p>PPO 的策略梯度（简化形式）：</p>
+<div class="math-block">$$\nabla J = \mathbb{E}\left[\nabla \log \pi(a\mid s)\, A(s,a)\right]$$</div>
+<p>与 GFlowNet 的 TB 损失对比：PPO 最大化期望回报，GFlowNet 匹配正比于奖励的分布。前者贪心，后者多样。分布式 RL（QCM）建模回报分布 $Z(s,a)$ 而非期望 $Q(s,a)$：</p>
+<div class="math-block">$$Z_\theta(s,a) \approx \text{真实回报分布}, \quad Q(s,a) = \mathbb{E}[Z(s,a)]$$</div>
+<p>AFF 的注意力融合可简化为：</p>
+<div class="math-block">$$\hat{y} = \sum_i \alpha_i\, v_i, \quad \alpha_i = \text{softmax}(\text{Attn}(v_i, v_{1:n}))$$</div>
+<p>对照 Mega-Alpha 的 $\hat{y} = \sum_i w_i v_i$（$w_i$ 来自最小二乘）。前者权重是学出来的非线性函数，后者是数据驱动的线性解。</p>
+<h2>小结</h2>
+<p>本章你看到了 AlphaSAGE 的对照实验设计。PPO、QCM 在生成层对照 GFlowNet，AFF 在组合层对照 Mega-Alpha。共享环境与评估口径让对比公平。这套基线不是装饰，而是 AlphaSAGE 论文结论的基石——没有它们，「GFlowNet 更多样」「Mega-Alpha 更稳」都只是断言。至此，十章节走完了从数据到生成、从训练到组合、从评估到对照的完整闭环。</p>
+<div class="nav-footer"><a href="09.html">← 第9章 评估指标</a><a href="index.html">目录</a><a href="index.html">返回目录 →</a></div>
 </main>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+                onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>
 </body>
 </html>

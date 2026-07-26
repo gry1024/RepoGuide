@@ -1,36 +1,92 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>第 4 章：RGCN 结构编码器 | AlphaSAGE</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-        onload="renderMathInElement(document.body, {{delimiters:[{{left:'$$',right:'$$',display:true}},{{left:'$',right:'$',display:false}}]}});"></script>
-<style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第4章：RGCN 结构编码器 | AlphaSAGE</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <style>
 * { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
 body {
-    margin: 0;
-    padding: 0;
     background: #FBFBFD;
     color: #1D1D1F;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
                  "PingFang SC", "Microsoft YaHei", sans-serif;
     font-size: 17px;
-    line-height: 1.65;
+    line-height: 1.7;
     -webkit-font-smoothing: antialiased;
 }
+/* 侧边栏 */
+.sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    width: 240px;
+    height: 100vh;
+    overflow-y: auto;
+    background: #F5F5F7;
+    border-right: 1px solid #E8E8ED;
+    padding: 28px 18px 40px;
+    z-index: 100;
+}
+.sidebar-title {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0 0 4px;
+    color: #1D1D1F;
+}
+.sidebar-sub {
+    font-size: 12px;
+    color: #86868B;
+    margin: 0 0 22px;
+    letter-spacing: 0.02em;
+}
+.sidebar a {
+    display: block;
+    color: #1D1D1F;
+    font-size: 13.5px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    margin-bottom: 2px;
+    text-decoration: none;
+    line-height: 1.4;
+}
+.sidebar a:hover { background: #E8E8ED; text-decoration: none; }
+.sidebar a.active {
+    color: #0071e3;
+    font-weight: 600;
+    background: #E8E8ED;
+}
+.sidebar .group-label {
+    font-size: 11px;
+    color: #86868B;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 18px 12px 6px;
+}
+/* 主内容 */
 main.content {
     max-width: 820px;
-    margin: 0 auto;
-    padding: 64px 28px 120px;
+    margin: 0 0 0 240px;
+    padding: 64px 40px 120px;
+}
+.hero { margin-bottom: 8px; }
+.badge {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0071e3;
+    background: rgba(0,113,227,0.08);
+    padding: 4px 12px;
+    border-radius: 980px;
+    letter-spacing: 0.02em;
 }
 h1 {
-    font-size: 38px;
+    font-size: 36px;
     font-weight: 700;
     letter-spacing: -0.02em;
-    margin: 0 0 8px;
+    margin: 14px 0 8px;
     line-height: 1.15;
 }
 h2 {
@@ -41,7 +97,7 @@ h2 {
     color: #1D1D1F;
 }
 h3 {
-    font-size: 19px;
+    font-size: 20px;
     font-weight: 600;
     margin: 36px 0 12px;
     color: #1D1D1F;
@@ -55,230 +111,343 @@ p {
     font-size: 19px;
     margin: 0 0 32px;
     font-weight: 400;
+    line-height: 1.5;
 }
 .muted { color: #86868B; }
+strong { font-weight: 600; color: #1D1D1F; }
+em { font-style: italic; }
+a { color: #0071e3; text-decoration: none; }
+a:hover { text-decoration: underline; }
 code.inline {
     font-family: "SF Mono", Menlo, Consolas, monospace;
     background: #F5F5F7;
     color: #1D1D1F;
     padding: 2px 6px;
     border-radius: 4px;
-    font-size: 0.92em;
+    font-size: 0.9em;
 }
-pre {
-    background: #F5F5F7;
-    border-radius: 10px;
-    padding: 18px 20px;
-    overflow-x: auto;
-    margin: 0 0 20px;
+/* 代码卡片 */
+.code-card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    margin: 0 0 24px;
+    overflow: hidden;
     border: 1px solid #E8E8ED;
 }
-pre code {
+.code-header {
+    background: #F5F5F7;
+    border-bottom: 1px solid #E8E8ED;
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12.5px;
+}
+.code-file {
     font-family: "SF Mono", Menlo, Consolas, monospace;
-    font-size: 13.5px;
-    line-height: 1.55;
+    color: #1D1D1F;
+    font-weight: 600;
+}
+.code-lines { color: #86868B; }
+.code-block {
+    margin: 0;
+    padding: 16px 18px;
+    overflow-x: auto;
+    background: #FFFFFF;
+}
+.code-block code {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.6;
     color: #1D1D1F;
     background: transparent;
     padding: 0;
+    white-space: pre;
+    display: block;
 }
-.math-block {
-    background: #F5F5F7;
-    border-radius: 10px;
-    padding: 18px 20px;
-    margin: 0 0 20px;
-    text-align: center;
-    overflow-x: auto;
+.code-block .line { display: block; white-space: pre; }
+.code-block .ln {
+    display: inline-block;
+    width: 3em;
+    text-align: right;
+    color: #BBB;
+    user-select: none;
+    margin-right: 18px;
+    font-variant-numeric: tabular-nums;
 }
+.code-block .code { white-space: pre; }
+.code-block .cmt { color: #5a9e6f; white-space: pre-wrap; }
+/* callout */
 .callout {
     background: #F5F5F7;
     border-left: 3px solid #0071e3;
     border-radius: 8px;
     padding: 14px 18px;
-    margin: 0 0 20px;
+    margin: 0 0 24px;
     color: #1D1D1F;
 }
-.callout .label {
+.callout-label {
     color: #0071e3;
     font-weight: 600;
     font-size: 13px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
-ul, ol {
-    margin: 0 0 20px;
-    padding-left: 24px;
-}
-li { margin-bottom: 8px; }
-a {
-    color: #0071e3;
-    text-decoration: none;
-}
-a:hover { text-decoration: underline; }
-.nav-footer {
-    margin-top: 72px;
-    padding-top: 24px;
-    border-top: 1px solid #E8E8ED;
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-.nav-footer a {
-    color: #0071e3;
-    font-size: 15px;
-    padding: 8px 14px;
-    border-radius: 8px;
+.callout p:last-child { margin-bottom: 0; }
+/* 数学块 */
+.math-block {
     background: #F5F5F7;
-}
-.nav-footer a:hover { background: #E8E8ED; }
-.toc-list {
-    list-style: none;
-    padding: 0;
-    margin: 24px 0;
-}
-.toc-list li {
-    margin-bottom: 14px;
-    padding: 16px 20px;
-    background: #F5F5F7;
-    border-radius: 12px;
-    transition: background 0.15s;
-}
-.toc-list li:hover { background: #ECECEF; }
-.toc-list a {
-    font-size: 17px;
-    font-weight: 600;
-    color: #1D1D1F;
-    display: block;
-}
-.toc-list .desc {
-    color: #86868B;
-    font-size: 14px;
-    font-weight: 400;
-    margin-top: 4px;
-    display: block;
-}
-.toc-list .num {
-    color: #0071e3;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-}
-.hero {
+    border-radius: 10px;
+    padding: 20px;
+    margin: 0 0 24px;
     text-align: center;
-    padding: 32px 0 8px;
+    overflow-x: auto;
 }
-.hero .badge {
-    color: #0071e3;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
-img.diagram {
-    max-width: 100%;
-    height: auto;
-    border-radius: 12px;
-    margin: 16px 0;
-    border: 1px solid #E8E8ED;
-}
-.section-intro {
-    color: #86868B;
-    font-size: 15px;
-    margin-bottom: 32px;
-    border-bottom: 1px solid #E8E8ED;
-    padding-bottom: 20px;
-}
+/* 列表 */
+ul, ol { margin: 0 0 20px; padding-left: 24px; }
+li { margin-bottom: 8px; }
+/* 表格 */
 table {
     width: 100%;
     border-collapse: collapse;
-    margin: 0 0 20px;
+    margin: 0 0 24px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #E8E8ED;
     font-size: 15px;
 }
-th, td {
-    text-align: left;
-    padding: 10px 14px;
-    border-bottom: 1px solid #E8E8ED;
+th, td { padding: 11px 16px; text-align: left; border-bottom: 1px solid #E8E8ED; }
+th { background: #F5F5F7; font-weight: 600; }
+tr:last-child td { border-bottom: none; }
+/* 图片 */
+img { max-width: 100%; border-radius: 12px; }
+/* 导航底栏 */
+.nav-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid #E8E8ED;
+    font-size: 15px;
 }
-th { color: #86868B; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
+.nav-footer a { color: #0071e3; }
+/* 目录卡片 */
+.toc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 24px 0;
+}
+.toc-card {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    text-decoration: none;
+    color: #1D1D1F;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.toc-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.08); text-decoration: none; }
+.toc-card .tc-num { font-size: 12px; color: #86868B; font-weight: 600; letter-spacing: 0.04em; }
+.toc-card .tc-title { font-size: 17px; font-weight: 600; margin: 4px 0 6px; }
+.toc-card .tc-desc { font-size: 13.5px; color: #86868B; line-height: 1.5; }
+/* 概念关系图（HTML/CSS） */
+.concept-map { margin: 24px 0; }
+.cm-layer {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: stretch;
+}
+.cm-layer-label {
+    width: 92px;
+    flex: 0 0 92px;
+    font-size: 12px;
+    color: #86868B;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-top: 14px;
+}
+.cm-nodes { flex: 1; display: flex; gap: 10px; flex-wrap: wrap; }
+.cm-node {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 10px;
+    padding: 10px 14px;
+    min-width: 150px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.cm-node .cm-id { font-size: 11px; color: #0071e3; font-weight: 700; }
+.cm-node .cm-name { font-size: 14px; font-weight: 600; color: #1D1D1F; }
+.cm-arrow {
+    text-align: center;
+    color: #86868B;
+    font-size: 12px;
+    margin: 8px 0 8px 92px;
+}
+.cm-rels { margin-top: 20px; }
+.cm-rel {
+    display: inline-block;
+    background: #F5F5F7;
+    border-radius: 8px;
+    padding: 5px 11px;
+    margin: 4px 6px 4px 0;
+    font-size: 12.5px;
+    color: #1D1D1F;
+}
+.cm-rel b { color: #0071e3; }
+/* 架构树 */
+.arch-tree {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 12px;
+    padding: 20px 24px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    overflow-x: auto;
+    white-space: pre;
+    color: #1D1D1F;
+}
+.arch-tree .c { color: #86868B; }
+@media (max-width: 860px) {
+    .sidebar { position: static; width: 100%; height: auto; }
+    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .toc-grid { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
+<aside class="sidebar"><h2 class="sidebar-title">AlphaSAGE</h2><p class="sidebar-sub">深度代码教程</p><a href="index.html">首页</a>
+<div class="group-label">数据层</div>
+<a href="01.html">第1章 数据与特征加载</a>
+<a href="02.html">第2章 表达式与算子体系</a>
+<div class="group-label">核心层</div>
+<a href="03.html">第3章 GFlowNet 生成框架</a>
+<a href="04.html" class="active">第4章 RGCN 结构编码器</a>
+<a href="05.html">第5章 Alpha 池管理</a>
+<a href="06.html">第6章 多维奖励函数</a>
+<div class="group-label">应用层</div>
+<a href="07.html">第7章 训练主循环</a>
+<a href="08.html">第8章 Alpha 动态组合</a>
+<a href="09.html">第9章 评估指标</a>
+<a href="10.html">第10章 Baseline 对比</a></aside>
 <main class="content">
-<div class="hero"><div class="badge">第 4 章 · 核心层</div></div><h1>第 4 章：RGCN 结构编码器</h1><p class="subtitle">把 RPN 序列转成关系图，用 RGCNConv 读出表达式结构嵌入</p><h2>欢迎</h2><p>欢迎来到第 4 章！上一章我们看了 GFlowNet 如何生成多样 alpha 轨迹。但生成只是第一步，还需要让模型“看懂”表达式结构。为什么不用 LSTM 或 Transformer 处理 RPN 序列就够了？因为序列模型无法捕捉语法树中的父子、兄弟关系。比如 <code class='inline'>Sub($close, $open)</code> 与 <code class='inline'>Sub($open, $close)</code> 是不同的，参数顺序重要。RGCN 用关系图明确表达这些差异。</p><p>本章会进入 <code class='inline'>modules.py</code>，看 <code class='inline'>_build_graph_from_rpn</code> 如何把 RPN token 序列转成关系图，以及 <code class='inline'>GNNEncoder</code> 如何用多层 RGCNConv 读出表达式的结构嵌入。</p><h2>它解决什么问题？</h2><p>类比来说，RGCN 编码器像给公式做语法树体检，把算子当节点、按关系连边，再用图神经网络读出结构。</p><p>alpha 表达式不是无规律的 token 序列，而是一棵有结构的语法树。例如 <code class='inline'>Add($close, Sub($open, $high))</code> 的 RPN 形式是 <code class='inline'>$close $open $high Sub Add</code>。LSTM 处理它只看到顺序，看不到“Sub 操作了 $open 与 $high”这个结构信息。这导致两个语义不同的表达式在表征上差异不大。RGCN 通过为算子与操作数之间连边，让模型能“看见”语法结构。这是 AlphaSAGE 的核心创新之一。</p><h2>核心设计思路</h2><p>RGCN 编码器的设计思路是<b>关系分类 + 多层消息传递 + 全局池化</b>。</p><p><b>关系分类</b>：不同类型的算子-操作数关系被赋予不同的边类型。AlphaSAGE 定义了 6 类关系：0=一元操作数、1=交换式二元操作数、2=非交换左操作数、3=非交换右操作数、4=特征操作数、5=时间序列操作数。这让 RGCN 可以区分 <code class='inline'>Sub(a, b)</code> 与 <code class='inline'>Sub(b, a)</code>，以及 <code class='inline'>TsMean($close, 20)</code> 与 <code class='inline'>TsMean(20, $close)</code>。</p><p><b>多层消息传递</b>：多层 RGCNConv 让信息从叶子节点（特征/常数）流到根节点（算子），反之亦然，可以捕捉不同层次的语义信息。</p><p><b>全局池化</b>：最后对所有节点嵌入取平均，得到表达式级别的嵌入。这个嵌入会被 SSL 奖励使用（第 6 章）来查近邻 alpha。</p><h2>代码深入</h2><h3>_build_graph_from_rpn：RPN 到关系图</h3><p>这个函数是 RGCN 的灵魂。它把 RPN token 序列转成带有边类型的 PyG Data 对象。</p><pre><code>def _build_graph_from_rpn(token_ids: list[int], token_embedding_layer: nn.Embedding, beg_token_id: int) -&gt; Data:
-    device = token_embedding_layer.weight.device
-    tokens = []
-    for tid in token_ids:
-        if tid == beg_token_id:
-            tokens.append(BEG_TOKEN)
-        else:
-            tokens.append(action2token(tid))
-    
-    edges = []
-    edge_types = []
-    stack = []
-    UNARY_OPS = [&#x27;Abs&#x27;, &#x27;SLog1p&#x27;, &#x27;Inv&#x27;, &#x27;Sign&#x27;, &#x27;Log&#x27;, &#x27;Rank&#x27;]
-    COMMUTATIVE_OPS = [&#x27;Add&#x27;, &#x27;Mul&#x27;]
-    NON_COMMUTATIVE_OPS = [&#x27;Sub&#x27;, &#x27;Div&#x27;, &#x27;Pow&#x27;, &#x27;Greater&#x27;, &#x27;Less&#x27;]
-    ROLLING_OPS = [&#x27;Ref&#x27;, &#x27;TsMean&#x27;, &#x27;TsSum&#x27;, &#x27;TsStd&#x27;, &#x27;TsIr&#x27;, &#x27;TsMinMaxDiff&#x27;, &#x27;TsMaxDiff&#x27;, &#x27;TsMinDiff&#x27;, &#x27;TsVar&#x27;, &#x27;TsSkew&#x27;, &#x27;TsKurt&#x27;, &#x27;TsMax&#x27;, &#x27;TsMin&#x27;,
-        &#x27;TsMed&#x27;, &#x27;TsMad&#x27;, &#x27;TsRank&#x27;, &#x27;TsDelta&#x27;, &#x27;TsDiv&#x27;, &#x27;TsPctChange&#x27;, &#x27;TsWMA&#x27;, &#x27;TsEMA&#x27;]
-    PAIR_ROLLING_OPS = [&#x27;TsCov&#x27;, &#x27;TsCorr&#x27;]
-
-    for j, token in enumerate(tokens):</code></pre><p>第 25-30 行定义了四类算子。为什么要手动分类？因为不同类型的算子操作数顺序不同：一元算子只有一个操作数，交换式二元算子（Add/Mul）两个操作数等价，非交换二元算子（Sub/Div）顺序重要，滚动算子的两个操作数语义不同（一个特征、一个时间窗口）。这些区别需要被图编码器知道。</p><pre><code>    for j, token in enumerate(tokens):
-        if isinstance(token, OperatorToken):
-            op = token.operator
-            n_args = op.n_args()
-            if len(stack) &lt; n_args: continue
-            
-            for i in range(n_args):
-                child_node_idx = stack.pop()
-                edges.append((child_node_idx, j))
-                
-                if op.__name__ in UNARY_OPS:
-                    edge_types.append(0)  # Unary operand
-                elif op.__name__ in COMMUTATIVE_OPS:
-                    edge_types.append(1)  # Commutative binary operand
-                elif op.__name__ in NON_COMMUTATIVE_OPS:  # Non-commutative binary
-                    # The first pop (i=0) is the right-most operand in an expression
-                    if i == 0:
-                        edge_types.append(3)  # Right operand
-                    else:
-                        edge_types.append(2)  # Left operand
-                elif op.__name__ in ROLLING_OPS or op.__name__ in PAIR_ROLLING_OPS:
-                    if i == 0:
-                        edge_types.append(5)  # Time series operand
-                    else:
-                        edge_types.append(4)  # Feature operand
-                else:
-                    raise TypeError(f&quot;Unknown operator: {op.__name__}&quot;)
-        stack.append(j)
-</code></pre><p>这是建图的核心逻辑。使用一个栈来跟踪待处理的操作数。遍历每个 token：如果是算子，从栈中 pop 出 n_args 个操作数，与算子节点连边；否则将 token 压栈（作为未来算子的操作数）。</p><p>边类型的赋值逻辑第 42-58 行：一元算子边类型 0；交换式二元算子 1；非交换二元算子的第一个 pop（i=0）是右操作数，赋类型 3，第二个是左操作数，赋类型 2；滚动算子的第一个 pop 是时间序列操作数（类型 5），第二个是特征操作数（类型 4）。</p><p>这里有一个隐藏的微妙之处：第一个 pop 是最右侧的操作数，这是 RPN 词法的一个重要特性。在 RPN 词法中，同一算子的操作数越后压栈的越在前面被 pop，因此 i=0 那个边是越右侧的操作数。正是因为区分了左右，RGCN 才能区分 Sub(a,b) 与 Sub(b,a)。</p><pre><code>
-    if not edges:
-        edge_index = torch.empty((2, 0), dtype=torch.long, device=device)
-        edge_type = torch.empty((0,), dtype=torch.long, device=device)
-    else:
-        edge_index = torch.tensor(edges, dtype=torch.long, device=device).t().contiguous()
-        edge_type = torch.tensor(edge_types, dtype=torch.long, device=device)
-    
-    node_feature_ids = torch.tensor(token_ids, device=device)
-    x = token_embedding_layer(node_feature_ids)
-    
-    return Data(x=x, edge_index=edge_index, edge_type=edge_type)</code></pre><p>这里极复杂的逻辑已经完成。最后构造 PyG 的 Data 对象，包含 x（节点嵌入）、edge_index（2×E 的边索引）、edge_type（边类型）。node_feature_ids 被 token_embedding_layer 查表得到嵌入，这个嵌入会在训练中被联合更新。</p><p>值得注意的是，当没有边时（只有单个 token 的退化情况），会返回空的 edge_index，避免 None 引发后续处理错误。</p><h3>GNNEncoder：多层 RGCNConv</h3><pre><code>class GNNEncoder(nn.Module):
-    def __init__(self, input_dim, hidden_dim, n_layers=2):
-        super().__init__()
-        self.num_relations = 6  # 0: unary, 1: commutative, 2: left, 3: right, 4: feature, 5: time series
-        self.layers = nn.ModuleList()
-        self.layers.append(RGCNConv(input_dim, hidden_dim, self.num_relations))
-        for _ in range(n_layers - 1):
-            self.layers.append(RGCNConv(hidden_dim, hidden_dim, self.num_relations))
-        
-    def forward(self, data: Batch):
-        x, edge_index, edge_type, batch = data.x, data.edge_index, data.edge_type, data.batch
-        for layer in self.layers:
-            x = torch.relu(layer(x, edge_index, edge_type))
-        
-        return global_mean_pool(x, batch)</code></pre><p>GNNEncoder 是 RGCN 的前向逻辑。构造时创建 <code class='inline'>n_layers</code> 层 RGCNConv，第一层从 input_dim 到 hidden_dim，后续层从 hidden_dim 到 hidden_dim。</p><p><b>forward</b> 方法的逻辑很简单：逐层调用 RGCNConv，每层后加 ReLU 激活。最后调用 <code class='inline'>global_mean_pool</code> 对所有节点嵌入取平均，得到一个固定长度（hidden_dim）的向量作为表达式嵌入。</p><p>这里的 <code class='inline'>global_mean_pool</code> 使用 batch 参数区分不同图的节点，支持多个表达式同时编码（batch 处理）。RGCNConv 的核心公式：$$h_i^{(l+1)} = \text{ReLU}\left(\sum_{r}\sum_{j\in N_r(i)} W_r^{(l)} h_j^{(l)}\right)$$，其中 r 遍历 6 种关系类型，N_r(i) 是节点 i 在关系 r 下的邻居，W_r 是该关系专属的变换矩阵。</p><h2>数据流</h2><p>数据流：<b>RPN token 序列 → _build_graph_from_rpn 建图 → token_embedding 查表 → 多层 RGCNConv → global_mean_pool → 表达式嵌入</b>。</p><p>具体来说，环境（第 6 章）采样到一条 alpha 表达式后，会调用 <code class='inline'>SequenceEncoder.forward(state_tokens)</code>。如果 encoder_type='gnn'，会对每个 batch 调用 <code class='inline'>_build_graph_from_rpn</code> 建图，用 <code class='inline'>Batch.from_data_list</code> 拼接，最后调用 GNNEncoder 前向。输出的嵌入会被 pf_head 转成每个 token 的 logit，作为 GFlowNet 的前向策略。</p><h2>关联公式</h2><div class="math-block">$$h_i^{(l+1)} = \text{ReLU}\left(\sum_{r}\sum_{j\in N_r(i)} W_r^{(l)} h_j^{(l)}\right)$$</div><p>这是 RGCN 的核心更新公式，对应代码中的 <code class='inline'>layer(x, edge_index, edge_type)</code>。对每种关系 r 有一个专属的变换矩阵 W_r，避免不同关系的信息被混合。</p><h2>设计权衡</h2><p><b>为什么选择 RGCN 而不是普通 GCN？</b>普通 GCN 所有边共享一个变换矩阵，无法区分不同关系。RGCN 为每种关系学习专属的 W_r，能捕捉语法结构。对于 alpha 表达式这种强结构化输入，是合适的选择。</p><p><b>为什么用全局平均池化而不是取 [CLS] 节点？</b>全局平均对所有节点一视同仁，不需要额外训练一个“汇总节点”。对于不同长度的表达式，它都能输出固定维度的嵌入。</p><p><b>为什么不加残差连接？</b>AlphaSAGE 使用的 RPN 序列本质是树结构，不需要像序列模型那样使用残差连接捕捉位置信息。边的类型已经表达了充分的结构信息。</p><h2>小结</h2><p>本章讲解了 RGCN 结构编码器：从 <code class='inline'>_build_graph_from_rpn</code> 将 RPN 转成关系图，到 GNNEncoder 用多层 RGCNConv 读出表达式嵌入。六类关系边让模型能区分算子与操作数的类型与顺序。</p><p>下一章我们会看 Alpha 池管理，看如何维护一个多样化的 alpha 候选集合。</p><div class="nav-footer"><a href="03.html">← 上一章</a><a href="index.html">目录</a><a href="05.html">下一章 →</a></div>
+<div class="hero"><span class="badge">第 4 章 · 核心层</span></div>
+<h1>第4章：RGCN 结构编码器</h1>
+<p class="subtitle">像给公式做语法树体检，把算子当节点、按关系连边，再用图神经网络读出结构。</p>
+<h2>欢迎</h2>
+<p>GFlowNet 的策略网络要决定「下一步生成哪个 token」。如果只看序列（LSTM/Transformer），它会丢失表达式的<strong>语法结构</strong>——比如 <code class="inline">Add($close, TsMean($high, 20))</code> 里，<code class="inline">$close</code> 和 <code class="inline">TsMean(...)</code> 都是 <code class="inline">Add</code> 的操作数，但序列模型看不到这种父子关系。AlphaSAGE 的解法是：把表达式的逆波兰式（RPN）转成<strong>关系图</strong>，用 RGCN 按六类边关系传递消息，提取结构感知的嵌入。</p>
+<p>本章深入 <code class="inline">src/alpha_gfn/modules.py</code> 的两个关键函数：<code class="inline">_build_graph_from_rpn</code>（RPN 转图）和 <code class="inline">GNNEncoder.forward</code>（图卷积前向）。这是 AlphaSAGE 区别于普通序列 GFlowNet 的核心创新——它让策略真正「看懂」表达式结构。</p>
+<h2>它解决什么问题？</h2>
+<p>表达式天然是树（AST）。把树展平成序列会丢掉结构：同一个 token 在不同位置（是操作数还是算子？是左子还是右子？）语义完全不同。序列模型只能靠位置编码勉强区分，效果有限。</p>
+<p>图神经网络则直接在 AST 上工作：算子是节点，操作数到算子是边。更进一步，AlphaSAGE 把边分成<strong>六类</strong>——一元操作数、可交换二元操作数、左操作数、右操作数、特征操作数、时序操作数——让 RGCN 能按关系类型分别聚合消息。这样 <code class="inline">Sub</code> 的左/右操作数不会被混淆，<code class="inline">TsMean</code> 的特征参数与窗口参数也能区分对待。</p>
+<h2>核心设计思路</h2>
+<p>RPN（逆波兰式）天然适合建图：遇到算子就从栈里弹操作数建边。设计上有三个要点。第一，<strong>边类型编码语义</strong>：六类边不是随意划分，而是对应算子的语义角色（左/右、特征/时序）。第二，<strong>RGCN 按关系分别变换</strong>：每种边类型有自己的权重矩阵 $W_r$，消息聚合时按类型加权。第三，<strong>全局平均池化</strong>：把节点级表示聚合成图级嵌入，供策略头使用。</p>
+<h2>代码深入</h2>
+<h3>_build_graph_from_rpn —— RPN 序列转关系图</h3>
+<p>这个函数用经典栈算法遍历 RPN：遇操作数压栈，遇算子弹出操作数建边。关键在于根据算子类别分配 0-5 六种边类型。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">modules.py</span><span class="code-lines">第 13-71 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">13</span><span class="code">def _build_graph_from_rpn(token_ids: list[int], token_embedding_layer: nn.Embedding, beg_token_id: int) -&gt; Data:<span class="cmt">  # 把 RPN token 序列转成 PyG 关系图 Data</span></span></span>
+<span class="line"><span class="ln">14</span><span class="code">    device = token_embedding_layer.weight.device<span class="cmt">  # 获取设备，保证张量都在同一 GPU</span></span></span>
+<span class="line"><span class="ln">15</span><span class="code">    tokens = []</span></span>
+<span class="line"><span class="ln">16</span><span class="code">    for tid in token_ids:</span></span>
+<span class="line"><span class="ln">17</span><span class="code">        if tid == beg_token_id:<span class="cmt">  # 起始符直接还原成 BEG_TOKEN</span></span></span>
+<span class="line"><span class="ln">18</span><span class="code">            tokens.append(BEG_TOKEN)</span></span>
+<span class="line"><span class="ln">19</span><span class="code">        else:</span></span>
+<span class="line"><span class="ln">20</span><span class="code">            tokens.append(action2token(tid))</span></span>
+<span class="line"><span class="ln">21</span><span class="code">    </span></span>
+<span class="line"><span class="ln">22</span><span class="code">    edges = []<span class="cmt">  # 收集边 (操作数索引, 算子索引)</span></span></span>
+<span class="line"><span class="ln">23</span><span class="code">    edge_types = []</span></span>
+<span class="line"><span class="ln">24</span><span class="code">    stack = []</span></span>
+<span class="line"><span class="ln">25</span><span class="code">    UNARY_OPS = [&#x27;Abs&#x27;, &#x27;SLog1p&#x27;, &#x27;Inv&#x27;, &#x27;Sign&#x27;, &#x27;Log&#x27;, &#x27;Rank&#x27;]<span class="cmt">  # 一元算子：Abs/SLog1p/Inv/Sign/Log/Rank</span></span></span>
+<span class="line"><span class="ln">26</span><span class="code">    COMMUTATIVE_OPS = [&#x27;Add&#x27;, &#x27;Mul&#x27;]<span class="cmt">  # 可交换二元：Add/Mul（左右无序）</span></span></span>
+<span class="line"><span class="ln">27</span><span class="code">    NON_COMMUTATIVE_OPS = [&#x27;Sub&#x27;, &#x27;Div&#x27;, &#x27;Pow&#x27;, &#x27;Greater&#x27;, &#x27;Less&#x27;]<span class="cmt">  # 不可交换二元：Sub/Div/Pow/Greater/Less（左右有序）</span></span></span>
+<span class="line"><span class="ln">28</span><span class="code">    ROLLING_OPS = [&#x27;Ref&#x27;, &#x27;TsMean&#x27;, &#x27;TsSum&#x27;, &#x27;TsStd&#x27;, &#x27;TsIr&#x27;, &#x27;TsMinMaxDiff&#x27;, &#x27;TsMaxDiff&#x27;, &#x27;TsMinDiff&#x27;, &#x27;TsVar&#x27;, &#x27;TsSkew&#x27;, &#x27;TsKurt&#x27;, &#x27;TsMax&#x27;, &#x27;TsMin&#x27;,<span class="cmt">  # 时序算子：TsMean/TsSum 等</span></span></span>
+<span class="line"><span class="ln">29</span><span class="code">        &#x27;TsMed&#x27;, &#x27;TsMad&#x27;, &#x27;TsRank&#x27;, &#x27;TsDelta&#x27;, &#x27;TsDiv&#x27;, &#x27;TsPctChange&#x27;, &#x27;TsWMA&#x27;, &#x27;TsEMA&#x27;]</span></span>
+<span class="line"><span class="ln">30</span><span class="code">    PAIR_ROLLING_OPS = [&#x27;TsCov&#x27;, &#x27;TsCorr&#x27;]</span></span>
+<span class="line"><span class="ln">31</span><span class="code"></span></span>
+<span class="line"><span class="ln">32</span><span class="code">    for j, token in enumerate(tokens):<span class="cmt">  # 遍历每个 token，遇算子则从栈弹操作数建边</span></span></span>
+<span class="line"><span class="ln">33</span><span class="code">        if isinstance(token, OperatorToken):</span></span>
+<span class="line"><span class="ln">34</span><span class="code">            op = token.operator</span></span>
+<span class="line"><span class="ln">35</span><span class="code">            n_args = op.n_args()<span class="cmt">  # n_args 决定弹几个操作数（一元1、二元2）</span></span></span>
+<span class="line"><span class="ln">36</span><span class="code">            if len(stack) &lt; n_args: continue</span></span>
+<span class="line"><span class="ln">37</span><span class="code">            </span></span>
+<span class="line"><span class="ln">38</span><span class="code">            for i in range(n_args):</span></span>
+<span class="line"><span class="ln">39</span><span class="code">                child_node_idx = stack.pop()<span class="cmt">  # 弹出操作数索引，建 操作数→算子 的有向边</span></span></span>
+<span class="line"><span class="ln">40</span><span class="code">                edges.append((child_node_idx, j))</span></span>
+<span class="line"><span class="ln">41</span><span class="code">                </span></span>
+<span class="line"><span class="ln">42</span><span class="code">                if op.__name__ in UNARY_OPS:<span class="cmt">  # 一元算子：边类型 0</span></span></span>
+<span class="line"><span class="ln">43</span><span class="code">                    edge_types.append(0)  # Unary operand</span></span>
+<span class="line"><span class="ln">44</span><span class="code">                elif op.__name__ in COMMUTATIVE_OPS:<span class="cmt">  # 可交换二元：边类型 1</span></span></span>
+<span class="line"><span class="ln">45</span><span class="code">                    edge_types.append(1)  # Commutative binary operand</span></span>
+<span class="line"><span class="ln">46</span><span class="code">                elif op.__name__ in NON_COMMUTATIVE_OPS:  # Non-commutative binary</span></span>
+<span class="line"><span class="ln">47</span><span class="code">                    # The first pop (i=0) is the right-most operand in an expression</span></span>
+<span class="line"><span class="ln">48</span><span class="code">                    if i == 0:<span class="cmt">  # 不可交换二元：右操作数=3，左操作数=2</span></span></span>
+<span class="line"><span class="ln">49</span><span class="code">                        edge_types.append(3)  # Right operand</span></span>
+<span class="line"><span class="ln">50</span><span class="code">                    else:</span></span>
+<span class="line"><span class="ln">51</span><span class="code">                        edge_types.append(2)  # Left operand</span></span>
+<span class="line"><span class="ln">52</span><span class="code">                elif op.__name__ in ROLLING_OPS or op.__name__ in PAIR_ROLLING_OPS:</span></span>
+<span class="line"><span class="ln">53</span><span class="code">                    if i == 0:<span class="cmt">  # 时序/成对时序：时间参数=5，特征参数=4</span></span></span>
+<span class="line"><span class="ln">54</span><span class="code">                        edge_types.append(5)  # Time series operand</span></span>
+<span class="line"><span class="ln">55</span><span class="code">                    else:</span></span>
+<span class="line"><span class="ln">56</span><span class="code">                        edge_types.append(4)  # Feature operand</span></span>
+<span class="line"><span class="ln">57</span><span class="code">                else:</span></span>
+<span class="line"><span class="ln">58</span><span class="code">                    raise TypeError(f&quot;Unknown operator: {op.__name__}&quot;)</span></span>
+<span class="line"><span class="ln">59</span><span class="code">        stack.append(j)<span class="cmt">  # 当前算子入栈，作为后续算子的潜在操作数</span></span></span>
+<span class="line"><span class="ln">60</span><span class="code"></span></span>
+<span class="line"><span class="ln">61</span><span class="code">    if not edges:</span></span>
+<span class="line"><span class="ln">62</span><span class="code">        edge_index = torch.empty((2, 0), dtype=torch.long, device=device)</span></span>
+<span class="line"><span class="ln">63</span><span class="code">        edge_type = torch.empty((0,), dtype=torch.long, device=device)</span></span>
+<span class="line"><span class="ln">64</span><span class="code">    else:</span></span>
+<span class="line"><span class="ln">65</span><span class="code">        edge_index = torch.tensor(edges, dtype=torch.long, device=device).t().contiguous()<span class="cmt">  # 边列表转置成 PyG 要求的 (2, num_edges) 形状</span></span></span>
+<span class="line"><span class="ln">66</span><span class="code">        edge_type = torch.tensor(edge_types, dtype=torch.long, device=device)</span></span>
+<span class="line"><span class="ln">67</span><span class="code">    </span></span>
+<span class="line"><span class="ln">68</span><span class="code">    node_feature_ids = torch.tensor(token_ids, device=device)<span class="cmt">  # 用 Embedding 层把 token id 映射成节点特征向量</span></span></span>
+<span class="line"><span class="ln">69</span><span class="code">    x = token_embedding_layer(node_feature_ids)</span></span>
+<span class="line"><span class="ln">70</span><span class="code">    </span></span>
+<span class="line"><span class="ln">71</span><span class="code">    return Data(x=x, edge_index=edge_index, edge_type=edge_type)</span></span></code></pre></div>
+<p>第 25-30 行的算子分类是整个图构建的灵魂。注意它把算子分成四类：一元、可交换二元、不可交换二元、时序。对不可交换二元（如 <code class="inline">Sub</code>），第 48-51 行用 <code class="inline">i == 0</code> 区分左右——栈是后进先出，所以 <code class="inline">i=0</code> 弹出的是表达式最右的操作数，标为类型 3（右），<code class="inline">i=1</code> 是左操作数，标为类型 2。这种区分让 RGCN 知道 <code class="inline">Sub(A, B)</code> 和 <code class="inline">Sub(B, A)</code> 是不同的结构。</p>
+<p>第 52-56 行处理时序算子。<code class="inline">TsMean($close, 20)` 里，`$close</code> 是特征参数（类型 4），<code class="inline">20</code> 是时间参数（类型 5）。把它们区分开，让图卷积能用不同权重处理「被操作的特征」与「窗口长度」——这两者在语义上完全不同，混在一起会损失信息。</p>
+<p>第 61-66 行处理空边情况（单个 token 的退化表达式），保证函数对边界输入不崩溃。第 68-69 行用共享的 <code class="inline">token_embedding</code> 层把 token id 映射成节点初始特征——这个 embedding 与策略网络共享，让图编码与策略输出对齐。</p>
+<h3>GNNEncoder.forward —— 多层 RGCN + 全局池化</h3>
+<p>编码器前向非常简洁：逐层 RGCNConv，每层按六类边分别聚合，最后全局平均池化成图级嵌入。简洁的背后是 RGCN 的强大表达力。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">modules.py</span><span class="code-lines">第 87-101 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">87</span><span class="code">class GNNEncoder(nn.Module):<span class="cmt">  # RGCN 编码器：多层关系图卷积 + 全局池化</span></span></span>
+<span class="line"><span class="ln">88</span><span class="code">    def __init__(self, input_dim, hidden_dim, n_layers=2):</span></span>
+<span class="line"><span class="ln">89</span><span class="code">        super().__init__()</span></span>
+<span class="line"><span class="ln">90</span><span class="code">        self.num_relations = 6  # 0: unary, 1: commutative, 2: left, 3: right, 4: feature, 5: time series<span class="cmt">  # 六类关系：一元/可交换/左/右/特征/时序</span></span></span>
+<span class="line"><span class="ln">91</span><span class="code">        self.layers = nn.ModuleList()</span></span>
+<span class="line"><span class="ln">92</span><span class="code">        self.layers.append(RGCNConv(input_dim, hidden_dim, self.num_relations))<span class="cmt">  # 首层：input_dim → hidden_dim 的 RGCNConv</span></span></span>
+<span class="line"><span class="ln">93</span><span class="code">        for _ in range(n_layers - 1):</span></span>
+<span class="line"><span class="ln">94</span><span class="code">            self.layers.append(RGCNConv(hidden_dim, hidden_dim, self.num_relations))<span class="cmt">  # 后续层：hidden_dim → hidden_dim</span></span></span>
+<span class="line"><span class="ln">95</span><span class="code">        </span></span>
+<span class="line"><span class="ln">96</span><span class="code">    def forward(self, data: Batch):<span class="cmt">  # 前向：x/edge_index/edge_type/batch 四元组</span></span></span>
+<span class="line"><span class="ln">97</span><span class="code">        x, edge_index, edge_type, batch = data.x, data.edge_index, data.edge_type, data.batch</span></span>
+<span class="line"><span class="ln">98</span><span class="code">        for layer in self.layers:<span class="cmt">  # 逐层前向：每层按边类型分别聚合邻居</span></span></span>
+<span class="line"><span class="ln">99</span><span class="code">            x = torch.relu(layer(x, edge_index, edge_type))<span class="cmt">  # ReLU 激活，引入非线性</span></span></span>
+<span class="line"><span class="ln">100</span><span class="code">        </span></span>
+<span class="line"><span class="ln">101</span><span class="code">        return global_mean_pool(x, batch)<span class="cmt">  # 全局平均池化：节点级表示聚合成图级表达式嵌入</span></span></span></code></pre></div>
+<p>第 98-99 行是 RGCN 的核心。每层 <code class="inline">RGCNConv</code> 对每个节点 $i$，按关系类型 $r$ 聚合邻居 $j \in N_r(i)$ 的消息：</p>
+<div class="math-block">$$h_i^{(l+1)} = \text{ReLU}\left(\sum_{r=0}^{5}\sum_{j \in N_r(i)} W_r^{(l)} h_j^{(l)}\right)$$</div>
+<p>每种关系有独立的权重 $W_r$，所以「左操作数」和「右操作数」对算子节点的贡献可以不同。两层 RGCN 后，每个节点的表示已融合了两跳邻域的结构信息。</p>
+<p>第 101 行 <code class="inline">global_mean_pool</code> 把所有节点表示平均成单一向量。这是「图级嵌入」——整条表达式的结构摘要。它会喂给策略头 （第 7 章的 <code class="inline">pf_head</code>）决定下一个 token，也会在第 6 章作为 SSL 奖励的「结构指纹」。一个池化操作，把变长的图变成定长向量，是后续所有下游任务的接口。</p>
+<div class="callout"><span class="callout-label">设计权衡</span>为什么用 RGCN 而不是普通 GCN？普通 GCN 对所有边一视同仁，会把 <code class="inline">Sub</code> 的左右操作数混同。RGCN 按关系类型分别变换，能保留语义角色。代价是参数量随关系数线性增长——但这里只有 6 类关系，开销可控。另一个考量是计算图：RGCN 在稀疏 AST 上极快，比 Transformer 的注意力更高效。</div>
+<div class="callout"><span class="callout-label">小结</span><code class="inline">_build_graph_from_rpn</code> 用栈算法把 RPN 转成六类边的关系图，<code class="inline">GNNEncoder</code> 用两层 RGCNConv + 全局池化提取结构嵌入。这套「AST→图→嵌入」的管线，让策略网络真正感知表达式语法，是 AlphaSAGE 生成高质量、结构多样 alpha 的关键。</div>
+<h2>关联公式</h2>
+<p>RGCN 的消息传递公式（已展示）。它与代码的对应：$W_r^{(l)}$ 是 <code class="inline">RGCNConv</code> 内部的关系专属权重，$N_r(i)$ 由 <code class="inline">edge_index</code> 与 <code class="inline">edge_type</code> 共同定义，$\text{ReLU}$ 对应第 99 行。全局池化：</p>
+<div class="math-block">$$h_G = \frac{1}{|V|}\sum_{i \in V} h_i^{(L)}$$</div>
+<p>对应第 101 行 <code class="inline">global_mean_pool(x, batch)</code>。这个 $h_G$ 既是策略输入，也是 SSL 奖励的结构指纹。</p>
+<h2>小结</h2>
+<p>本章你看到了 AlphaSAGE 的「结构感知」设计：把表达式 AST 转成六类边的关系图，用 RGCN 提取嵌入。这比序列模型更能捕获语法结构，也为第 6 章的 SSL 奖励提供了天然的结构指纹。下一章我们转向池管理——生成的 alpha 如何被筛选、入池、淘汰，形成可持续的候选库。</p>
+<div class="nav-footer"><a href="03.html">← 第3章 GFlowNet</a><a href="index.html">目录</a><a href="05.html">第5章 Alpha 池 →</a></div>
 </main>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+                onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>
 </body>
 </html>
