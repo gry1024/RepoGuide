@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第06章 LLM 表达式生成 | AlphaPROBE</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+    background: #FBFBFD;
+    color: #1D1D1F;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+                 "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+}
+.sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    width: 240px;
+    height: 100vh;
+    overflow-y: auto;
+    background: #F5F5F7;
+    border-right: 1px solid #E8E8ED;
+    padding: 28px 18px 40px;
+    z-index: 100;
+}
+.sidebar-title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; color: #1D1D1F; }
+.sidebar-sub { font-size: 12px; color: #86868B; margin: 0 0 22px; letter-spacing: 0.02em; }
+.sidebar a {
+    display: block; color: #1D1D1F; font-size: 13.5px; padding: 7px 12px;
+    border-radius: 8px; margin-bottom: 2px; text-decoration: none; line-height: 1.4;
+}
+.sidebar a:hover { background: #E8E8ED; text-decoration: none; }
+.sidebar a.active { color: #0071e3; font-weight: 600; background: #E8E8ED; }
+.sidebar .group-label {
+    font-size: 11px; color: #86868B; text-transform: uppercase;
+    letter-spacing: 0.06em; margin: 18px 12px 6px;
+}
+main.content { max-width: 820px; margin: 0 0 0 240px; padding: 64px 40px 120px; }
+.hero { margin-bottom: 8px; }
+.badge {
+    display: inline-block; font-size: 13px; font-weight: 600; color: #0071e3;
+    background: rgba(0,113,227,0.08); padding: 4px 12px; border-radius: 980px; letter-spacing: 0.02em;
+}
+h1 { font-size: 36px; font-weight: 700; letter-spacing: -0.02em; margin: 14px 0 8px; line-height: 1.15; }
+h2 { font-size: 26px; font-weight: 600; letter-spacing: -0.01em; margin: 56px 0 16px; color: #1D1D1F; }
+h3 { font-size: 20px; font-weight: 600; margin: 36px 0 12px; color: #1D1D1F; }
+p { margin: 0 0 16px; color: #1D1D1F; }
+.subtitle { color: #86868B; font-size: 19px; margin: 0 0 32px; font-weight: 400; line-height: 1.5; }
+.muted { color: #86868B; }
+strong { font-weight: 600; color: #1D1D1F; }
+em { font-style: italic; }
+a { color: #0071e3; text-decoration: none; }
+a:hover { text-decoration: underline; }
+code.inline {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: #F5F5F7; color: #1D1D1F; padding: 2px 6px; border-radius: 4px; font-size: 0.9em;
+}
+.code-card {
+    background: #FFFFFF; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    margin: 0 0 24px; overflow: hidden; border: 1px solid #E8E8ED;
+}
+.code-header {
+    background: #F5F5F7; border-bottom: 1px solid #E8E8ED; padding: 10px 16px;
+    display: flex; justify-content: space-between; align-items: center; font-size: 12.5px;
+}
+.code-file { font-family: "SF Mono", Menlo, Consolas, monospace; color: #1D1D1F; font-weight: 600; }
+.code-lines { color: #86868B; }
+.code-block { margin: 0; padding: 16px 18px; overflow-x: auto; background: #FFFFFF; }
+.code-block code {
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; line-height: 1.6;
+    color: #1D1D1F; background: transparent; padding: 0; white-space: pre; display: block;
+}
+.code-block .line { display: block; white-space: pre; }
+.code-block .ln {
+    display: inline-block; width: 3em; text-align: right; color: #BBB;
+    user-select: none; margin-right: 18px; font-variant-numeric: tabular-nums;
+}
+.code-block .code { white-space: pre; }
+.code-block .cmt { color: #5a9e6f; white-space: pre-wrap; }
+.callout {
+    background: #F5F5F7; border-left: 3px solid #0071e3; border-radius: 8px;
+    padding: 14px 18px; margin: 0 0 24px; color: #1D1D1F;
+}
+.callout-label {
+    color: #0071e3; font-weight: 600; font-size: 13px; text-transform: uppercase;
+    letter-spacing: 0.04em; display: block; margin-bottom: 6px;
+}
+.callout p:last-child { margin-bottom: 0; }
+.math-block {
+    background: #F5F5F7; border-radius: 10px; padding: 20px; margin: 0 0 24px;
+    text-align: center; overflow-x: auto;
+}
+ul, ol { margin: 0 0 20px; padding-left: 24px; }
+li { margin-bottom: 8px; }
+table {
+    width: 100%; border-collapse: collapse; margin: 0 0 24px; border-radius: 10px;
+    overflow: hidden; border: 1px solid #E8E8ED; font-size: 15px;
+}
+th, td { padding: 11px 16px; text-align: left; border-bottom: 1px solid #E8E8ED; }
+th { background: #F5F5F7; font-weight: 600; }
+tr:last-child td { border-bottom: none; }
+img { max-width: 100%; border-radius: 12px; }
+.nav-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 64px; padding-top: 24px; border-top: 1px solid #E8E8ED; font-size: 15px;
+}
+.nav-footer a { color: #0071e3; }
+.toc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+.toc-card {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 14px; padding: 20px 22px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04); text-decoration: none; color: #1D1D1F;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.toc-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.08); text-decoration: none; }
+.toc-card .tc-num { font-size: 12px; color: #86868B; font-weight: 600; letter-spacing: 0.04em; }
+.toc-card .tc-title { font-size: 17px; font-weight: 600; margin: 4px 0 6px; }
+.toc-card .tc-desc { font-size: 13.5px; color: #86868B; line-height: 1.5; }
+.concept-map { margin: 24px 0; }
+.cm-layer { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
+.cm-layer-label {
+    width: 92px; flex: 0 0 92px; font-size: 12px; color: #86868B; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em; padding-top: 14px;
+}
+.cm-nodes { flex: 1; display: flex; gap: 10px; flex-wrap: wrap; }
+.cm-node {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 10px; padding: 10px 14px;
+    min-width: 150px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.cm-node .cm-id { font-size: 11px; color: #0071e3; font-weight: 700; }
+.cm-node .cm-name { font-size: 14px; font-weight: 600; color: #1D1D1F; }
+.cm-arrow { text-align: center; color: #86868B; font-size: 12px; margin: 8px 0 8px 92px; }
+.cm-rels { margin-top: 20px; }
+.cm-rel {
+    display: inline-block; background: #F5F5F7; border-radius: 8px; padding: 5px 11px;
+    margin: 4px 6px 4px 0; font-size: 12.5px; color: #1D1D1F;
+}
+.cm-rel b { color: #0071e3; }
+.arch-tree {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 12px; padding: 20px 24px;
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; line-height: 1.7;
+    overflow-x: auto; white-space: pre; color: #1D1D1F;
+}
+.arch-tree .c { color: #86868B; }
+@media (max-width: 860px) {
+    .sidebar { position: static; width: 100%; height: auto; }
+    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .toc-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<aside class="sidebar"><h2 class="sidebar-title">AlphaPROBE</h2><p class="sidebar-sub">深度代码教程</p><a href="index.html">首页</a><div class="group-label">数据层</div><a href="01.html">第1章 Qlib 行情数据加载</a><a href="02.html">第2章 表达式与算子体系</a><a href="03.html">第3章 IC/ICIR 因子评估</a><div class="group-label">核心层</div><a href="04.html">第4章 表达式知识图谱</a><a href="05.html">第5章 贝叶斯因子检索器</a><a href="06.html" class="active">第6章 LLM 表达式生成</a><div class="group-label">应用层</div><a href="07.html">第7章 训练主循环</a><a href="08.html">第8章 表达式验证与入池</a><a href="09.html">第9章 Mega-Alpha 动态组合</a><a href="10.html">第10章 Baseline 对比</a></aside><main class="content">
+<div class="hero"><span class="badge">第 6 章 · 核心层</span></div>
+<h1>第6章：LLM 表达式生成</h1>
+<p class="subtitle">像一个有经验的量化研究员，读理解表达式语义后，在 topic 约束下生成 N 个不同的变异表达式。</p>
+<h2>欢迎</h2>
+<p>AlphaPROBE 的第二大核心组件——DAG-aware Factor Generator。检索器选出了 top_k 个因子，现在要把它们交给 LLM，让它在 topic 约束与进化 traces 引导下生成 N 个不同的变体表达式。本章拆解 <code class="inline">src/utils/llm.py</code> 的 OpenAIModel 与 <code class="inline">src/utils/prompt.py</code> 的提示词工程，看 AlphaPROBE 如何把「让 LLM 当量化研究员」这件事工程化——从 backoff 重试、JSON 解析容错到 prompt 的12 条校验规则。这是论文标题里「DAG-aware Factor Generator」的代码核心。</p>
+<h2>它解决什么问题？</h2>
+<p>用 LLM 生成 alpha 表达式，听起来简单（让 GPT 写个公式嘛），实则处处是坑。第一坑：<strong>格式</strong>——LLM 可能输出 <code class="inline">close/open</code> 而非 <code class="inline">Div($close,$open)</code>，或夹带 markdown 代码块标记。第二坑：<strong>合法性</strong>——算子参数个数错、用科学计数法、常量类型错（整数当浮点用）。第三坑：<strong>量纲</strong>——生成 <code class="inline">Add($close,$volume)</code>这样量纲不匹配的表达式。第四坑：<strong>重复</strong>——反复造出与已有因子语义相同的表达式。第五坑：<strong>API 不稳</strong>——限流、超时、返回非 JSON。</p>
+<p>类比有经验的量化研究员：他先读理解父表达式的语义（prompt 要求 LLM 「read carefully and understand」），再在 topic 约束下（如「Price volatility」）结合进化 traces 生成 N 个不同策略的变体（横截面 vs 时序、不同统计量、简化而非堆砌）。AlphaPROBE 用 prompt 工程把这一切变成可重复的管线。</p>
+<h2>核心设计思路</h2>
+<p>设计上有五个关键点。第一，<strong>system prompt 强制 JSON</strong>：PROMPT_HEAD 明确要求「ONLY CONTAINS A JSON FORMAT」，禁止代码块标记。第二，<strong>算子定义前置</strong>：<code class="inline">PROMPT_FEATURES_AND_OPERATORS</code> 把所有可用算子、特征、常量规则列清楚，并在 prompt 里同步量纲定义，让 LLM 自检 dimensionless。第三，<strong>进化 traces 注入</strong>：<code class="inline">PROMPT_GENERARTION</code> 接收 topic、父表达式、explanations、traces，让 LLM 学习历史优化方向。第四，<strong>双重容错</strong>：backoff 指数重试 + retrying 装饰器应对 API 限流，正则兜底解析非标准 JSON。第五，<strong>N 个不同策略</strong>：要求生成 <code class="inline">generate_num</code> 个语义不同的表达式，强制多样性。</p>
+<h2>代码深入</h2>
+<h3>OpenAIModel.chat_generate —— 带重试的生成入口</h3>
+<p>chat_generate 用 @retry 装饰器（最多 10 次、每次等 2 秒）+ backoff 指数退避，双重保护 API 调用。返回生成文本与 finish_reason。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">llm.py</span><span class="code-lines">第 1-10 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">1</span><span class="code">import backoff  # for exponential backoff<span class="cmt">  # backoff 库做指数退避</span></span></span>
+<span class="line"><span class="ln">2</span><span class="code">import openai</span></span>
+<span class="line"><span class="ln">3</span><span class="code">import json</span></span>
+<span class="line"><span class="ln">4</span><span class="code">import asyncio</span></span>
+<span class="line"><span class="ln">5</span><span class="code">from typing import Any</span></span>
+<span class="line"><span class="ln">6</span><span class="code">from retrying import retry</span></span>
+<span class="line"><span class="ln">7</span><span class="code"></span></span>
+<span class="line"><span class="ln">8</span><span class="code">@backoff.on_exception(backoff.expo, (openai.RateLimitError, openai.APIConnectionError))<span class="cmt">  # 对限流与连接错误做指数退避重试</span></span></span>
+<span class="line"><span class="ln">9</span><span class="code">def completions_with_backoff(client, **kwargs):<span class="cmt">  # completions_with_backoff 封装 client.chat.completions.create</span></span></span>
+<span class="line"><span class="ln">10</span><span class="code">    return client.chat.completions.create(**kwargs)</span></span></code></pre></div>
+<div class="code-card"><div class="code-header"><span class="code-file">llm.py</span><span class="code-lines">第 47-68 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">47</span><span class="code">class OpenAIModel:<span class="cmt">  # OpenAIModel 封装模型名、停止词、最大 token</span></span></span>
+<span class="line"><span class="ln">48</span><span class="code">    def __init__(self, model_name, stop_words, max_new_tokens) -&gt; None:</span></span>
+<span class="line"><span class="ln">49</span><span class="code">        self.model_name = model_name</span></span>
+<span class="line"><span class="ln">50</span><span class="code">        self.stop_words = stop_words</span></span>
+<span class="line"><span class="ln">51</span><span class="code">        self.max_new_tokens = max_new_tokens</span></span>
+<span class="line"><span class="ln">52</span><span class="code"></span></span>
+<span class="line"><span class="ln">53</span><span class="code">    @retry(stop_max_attempt_number=10, wait_fixed=2000)<span class="cmt">  # @retry 最多 10 次，每次等 2 秒</span></span></span>
+<span class="line"><span class="ln">54</span><span class="code">    def chat_generate(self, client, system_prompt:str, user_prompt:str, temperature = 0.0):<span class="cmt">  # chat_generate 接收 system/user prompt 与温度</span></span></span>
+<span class="line"><span class="ln">55</span><span class="code">        response = completions_with_backoff(<span class="cmt">  # 调 completions_with_backoff（带指数退避）</span></span></span>
+<span class="line"><span class="ln">56</span><span class="code">                client,</span></span>
+<span class="line"><span class="ln">57</span><span class="code">                model = self.model_name,</span></span>
+<span class="line"><span class="ln">58</span><span class="code">                messages=[<span class="cmt">  # system + user 双消息结构</span></span></span>
+<span class="line"><span class="ln">59</span><span class="code">                        {&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: system_prompt},</span></span>
+<span class="line"><span class="ln">60</span><span class="code">                        {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: user_prompt}</span></span>
+<span class="line"><span class="ln">61</span><span class="code">                    ],</span></span>
+<span class="line"><span class="ln">62</span><span class="code">                temperature = temperature,<span class="cmt">  # temperature 控制创造性，train_new_work 默认 0.5</span></span></span>
+<span class="line"><span class="ln">63</span><span class="code">                top_p = 1,</span></span>
+<span class="line"><span class="ln">64</span><span class="code">                stop = self.stop_words</span></span>
+<span class="line"><span class="ln">65</span><span class="code">        )</span></span>
+<span class="line"><span class="ln">66</span><span class="code">        generated_text = response.choices[0].message.content.strip()<span class="cmt">  # 取首条 choice 的文本并 strip</span></span></span>
+<span class="line"><span class="ln">67</span><span class="code">        finish_reason = response.choices[0].finish_reason<span class="cmt">  # finish_reason 用于判断是否被截断</span></span></span>
+<span class="line"><span class="ln">68</span><span class="code">        return generated_text, finish_reason</span></span></code></pre></div>
+<p>第 53 行的 <code class="inline">@retry(stop_max_attempt_number=10, wait_fixed=2000)</code> 与第 8 行的 <code class="inline">@backoff.on_exception(backoff.expo, ...)</code> 是双重保险：retrying 装饰器捕获所有异常重试 10 次，backoff 专门对 RateLimitError/APIConnectionError 做指数退避。这种冗余设计是因为 LLM API 在长训练（search_time=20 轮 × top_k=15 因子 × generate_num=5）里几乎必然会遇到限流。第 62 行的 temperature 默认 0.5（<code class="inline">train_new_work.py:88</code>）是创造性与合法性的折中——太低会反复生成相似表达式，太高会产出大量非法语法。</p>
+<h3>PROMPT_HEAD 与 PROMPT_FEATURES_AND_OPERATORS —— 系统提示与算子定义</h3>
+<p>PROMPT_HEAD 锚定 LLM 角色（量化金融专家）并强制 JSON 输出。PROMPT_FEATURES_AND_OPERATORS 列出全部特征、常量规则、算子定义，并给出合法示例。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">prompt.py</span><span class="code-lines">第 3-5 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">3</span><span class="code">PROMPT_HEAD = &quot;&quot;&quot;<span class="cmt">  # PROMPT_HEAD 锚定角色：量化金融与 alpha 挖掘专家</span></span></span>
+<span class="line"><span class="ln">4</span><span class="code">You are an expert on quantitative finance and alpha factor mining. Strictly follow the instructions given by user below. Make sure the output ONLY CONTAINS A  JSON FORMAT. Do not output anything else other than the JSON object, including code block markers like ``` or ```json.<span class="cmt">  # 强制只输出 JSON，禁止代码块标记</span></span></span>
+<span class="line"><span class="ln">5</span><span class="code">&quot;&quot;&quot;</span></span></code></pre></div>
+<div class="code-card"><div class="code-header"><span class="code-file">prompt.py</span><span class="code-lines">第 7-56 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">7</span><span class="code">PROMPT_FEATURES_AND_OPERATORS = &quot;&quot;&quot;<span class="cmt">  # PROMPT_FEATURES_AND_OPERATORS 列出可用特征与算子</span></span></span>
+<span class="line"><span class="ln">8</span><span class="code">The available features, constants and operators are listed below.</span></span>
+<span class="line"><span class="ln">9</span><span class="code">1. You can use the following features: <span class="cmt">  # 六类特征：open/high/low/close/vwap/volume</span></span></span>
+<span class="line"><span class="ln">10</span><span class="code">   $open, $high, $low, $close: Opening, daily highest, daily lowest, and closing prices.</span></span>
+<span class="line"><span class="ln">11</span><span class="code">   $vwap: Daily average price, weighted by the volume of trades at each price.</span></span>
+<span class="line"><span class="ln">12</span><span class="code">   $volume: Trading number of shares.</span></span>
+<span class="line"><span class="ln">13</span><span class="code">2. You can use int constants eg:1, 3, 5,10, 20... etc during rolling(time-series) calculations, and float : 0.0001 0.01, 0.0, 1.0, 2.0 during arithmetic calculations. Other constants are not allowed.<span class="cmt">  # 常量规则：滚动用整数，算术用浮点</span></span></span>
+<span class="line"><span class="ln">14</span><span class="code">3. The following operators are available:</span></span>
+<span class="line"><span class="ln">15</span><span class="code">(BEGIN OF FEATURES AND OPERATORS  DEFINITIONS)</span></span>
+<span class="line"><span class="ln">16</span><span class="code">    Abs(x): Absolute value of x<span class="cmt">  # 算子定义区开始</span></span></span>
+<span class="line"><span class="ln">17</span><span class="code">    Log(x): Natural logarithm of x</span></span>
+<span class="line"><span class="ln">18</span><span class="code">    SLog1p(x): Signed log transform: sign(input) times log of (1 plus the absolute value)</span></span>
+<span class="line"><span class="ln">19</span><span class="code">    Sign(x): Sign of x: 1 if x &gt; 0, -1 if x &lt; 0, 0 if x = 0</span></span>
+<span class="line"><span class="ln">20</span><span class="code">    Rank(x): Cross-sectional rank of x</span></span>
+<span class="line"><span class="ln">21</span><span class="code">    Add(x,y): x + y</span></span>
+<span class="line"><span class="ln">22</span><span class="code">    Sub(x, y): x - y</span></span>
+<span class="line"><span class="ln">23</span><span class="code">    Mul(x, y): x * y</span></span>
+<span class="line"><span class="ln">24</span><span class="code">    Div(x, y): x / y</span></span>
+<span class="line"><span class="ln">25</span><span class="code">    Pow(x, y): x raised to the power of y (x ** y) y must be an constant</span></span>
+<span class="line"><span class="ln">26</span><span class="code">    Greater(x, y): 1 if x &gt; y, else 0</span></span>
+<span class="line"><span class="ln">27</span><span class="code">    Less(x, y): 1 if x &lt; y, else 0</span></span>
+<span class="line"><span class="ln">28</span><span class="code">    GetGreater(x, y): x if x &gt; y, else y</span></span>
+<span class="line"><span class="ln">29</span><span class="code">    GetLess(x, y): x if x &lt; y, else y</span></span>
+<span class="line"><span class="ln">30</span><span class="code">    Ref(x, d): Value of x d days ago<span class="cmt">  # Ref 是唯一可用负数的滚动算子（回看未来）</span></span></span>
+<span class="line"><span class="ln">31</span><span class="code">    TsMean(x, d):  Rolling mean of x over the past d days</span></span>
+<span class="line"><span class="ln">32</span><span class="code">    TsSum(x, d): Rolling sum of x over the past d days</span></span>
+<span class="line"><span class="ln">33</span><span class="code">    TsStd(x, d): Rolling standard deviation of x over the past d days</span></span>
+<span class="line"><span class="ln">34</span><span class="code">    TsMin(x, d): Rolling minimum of x over the past d days</span></span>
+<span class="line"><span class="ln">35</span><span class="code">    TsMax(x, d): Rolling maximum of x over the past d days</span></span>
+<span class="line"><span class="ln">36</span><span class="code">    TsMinMaxDiff(x, d): Difference between TsMax(x, d) and TsMin(x, d)</span></span>
+<span class="line"><span class="ln">37</span><span class="code">    TsMaxDiff(x, d): Difference between current x and TsMax(x, d)</span></span>
+<span class="line"><span class="ln">38</span><span class="code">    TsMinDiff(x, d): Difference between current x and TsMin(x, d)</span></span>
+<span class="line"><span class="ln">39</span><span class="code">    TsIr(x, d): Rolling Information ratio over past d days</span></span>
+<span class="line"><span class="ln">40</span><span class="code">    TsVar(x, d): Rolling variance of x over the past d days</span></span>
+<span class="line"><span class="ln">41</span><span class="code">    TsSkew(x, d): Rolling skewness of x over the past d days</span></span>
+<span class="line"><span class="ln">42</span><span class="code">    TsKurt(x, d): Rolling kurtosis of x over the past d days</span></span>
+<span class="line"><span class="ln">43</span><span class="code">    TsMed(x, d): Rolling median of x over the past d days</span></span>
+<span class="line"><span class="ln">44</span><span class="code">    TsMad(x, d): Rolling median absolute deviation over the past d days</span></span>
+<span class="line"><span class="ln">45</span><span class="code">    TsRank(x, d): Time-series rank of x over the past d days</span></span>
+<span class="line"><span class="ln">46</span><span class="code">    TsDelta(x, d): Today&#x27;s value of x minus the value of x d days ago</span></span>
+<span class="line"><span class="ln">47</span><span class="code">    TsRatio(x, d): Today&#x27;s value of x divided by the value of x d days ago</span></span>
+<span class="line"><span class="ln">48</span><span class="code">    TsPctChange(x, d): Percentage change in x over the past d days</span></span>
+<span class="line"><span class="ln">49</span><span class="code">    TsWMA(x, d): Weighted moving average over the past d days with linearly decaying weights.</span></span>
+<span class="line"><span class="ln">50</span><span class="code">    TsEMA(x, d): Exponential moving average of x with span d</span></span>
+<span class="line"><span class="ln">51</span><span class="code">    TsCov(x, y, d): Time-series covariance of x and y for the past d days</span></span>
+<span class="line"><span class="ln">52</span><span class="code">    TsCorr(x, y, d): Time-series correlation of x and y for the past d days</span></span>
+<span class="line"><span class="ln">53</span><span class="code">(END OF FEATURES AND OPERATORS DEFINITIONS)<span class="cmt">  # 算子定义区结束</span></span></span>
+<span class="line"><span class="ln">54</span><span class="code">Examples of valid alpha expressions:</span></span>
+<span class="line"><span class="ln">55</span><span class="code">Div(Sub($open, $close), Add(Sub($high, $low), 0.001))<span class="cmt">  # 给出合法示例供 LLM 模仿</span></span></span>
+<span class="line"><span class="ln">56</span><span class="code">&quot;&quot;&quot;</span></span></code></pre></div>
+<p>PROMPT_FEATURES_AND_OPERATORS 是 LLM 的「工具箱清单」。第 13 行的常量规则很关键：滚动算子用整数（<code class="inline">TsMean($close, 10)</code>），算术用浮点（<code class="inline">0.0001</code>），且禁止科学计数法。这对应第 2 章解析器的 token 类型——整数被识别为 DeltaTime，浮点为 Constant。第 55 行的示例 <code class="inline">Div(Sub($open, $close), Add(Sub($high, $low), 0.001))</code> 是 few-shot 引导，让 LLM 学会正确的嵌套语法。</p>
+<h3>PROMPT_GENERARTION —— 进化生成主提示</h3>
+<p>这是 LLM 生成的核心提示。它注入 topic、父表达式、explanations、traces，要求生成 num 个语义不同的 dimensionless 表达式，并列出 12 条合法性校验规则。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">prompt.py</span><span class="code-lines">第 113-144 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">113</span><span class="code">PROMPT_GENERARTION = &quot;&quot;&quot;<span class="cmt">  # PROMPT_GENERARTION 主提示，用 {topic}/{expressions}/{traces}/{num} 占位</span></span></span>
+<span class="line"><span class="ln">114</span><span class="code">Your task is to generate a new expression based on the given expressions,  the given topic {topic}, the explantion of this expression, and the given generation traces, such that:</span></span>
+<span class="line"><span class="ln">115</span><span class="code">1. The new expression is valid(syntactically correct), and dimensionless (i.e. Dim(expr) = 0).<span class="cmt">  # 要求 valid 且 dimensionless (Dim=0)</span></span></span>
+<span class="line"><span class="ln">116</span><span class="code">2. You can only use the features, constants and operators given above in the (FEATURES AND OPERATORS DEFINITIONS). DO NOT MODIFY the name of any features,operators. All the operators should be used the same as their original definitions, ie, the number and type of arguments should be the same as defined.</span></span>
+<span class="line"><span class="ln">117</span><span class="code">3. As for constants, when you use it in rolling calculations, it should be an integer annoted by %d ; when you use it in arithmetic calculations, it should be float numbers listed in 0.0001 0.01, 0.0, 1.0, 2.0. Do NOT use other constants. DO NOT use scientific notation.</span></span>
+<span class="line"><span class="ln">118</span><span class="code">4. Besides the Ref() operator, the constants used in rolling calculations should be the same, use &quot;%d&quot; for all of them.<span class="cmt">  # 滚动常量统一用 %d 占位，便于后续多窗口搜索</span></span></span>
+<span class="line"><span class="ln">119</span><span class="code">5. You should read the original expressions carefully, and try to understand its semantic meaning in quantative finance. Then, you should try your best to think how to express the core of meaning in a different way, or generate new insights inspired by it. Then, you can generate a new expression based on your understanding.<span class="cmt">  # 要求 LLM 读懂父表达式语义再生成</span></span></span>
+<span class="line"><span class="ln">120</span><span class="code">6. If the trace is not empty, then it contains the generation optimization steps from the eariliest to the latest. You should learn how the expressions are optimzed before, and then generate a new expression based on the original expressions and the generation traces.<span class="cmt">  # traces 注入进化路径，让 LLM 学习历史优化方向</span></span></span>
+<span class="line"><span class="ln">121</span><span class="code">7. The new expression should be different from all the given expressions, and should be novel and non-trivial, but it can share some common parts with them.</span></span>
+<span class="line"><span class="ln">122</span><span class="code">8. The new expression should be related to the given topic {topic}, and you should not generate expressions that are totally irrelevant to the topic.(EG: generate a expression about corr between price and volume when the topic is about volatility. Generate a expression containing rolling opertations when the topic is about interday prices, etc.)</span></span>
+<span class="line"><span class="ln">123</span><span class="code">9. Give {num} new expressions with different modification strateigies, with expressions soundness and explainable. The {num} expressions should be different, low correlated, looking semantically different, or using totally diiferent ways to specific semantics(For example, cross sectional(rank op) vs cross time-series(Ts op) or combine them; different statistical measures(Try to use new sound and interpretable operators that rarely or not exist in given expressions, traces and expressions generated before.); different but related semantic meanings, etc.). and each of them should be valid and dimensionless.<span class="cmt">  # 要求 num 个不同策略的变体（横截面 vs 时序等）</span></span></span>
+<span class="line"><span class="ln">124</span><span class="code">10. While maintaining relevance to the overarching topic {topic} and interpretability, you are encouraged to use as diverse a range of operators / features as possible across different expression outputs.</span></span>
+<span class="line"><span class="ln">125</span><span class="code">11. In each generation, there is no need to make the expression more complex, sometimes simplification is also a good way to generate novel expressions.</span></span>
+<span class="line"><span class="ln">126</span><span class="code">12. After you generate each expressions, check whether it is valid,some INVALID operations are:<span class="cmt">  # 12 条合法性校验：禁改算子名、参数个数、常量类型等</span></span></span>
+<span class="line"><span class="ln">127</span><span class="code">   12.1 Modify the name of operators or features. Eg: using &quot;*&quot; instead of &quot;Mul&quot;, using &quot;closing_price&quot; instead of &quot;$close&quot;, using &quot;TSMAD&quot; instead of &quot;TsMad&quot;, etc.</span></span>
+<span class="line"><span class="ln">128</span><span class="code">   12.2 The number of operands are not correct. Eg: Add(x), Div(x,y,z), Missing rolling window %d in rolling operations(TsSkew, TsIr), etc.</span></span>
+<span class="line"><span class="ln">129</span><span class="code">   12.3 When using constant in algorithmic calculations, using integer instead of float, or vice versa.</span></span>
+<span class="line"><span class="ln">130</span><span class="code">   12.4 Use scientific notation in constants. You should transfer into float eg: 1e-4 -&gt; 0.0001</span></span>
+<span class="line"><span class="ln">131</span><span class="code">   12.5 Using constants other than those mentioned in 3.</span></span>
+<span class="line"><span class="ln">132</span><span class="code">   12.6 Using the operators and features not mentioned in FEATURES AND OPERATORS  DEFINITIONS.</span></span>
+<span class="line"><span class="ln">133</span><span class="code">   All the mentioned above in 12 are INVALID operations. Try your best to AVOID / FIX Them.</span></span>
+<span class="line"><span class="ln">134</span><span class="code">Given the original expresssion, you should ONLY and STRICTLY output a JSON object which contains the following contents:<span class="cmt">  # 强制输出 JSON：expressions / expressions_fixed / explanations</span></span></span>
+<span class="line"><span class="ln">135</span><span class="code">{{</span></span>
+<span class="line"><span class="ln">136</span><span class="code">  &quot;expressions&quot;: [&quot;the newly generated expressions as a string list. Each elememnt should contain a valid and dimensionless expression.The length of expressions should be {num}.&quot;],</span></span>
+<span class="line"><span class="ln">137</span><span class="code">  &quot;expressions_fixed&quot;: [&quot;for each generated expression, if there is any invalid operations mentioned above in 12, you should fix them and give the fixed expression here, otherwise just give the original generated expression here. The length of expressions_fixed should be {num}. Do not  modify the semantics of the original generated expressions.&quot;],</span></span>
+<span class="line"><span class="ln">138</span><span class="code">  &quot;explanations&quot;: [&quot;brief explanations of  new expressions, should be the meaning of your given expression. The length of explanations should be {num}. And each explanation should correspond to the expression in the same index in the expressions list.&quot; ]</span></span>
+<span class="line"><span class="ln">139</span><span class="code">}}</span></span>
+<span class="line"><span class="ln">140</span><span class="code">Given expressions: {expressions}</span></span>
+<span class="line"><span class="ln">141</span><span class="code">Given expression explanations: {explanations}</span></span>
+<span class="line"><span class="ln">142</span><span class="code">Generation traces: {traces}</span></span>
+<span class="line"><span class="ln">143</span><span class="code">Do not output anything else other than the JSON object, including code block markers like ``` or ```json.</span></span>
+<span class="line"><span class="ln">144</span><span class="code">&quot;&quot;&quot;</span></span></code></pre></div>
+<p>第 118 行的 <code class="inline">%d</code> 占位是 AlphaPROBE 的巧思：LLM 不必猜最优窗口长度，只输出 <code class="inline">TsMean($close, %d)</code>，由训练循环（第 7 章 <code class="inline">alpha_knowledge_trainer.py:580</code>）在 [5,10,20,30] 四个窗口里暴力搜索最优。第 120 行的 traces 注入是 on-graph evolution 的体现——LLM 看到「这个因子家族从简单 RSI 演化到波动率调整版」的历史，就能生成符合进化方向的变体。第 123 行强制 num 个「不同策略」的变体（横截面 rank vs 时序 Ts、不同统计量），保证一次生成产出多样性。第 134 行要求 JSON 含 expressions_fixed 字段，让 LLM 自检并修复非法操作。</p>
+<h3>JSON 解析容错 —— 训练循环里的兜底</h3>
+<p>即便 prompt 强制 JSON，LLM 仍可能输出带代码块标记的文本。训练循环用正则兜底解析。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">alpha_knowledge_trainer.py</span><span class="code-lines">第 541-555 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">541</span><span class="code">            try:</span></span>
+<span class="line"><span class="ln">542</span><span class="code">                # print(res)</span></span>
+<span class="line"><span class="ln">543</span><span class="code">                json_res = json.loads(res)<span class="cmt">  # 尝试直接 json.loads</span></span></span>
+<span class="line"><span class="ln">544</span><span class="code">                assert len(json_res[&quot;expressions_fixed&quot;]) == args.generate_num<span class="cmt">  # 校验 expressions_fixed 数量 == generate_num</span></span></span>
+<span class="line"><span class="ln">545</span><span class="code">                assert len(json_res[&quot;explanations&quot;]) == args.generate_num</span></span>
+<span class="line"><span class="ln">546</span><span class="code">            except (json.JSONDecodeError, AssertionError) as exc:<span class="cmt">  # 解析失败或数量不符则进入兜底</span></span></span>
+<span class="line"><span class="ln">547</span><span class="code">                print(f&quot;Failed to parse JSON response or invalid number of expressions/explanations: {exc}&quot;)</span></span>
+<span class="line"><span class="ln">548</span><span class="code">                pattern = re.compile(r&#x27;```(?:json)?\s*(\{[\s\S]*?\})\s*```|\{([\s\S]*?)\}&#x27;,re.MULTILINE)<span class="cmt">  # 正则匹配 ```json``` 代码块或裸 JSON</span></span></span>
+<span class="line"><span class="ln">549</span><span class="code">                for match in pattern.finditer(res):</span></span>
+<span class="line"><span class="ln">550</span><span class="code">                    candidate = match.group(1) or f&#x27;{{{match.group(2)}}}&#x27;</span></span>
+<span class="line"><span class="ln">551</span><span class="code">                try:</span></span>
+<span class="line"><span class="ln">552</span><span class="code">                    json_res = json.loads(candidate)<span class="cmt">  # 对候选 JSON 再尝试解析</span></span></span>
+<span class="line"><span class="ln">553</span><span class="code">                except (json.JSONDecodeError, AssertionError) as exc:</span></span>
+<span class="line"><span class="ln">554</span><span class="code">                    print(f&quot;Failed to candidate {candidate}: {exc}&quot;)</span></span>
+<span class="line"><span class="ln">555</span><span class="code">                    continue</span></span></code></pre></div>
+<p>这段兜底逻辑体现了「LLM 不可信」的工程心态。第 548 行的正则 <code class="inline">```(?:json)?\s*(\{[\s\S]*?\})\s*```|\{([\s\S]*?\}</code> 能提取代码块包裹或裸露的 JSON，再尝试解析。即便如此仍可能失败（第 553 行），此时直接 continue 跳过该因子，不中断整轮训练。这种「尽力解析、失败跳过」的策略，让 AlphaPROBE 在 20 轮 × 15 因子的批量生成里保持鲁棒。</p>
+<h2>数据流</h2>
+<p><strong>输入：</strong>检索器选出的父表达式、topic、description、进化 traces（path_to_root 拼成）。<strong>内部：</strong>PROMPT_FEATURES_AND_OPERATORS + PROMPT_GENERARTION 拼成完整 user_prompt，OpenAIModel.chat_generate 经 backoff 重试调 API，返回 JSON 文本，正则兜底解析。<strong>输出：</strong><code class="inline">generate_num</code> 个新表达式字符串及对应 explanations，送第 7 章训练循环做验证与入池。</p>
+<h2>关联公式</h2>
+<p>LLM 生成本质是条件采样，可形式化为：</p>
+<div class="math-block">$$P(e_1, \ldots, e_N \mid e_{\text{parent}}, \text{topic}, \text{traces}) = \prod_{i=1}^{N} P_{\text{LLM}}(e_i \mid e_{\text{parent}}, \text{topic}, \text{traces}, \text{prompt}))$$</div>
+<p>其中 $N$ 是 <code class="inline">generate_num</code>，prompt 含算子定义与 12 条校验规则作约束。temperature $T$（默认 0.5）控制采样的尖锐度：$T$ 越低越倾向于高概率（保守）表达式，$T$ 越高越多样但越容易非法。traces 注入让 $P_{\text{LLM}}$ 成为「有偏」分布——偏向历史有效的进化方向。</p>
+<div class="callout"><span class="callout-label">设计权衡</span><p>为什么用 JSON 而非自由文本输出？因为 JSON 可被 <code class="inline">json.loads</code> 确定性解析，能批量校验 expressions_fixed 数量、提取 explanations。自由文本需要复杂正则，且无法保证结构完整。代价是 LLM 偶尔会输出带代码块标记的 JSON，需正则兜底（第 548 行）。为什么不直接让 LLM 输出 AST？因为 LLM 对自然语言式表达式更熟练，AST 反而增加出错率。</p></div>
+<h2>小结</h2>
+<p>LLM 生成用「system+user 双提示 + 算子定义 + traces 注入 + 12 条校验 + 双重重试 + JSON 兜底」把「让 LLM 当量化研究员」工程化为可重复管线。OpenAIModel 负责鲁棒调用，prompt 负责约束与引导。下一章看训练主循环如何把检索与生成串成闭环。</p>
+<div class="nav-footer"><a href="05.html">← 第5章 贝叶斯因子检索器</a><a href="07.html">第7章 训练主循环 →</a></div>
+</main>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+                onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>
+</body>
+</html>

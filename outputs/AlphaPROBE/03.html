@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第03章 IC/ICIR 因子评估 | AlphaPROBE</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+    background: #FBFBFD;
+    color: #1D1D1F;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+                 "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+}
+.sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    width: 240px;
+    height: 100vh;
+    overflow-y: auto;
+    background: #F5F5F7;
+    border-right: 1px solid #E8E8ED;
+    padding: 28px 18px 40px;
+    z-index: 100;
+}
+.sidebar-title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; color: #1D1D1F; }
+.sidebar-sub { font-size: 12px; color: #86868B; margin: 0 0 22px; letter-spacing: 0.02em; }
+.sidebar a {
+    display: block; color: #1D1D1F; font-size: 13.5px; padding: 7px 12px;
+    border-radius: 8px; margin-bottom: 2px; text-decoration: none; line-height: 1.4;
+}
+.sidebar a:hover { background: #E8E8ED; text-decoration: none; }
+.sidebar a.active { color: #0071e3; font-weight: 600; background: #E8E8ED; }
+.sidebar .group-label {
+    font-size: 11px; color: #86868B; text-transform: uppercase;
+    letter-spacing: 0.06em; margin: 18px 12px 6px;
+}
+main.content { max-width: 820px; margin: 0 0 0 240px; padding: 64px 40px 120px; }
+.hero { margin-bottom: 8px; }
+.badge {
+    display: inline-block; font-size: 13px; font-weight: 600; color: #0071e3;
+    background: rgba(0,113,227,0.08); padding: 4px 12px; border-radius: 980px; letter-spacing: 0.02em;
+}
+h1 { font-size: 36px; font-weight: 700; letter-spacing: -0.02em; margin: 14px 0 8px; line-height: 1.15; }
+h2 { font-size: 26px; font-weight: 600; letter-spacing: -0.01em; margin: 56px 0 16px; color: #1D1D1F; }
+h3 { font-size: 20px; font-weight: 600; margin: 36px 0 12px; color: #1D1D1F; }
+p { margin: 0 0 16px; color: #1D1D1F; }
+.subtitle { color: #86868B; font-size: 19px; margin: 0 0 32px; font-weight: 400; line-height: 1.5; }
+.muted { color: #86868B; }
+strong { font-weight: 600; color: #1D1D1F; }
+em { font-style: italic; }
+a { color: #0071e3; text-decoration: none; }
+a:hover { text-decoration: underline; }
+code.inline {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: #F5F5F7; color: #1D1D1F; padding: 2px 6px; border-radius: 4px; font-size: 0.9em;
+}
+.code-card {
+    background: #FFFFFF; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    margin: 0 0 24px; overflow: hidden; border: 1px solid #E8E8ED;
+}
+.code-header {
+    background: #F5F5F7; border-bottom: 1px solid #E8E8ED; padding: 10px 16px;
+    display: flex; justify-content: space-between; align-items: center; font-size: 12.5px;
+}
+.code-file { font-family: "SF Mono", Menlo, Consolas, monospace; color: #1D1D1F; font-weight: 600; }
+.code-lines { color: #86868B; }
+.code-block { margin: 0; padding: 16px 18px; overflow-x: auto; background: #FFFFFF; }
+.code-block code {
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; line-height: 1.6;
+    color: #1D1D1F; background: transparent; padding: 0; white-space: pre; display: block;
+}
+.code-block .line { display: block; white-space: pre; }
+.code-block .ln {
+    display: inline-block; width: 3em; text-align: right; color: #BBB;
+    user-select: none; margin-right: 18px; font-variant-numeric: tabular-nums;
+}
+.code-block .code { white-space: pre; }
+.code-block .cmt { color: #5a9e6f; white-space: pre-wrap; }
+.callout {
+    background: #F5F5F7; border-left: 3px solid #0071e3; border-radius: 8px;
+    padding: 14px 18px; margin: 0 0 24px; color: #1D1D1F;
+}
+.callout-label {
+    color: #0071e3; font-weight: 600; font-size: 13px; text-transform: uppercase;
+    letter-spacing: 0.04em; display: block; margin-bottom: 6px;
+}
+.callout p:last-child { margin-bottom: 0; }
+.math-block {
+    background: #F5F5F7; border-radius: 10px; padding: 20px; margin: 0 0 24px;
+    text-align: center; overflow-x: auto;
+}
+ul, ol { margin: 0 0 20px; padding-left: 24px; }
+li { margin-bottom: 8px; }
+table {
+    width: 100%; border-collapse: collapse; margin: 0 0 24px; border-radius: 10px;
+    overflow: hidden; border: 1px solid #E8E8ED; font-size: 15px;
+}
+th, td { padding: 11px 16px; text-align: left; border-bottom: 1px solid #E8E8ED; }
+th { background: #F5F5F7; font-weight: 600; }
+tr:last-child td { border-bottom: none; }
+img { max-width: 100%; border-radius: 12px; }
+.nav-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 64px; padding-top: 24px; border-top: 1px solid #E8E8ED; font-size: 15px;
+}
+.nav-footer a { color: #0071e3; }
+.toc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+.toc-card {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 14px; padding: 20px 22px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04); text-decoration: none; color: #1D1D1F;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.toc-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.08); text-decoration: none; }
+.toc-card .tc-num { font-size: 12px; color: #86868B; font-weight: 600; letter-spacing: 0.04em; }
+.toc-card .tc-title { font-size: 17px; font-weight: 600; margin: 4px 0 6px; }
+.toc-card .tc-desc { font-size: 13.5px; color: #86868B; line-height: 1.5; }
+.concept-map { margin: 24px 0; }
+.cm-layer { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
+.cm-layer-label {
+    width: 92px; flex: 0 0 92px; font-size: 12px; color: #86868B; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em; padding-top: 14px;
+}
+.cm-nodes { flex: 1; display: flex; gap: 10px; flex-wrap: wrap; }
+.cm-node {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 10px; padding: 10px 14px;
+    min-width: 150px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.cm-node .cm-id { font-size: 11px; color: #0071e3; font-weight: 700; }
+.cm-node .cm-name { font-size: 14px; font-weight: 600; color: #1D1D1F; }
+.cm-arrow { text-align: center; color: #86868B; font-size: 12px; margin: 8px 0 8px 92px; }
+.cm-rels { margin-top: 20px; }
+.cm-rel {
+    display: inline-block; background: #F5F5F7; border-radius: 8px; padding: 5px 11px;
+    margin: 4px 6px 4px 0; font-size: 12.5px; color: #1D1D1F;
+}
+.cm-rel b { color: #0071e3; }
+.arch-tree {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 12px; padding: 20px 24px;
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; line-height: 1.7;
+    overflow-x: auto; white-space: pre; color: #1D1D1F;
+}
+.arch-tree .c { color: #86868B; }
+@media (max-width: 860px) {
+    .sidebar { position: static; width: 100%; height: auto; }
+    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .toc-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<aside class="sidebar"><h2 class="sidebar-title">AlphaPROBE</h2><p class="sidebar-sub">深度代码教程</p><a href="index.html">首页</a><div class="group-label">数据层</div><a href="01.html">第1章 Qlib 行情数据加载</a><a href="02.html">第2章 表达式与算子体系</a><a href="03.html" class="active">第3章 IC/ICIR 因子评估</a><div class="group-label">核心层</div><a href="04.html">第4章 表达式知识图谱</a><a href="05.html">第5章 贝叶斯因子检索器</a><a href="06.html">第6章 LLM 表达式生成</a><div class="group-label">应用层</div><a href="07.html">第7章 训练主循环</a><a href="08.html">第8章 表达式验证与入池</a><a href="09.html">第9章 Mega-Alpha 动态组合</a><a href="10.html">第10章 Baseline 对比</a></aside><main class="content">
+<div class="hero"><span class="badge">第 3 章 · 数据层</span></div>
+<h1>第3章：IC/ICIR 因子评估</h1>
+<p class="subtitle">像考试的评分员，IC 衡量因子方向是否正确，ICIR 衡量这个方向是否稳定。</p>
+<h2>欢迎</h2>
+<p>有了表达式体系和数据接口，下一个问题是：怎么判断一个因子「好不好」？AlphaPROBE 用两把尺子衡量：IC（Information Coefficient）衡量因子值与未来收益的线性相关性，ICIR（Information Ratio）在 IC 基础上除以标准差，衡量这种相关性的<strong>稳定性</strong>。本章拆解 <code class="inline">src/alphagen_qlib/calculator.py</code> 与 <code class="inline">src/alphagen/utils/correlation.py</code>，看 IC/ICIR 如何被批量、向量化地算出来，并理解它们为何会成为第 5 章贝叶斯检索器的「质量分」核心。</p>
+<h2>它解决什么问题？</h2>
+<p>量化因子的评估有两难。第一难：<strong>方向</strong>——因子值大，未来收益是涨还是跌？IC 用 Pearson 相关系数回答这个问题，IC>0 表示因子方向正确，|IC| 越大预测力越强。第二难：<strong>稳定性</strong>——这个方向今天是成立的，下个月还成立吗？ICIR = mean(IC) / std(IC)，把「平均预测力」和「预测力的波动」一起考量，ICIR 高才说明因子不是偶然有效。</p>
+<p>类比考试评分员：IC 像单次考试分数，告诉你这次考得好不好；ICIR 像整个学期的平均分除以成绩波动，告诉你这个学生是不是稳定的好学生。AlphaPROBE 在入池判定（第 8 章）和检索打分（第 5 章）里都把 ICIR 作为核心指标——<code class="inline">train_new_work.py:107</code> 甚至单独定义了 <code class="inline">icir_decay_threshold</code>，允许 ICIR 略低于父因子但 MutIC 显著降低的表达式入池，可见 ICIR 的中心地位。</p>
+<h2>核心设计思路</h2>
+<p>设计上有三个关键点。第一，<strong>按日批量向量化</strong>：IC 是逐日算的（每天一个横截面相关系数），<code class="inline">batch_pearsonr</code> 一次性算出全部天的 IC 序列，避免 Python 循环。第二，<strong>NaN 安全</strong>：停牌股票会产生 NaN，<code class="inline">_mask_either_nan</code> 用掩码把 NaN 统一替换并记录有效股票数 n，保证均值/方差只在有效股票上计算。第三，<strong>Pearson 与 Spearman 互补</strong>：Pearson IC 对线性关系敏感，Spearman RankIC 对单调关系更稳健，两者都算出来供组合阶段（第 9 章）做因子筛选。</p>
+<h2>代码深入</h2>
+<h3>batch_pearsonr —— 逐日横截面相关系数</h3>
+<p>这是 IC 计算的原子操作。它先 mask 掉任一为 NaN 的位置，再按公式算协方差除以标准差。返回长度为 n_days 的张量，每个元素是一天的横截面 Pearson IC。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">correlation.py</span><span class="code-lines">第 7-36 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">7</span><span class="code">def _mask_either_nan(x: Tensor, y: Tensor, fill_with: float = torch.nan):<span class="cmt">  # 把任一为 NaN 的位置统一替换，并记录每天有效股票数 n</span></span></span>
+<span class="line"><span class="ln">8</span><span class="code">    x = x.clone()                       # [days, stocks]</span></span>
+<span class="line"><span class="ln">9</span><span class="code">    y = y.clone()                       # [days, stocks]</span></span>
+<span class="line"><span class="ln">10</span><span class="code">    nan_mask = x.isnan() | y.isnan()<span class="cmt">  # nan_mask 标记需要剔除的 (day, stock)</span></span></span>
+<span class="line"><span class="ln">11</span><span class="code">    x[nan_mask] = fill_with</span></span>
+<span class="line"><span class="ln">12</span><span class="code">    y[nan_mask] = fill_with</span></span>
+<span class="line"><span class="ln">13</span><span class="code">    n = (~nan_mask).sum(dim=1)<span class="cmt">  # n 是每天有效股票数，用于均值/方差归一</span></span></span>
+<span class="line"><span class="ln">14</span><span class="code">    return x, y, n, nan_mask</span></span>
+<span class="line"><span class="ln">15</span><span class="code"></span></span>
+<span class="line"><span class="ln">16</span><span class="code"></span></span>
+<span class="line"><span class="ln">17</span><span class="code">def _rank_data(x: Tensor, nan_mask: Tensor) -&gt; Tensor:</span></span>
+<span class="line"><span class="ln">18</span><span class="code">    rank = x.argsort().argsort().float()          # [d, s]</span></span>
+<span class="line"><span class="ln">19</span><span class="code">    eq = x[:, None] == x[:, :, None]                # [d, s, s]</span></span>
+<span class="line"><span class="ln">20</span><span class="code">    eq = eq / eq.sum(dim=2, keepdim=True)           # [d, s, s]</span></span>
+<span class="line"><span class="ln">21</span><span class="code">    rank = (eq @ rank[:, :, None]).squeeze(dim=2)</span></span>
+<span class="line"><span class="ln">22</span><span class="code">    rank[nan_mask] = 0</span></span>
+<span class="line"><span class="ln">23</span><span class="code">    return rank                                     # [d, s]</span></span>
+<span class="line"><span class="ln">24</span><span class="code"></span></span>
+<span class="line"><span class="ln">25</span><span class="code"></span></span>
+<span class="line"><span class="ln">26</span><span class="code">def _batch_pearsonr_given_mask(<span class="cmt">  # 核心：按日批量算 Pearson 相关</span></span></span>
+<span class="line"><span class="ln">27</span><span class="code">    x: Tensor, y: Tensor,</span></span>
+<span class="line"><span class="ln">28</span><span class="code">    n: Tensor, mask: Tensor</span></span>
+<span class="line"><span class="ln">29</span><span class="code">) -&gt; Tensor:</span></span>
+<span class="line"><span class="ln">30</span><span class="code">    x_mean, x_std = masked_mean_std(x, n, mask)<span class="cmt">  # masked_mean_std 只在有效位置算均值与标准差</span></span></span>
+<span class="line"><span class="ln">31</span><span class="code">    y_mean, y_std = masked_mean_std(y, n, mask)</span></span>
+<span class="line"><span class="ln">32</span><span class="code">    cov = (x * y).sum(dim=1) / n - x_mean * y_mean<span class="cmt">  # 协方差 = E[xy] - E[x]E[y]</span></span></span>
+<span class="line"><span class="ln">33</span><span class="code">    stdmul = x_std * y_std</span></span>
+<span class="line"><span class="ln">34</span><span class="code">    stdmul[(x_std &lt; 1e-3) | (y_std &lt; 1e-3)] = 1<span class="cmt">  # 标准差过小则置 1，避免除零</span></span></span>
+<span class="line"><span class="ln">35</span><span class="code">    corrs = cov / stdmul</span></span>
+<span class="line"><span class="ln">36</span><span class="code">    return corrs</span></span></code></pre></div>
+<div class="code-card"><div class="code-header"><span class="code-file">correlation.py</span><span class="code-lines">第 79-90 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">79</span><span class="code">def batch_spearmanr(x: Tensor, y: Tensor) -&gt; Tensor:<span class="cmt">  # Spearman = 先 rank 再 Pearson</span></span></span>
+<span class="line"><span class="ln">80</span><span class="code">    x, y, n, nan_mask = _mask_either_nan(x, y)<span class="cmt">  # mask NaN</span></span></span>
+<span class="line"><span class="ln">81</span><span class="code">    rx = _rank_data(x, nan_mask)<span class="cmt">  # 对 x 按日排名</span></span></span>
+<span class="line"><span class="ln">82</span><span class="code">    ry = _rank_data(y, nan_mask)<span class="cmt">  # 对 y 按日排名</span></span></span>
+<span class="line"><span class="ln">83</span><span class="code">    return _batch_pearsonr_given_mask(rx, ry, n, nan_mask)</span></span>
+<span class="line"><span class="ln">84</span><span class="code"></span></span>
+<span class="line"><span class="ln">85</span><span class="code"></span></span>
+<span class="line"><span class="ln">86</span><span class="code">def batch_pearsonr(x: Tensor, y: Tensor) -&gt; Tensor:<span class="cmt">  # Pearson：mask 后用 0 填充再算</span></span></span>
+<span class="line"><span class="ln">87</span><span class="code">    res =  _batch_pearsonr_given_mask(*_mask_either_nan(x, y, fill_with=0.))</span></span>
+<span class="line"><span class="ln">88</span><span class="code">    # fillna</span></span>
+<span class="line"><span class="ln">89</span><span class="code">    res[res.isnan()] = 0<span class="cmt">  # 剩余 NaN（如全零日）置 0</span></span></span>
+<span class="line"><span class="ln">90</span><span class="code">    return res</span></span></code></pre></div>
+<p>第 32 行的协方差公式 <code class="inline">cov = (x*y).sum(dim=1)/n - x_mean*y_mean</code> 是 IC 的数学核心。它把每天的横截面相关系数向量化算出，<code class="inline">n_days</code> 天只需一次张量运算。第 34 行的 <code class="inline">stdmul[(x_std<1e-3)|(y_std<1e-3)] = 1</code> 是数值保护：当某天所有股票因子值相同（标准差≈0）时，相关系数无定义，这里把分母置 1 让结果趋向 0，再由第 89 行的 NaN 兜底置 0。Spearman RankIC（第 79-83 行）则是先按日排名再做同样的 Pearson——排名用 <code class="inline">argsort().argsort()</code> 实现，并对并列值做平均排名处理。</p>
+<h3>QLibStockDataCalculator._calc_ICIR —— ICIR 落地</h3>
+<p>calculator 把 batch_pearsonr 的结果聚合成标量 IC 与 ICIR。IC 是均值，ICIR 是均值除以标准差。这是第 5 章检索器与第 8 章入池判定的直接数据来源。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">calculator.py</span><span class="code-lines">第 20-46 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">20</span><span class="code">    def _calc_alpha(self, expr: Expression) -&gt; Tensor:<span class="cmt">  # 先按日归一化因子值（零均值单位方差）</span></span></span>
+<span class="line"><span class="ln">21</span><span class="code">        return normalize_by_day(expr.evaluate(self.data))</span></span>
+<span class="line"><span class="ln">22</span><span class="code"></span></span>
+<span class="line"><span class="ln">23</span><span class="code">    def _calc_IC(self, value1: Tensor, value2: Tensor) -&gt; float:<span class="cmt">  # IC = 逐日 Pearson 相关的均值</span></span></span>
+<span class="line"><span class="ln">24</span><span class="code">        return batch_pearsonr(value1, value2).mean().item()</span></span>
+<span class="line"><span class="ln">25</span><span class="code">    </span></span>
+<span class="line"><span class="ln">26</span><span class="code">    def _calc_raw_IC(self, value1: Tensor, value2: Tensor) -&gt; Tensor:</span></span>
+<span class="line"><span class="ln">27</span><span class="code">        return batch_pearsonr(value1, value2)</span></span>
+<span class="line"><span class="ln">28</span><span class="code">    </span></span>
+<span class="line"><span class="ln">29</span><span class="code">    def _calc_ICIR(self, value1: Tensor, value2: Tensor) -&gt; float:<span class="cmt">  # ICIR = IC 均值 / IC 标准差</span></span></span>
+<span class="line"><span class="ln">30</span><span class="code">        aaa = batch_pearsonr(value1, value2)<span class="cmt">  # aaa 是逐日 IC 序列 (n_days,)</span></span></span>
+<span class="line"><span class="ln">31</span><span class="code">        IC = aaa.mean().item()</span></span>
+<span class="line"><span class="ln">32</span><span class="code">        _std = aaa.std().item()</span></span>
+<span class="line"><span class="ln">33</span><span class="code">        return IC/_std</span></span>
+<span class="line"><span class="ln">34</span><span class="code"></span></span>
+<span class="line"><span class="ln">35</span><span class="code">    def _calc_rIC(self, value1: Tensor, value2: Tensor) -&gt; float:        <span class="cmt">  # RankIC 用 Spearman，对单调关系更稳健</span></span></span>
+<span class="line"><span class="ln">36</span><span class="code">        return batch_spearmanr(value1, value2).mean().item()</span></span>
+<span class="line"><span class="ln">37</span><span class="code">    </span></span>
+<span class="line"><span class="ln">38</span><span class="code">    def _calc_raw_rIC(self, value1: Tensor, value2: Tensor) -&gt; Tensor:</span></span>
+<span class="line"><span class="ln">39</span><span class="code">        return batch_spearmanr(value1, value2)</span></span>
+<span class="line"><span class="ln">40</span><span class="code">    </span></span>
+<span class="line"><span class="ln">41</span><span class="code">    def _calc_rICIR(self, value1: Tensor, value2: Tensor) -&gt; float:<span class="cmt">  # rICIR = RankIC 均值 / RankIC 标准差</span></span></span>
+<span class="line"><span class="ln">42</span><span class="code">        # return batch_pearsonr(value1, value2).mean().item()</span></span>
+<span class="line"><span class="ln">43</span><span class="code">        aaa = batch_spearmanr(value1, value2)</span></span>
+<span class="line"><span class="ln">44</span><span class="code">        RIC = aaa.mean().item()</span></span>
+<span class="line"><span class="ln">45</span><span class="code">        _std = aaa.std().item()</span></span>
+<span class="line"><span class="ln">46</span><span class="code">        return RIC/_std</span></span></code></pre></div>
+<p>第 29-33 行的 _calc_ICIR 把 batch_pearsonr 返回的逐日 IC 序列取均值得 IC，再除以标准差得 ICIR。注意第 32 行直接用 <code class="inline">.item()</code> 转成 Python float，没有加 epsilon 保护——这是因为上游 batch_pearsonr 已经把全零日的 NaN 置 0，标准差只在真实波动上算。第 18 行的 target_value 在构造期就归一化缓存好，避免每次评估都重算 target。</p>
+<h3>AlphaPool._calc_ics_and_icir —— 同时算 IC、ICIR 与互相关</h3>
+<p>AlphaPROBE 的入池判定不仅看单因子 IC/ICIR，还要看它与池内已有因子的<strong>互相关</strong>（Mutual IC），防止重复因子。这个方法一次性算出三者。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">alpha_pool.py</span><span class="code-lines">第 220-239 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">220</span><span class="code">    def _calc_ics_and_icir(</span></span>
+<span class="line"><span class="ln">221</span><span class="code">        self,</span></span>
+<span class="line"><span class="ln">222</span><span class="code">        value: Tensor,<span class="cmt">  # 逐日 Pearson IC 序列</span></span></span>
+<span class="line"><span class="ln">223</span><span class="code">        ic_mut_threshold: Optional[float] = None</span></span>
+<span class="line"><span class="ln">224</span><span class="code">    ) -&gt; Tuple[float, float, List[float]]:</span></span>
+<span class="line"><span class="ln">225</span><span class="code">        pearson_corrs = batch_pearsonr(value, self.target)</span></span>
+<span class="line"><span class="ln">226</span><span class="code">        single_ic = pearson_corrs.mean().item()<span class="cmt">  # single_ic = 逐日 IC 的均值</span></span></span>
+<span class="line"><span class="ln">227</span><span class="code">        single_icir = pearson_corrs.mean().item() / (pearson_corrs.std().item() + 1e-6)<span class="cmt">  # single_icir = IC 均值 / IC 标准差</span></span></span>
+<span class="line"><span class="ln">228</span><span class="code">        thres = self.ic_lower_bound if self.ic_lower_bound is not None else 0.</span></span>
+<span class="line"><span class="ln">229</span><span class="code">        # if not (self.size &gt; 1 or self._under_thres_alpha) and abs(single_ic) &lt; thres:</span></span>
+<span class="line"><span class="ln">230</span><span class="code">        #     return None, None, None</span></span>
+<span class="line"><span class="ln">231</span><span class="code"></span></span>
+<span class="line"><span class="ln">232</span><span class="code">        mutual_ics = []<span class="cmt">  # 遍历池内因子算互相关</span></span></span>
+<span class="line"><span class="ln">233</span><span class="code">        for i in range(self.size):</span></span>
+<span class="line"><span class="ln">234</span><span class="code">            mutual_ic = batch_pearsonr(value, self.values[i]).mean().item()  # type: ignore<span class="cmt">  # mutual_ic = 新因子与池内第 i 个因子的逐日 IC 均值</span></span></span>
+<span class="line"><span class="ln">235</span><span class="code">            # if ic_mut_threshold is not None and mutual_ic &gt; ic_mut_threshold:</span></span>
+<span class="line"><span class="ln">236</span><span class="code">            #     return None, None, None</span></span>
+<span class="line"><span class="ln">237</span><span class="code">            mutual_ics.append(mutual_ic)</span></span>
+<span class="line"><span class="ln">238</span><span class="code"></span></span>
+<span class="line"><span class="ln">239</span><span class="code">        return single_ic, single_icir, mutual_ics<span class="cmt">  # 返回 (IC, ICIR, [互相关列表])</span></span></span></code></pre></div>
+<p>第 233-237 行的循环是新因子与池内每个已有因子算互相关。这个互相关列表会在第 8 章的 <code class="inline">try_new_expr</code> 里被用来判断「新因子是否与池内某因子重复」（<code class="inline">np.max(ic_mut) <= self.ic_mut_threshold</code>）。它也是第 5 章贝叶斯检索器计算「多样性分」的输入——<code class="inline">mutual_ics</code> 矩阵在 <code class="inline">search</code> 里被用作 corr_matrix。</p>
+<h2>数据流</h2>
+<p><strong>输入：</strong>因子值张量（<code class="inline">expr.evaluate(data)</code> 得到的 (T, N)）与 target 张量（<code class="inline">Ref(close,-20)/close-1</code> 归一化后）。<strong>内部：</strong>归一化按日零均值单位方差，batch_pearsonr/batch_spearmanr 算逐日相关序列，calculator 聚合成 IC/ICIR 标量。<strong>输出：</strong>IC、ICIR、RankIC、RankICIR 标量，以及与池内因子的互相关列表。这些值会写入 <code class="inline">AlphaKnowledgePool.icir</code> 与 <code class="inline">mutual_ics</code>，供检索与入池使用。</p>
+<h2>关联公式</h2>
+<p>Pearson IC 是逐日横截面相关系数的均值：</p>
+<div class="math-block">$$\text{IC} = \frac{1}{T}\sum_{t=1}^{T} \rho_t(v, r),\quad \rho_t = \frac{\text{Cov}_t(v, r)}{\sigma_t(v)\sigma_t(r)}$$</div>
+<div class="math-block">$$\text{ICIR} = \frac{\overline{\rho_t}}{\text{std}(\rho_t)} = \frac{\text{IC}}{\sigma_{\text{IC}}}$$</div>
+<p>其中 $v$ 是因子值，$r$ 是未来收益，$\rho_t$ 是第 $t$ 天的横截面相关。代码里的 <code class="inline">ic_s_mean / ic_s_std</code>（calculator 第 252 行）正对应 ICIR 公式。</p>
+<div class="callout"><span class="callout-label">设计权衡</span><p>为什么 ICIR 比 IC 更重要？因为 AlphaPROBE 追求的是「长期稳健」的因子，而非「某段时间爆表」的因子。IC 高但 ICIR 低意味着因子在某些时段极准、在另一些时段反向，这种因子进组合后会放大波动。因此检索器用 ICIR 而非 IC 作质量分（第 5 章 <code class="inline">icir_logit</code>），入池判定也允许 ICIR 略低但 MutIC 显著降低的因子通过（<code class="inline">icir_decay_threshold</code>）。</p></div>
+<h2>小结</h2>
+<p>IC/ICIR 评估用「按日批量向量化 + NaN 安全 + Pearson/Spearman 互补」三件套，把因子值与未来收益的相关性收敛成可比的标量。batch_pearsonr 是原子操作，calculator 聚合成 IC/ICIR，AlphaPool 同时算出互相关防止重复。这些指标是第 5 章贝叶斯检索器的质量分基础。</p>
+<div class="nav-footer"><a href="02.html">← 第2章 表达式与算子体系</a><a href="04.html">第4章 表达式知识图谱 →</a></div>
+</main>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+                onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>
+</body>
+</html>

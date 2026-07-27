@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第07章 训练主循环 | AlphaPROBE</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+    background: #FBFBFD;
+    color: #1D1D1F;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+                 "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+}
+.sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    width: 240px;
+    height: 100vh;
+    overflow-y: auto;
+    background: #F5F5F7;
+    border-right: 1px solid #E8E8ED;
+    padding: 28px 18px 40px;
+    z-index: 100;
+}
+.sidebar-title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; color: #1D1D1F; }
+.sidebar-sub { font-size: 12px; color: #86868B; margin: 0 0 22px; letter-spacing: 0.02em; }
+.sidebar a {
+    display: block; color: #1D1D1F; font-size: 13.5px; padding: 7px 12px;
+    border-radius: 8px; margin-bottom: 2px; text-decoration: none; line-height: 1.4;
+}
+.sidebar a:hover { background: #E8E8ED; text-decoration: none; }
+.sidebar a.active { color: #0071e3; font-weight: 600; background: #E8E8ED; }
+.sidebar .group-label {
+    font-size: 11px; color: #86868B; text-transform: uppercase;
+    letter-spacing: 0.06em; margin: 18px 12px 6px;
+}
+main.content { max-width: 820px; margin: 0 0 0 240px; padding: 64px 40px 120px; }
+.hero { margin-bottom: 8px; }
+.badge {
+    display: inline-block; font-size: 13px; font-weight: 600; color: #0071e3;
+    background: rgba(0,113,227,0.08); padding: 4px 12px; border-radius: 980px; letter-spacing: 0.02em;
+}
+h1 { font-size: 36px; font-weight: 700; letter-spacing: -0.02em; margin: 14px 0 8px; line-height: 1.15; }
+h2 { font-size: 26px; font-weight: 600; letter-spacing: -0.01em; margin: 56px 0 16px; color: #1D1D1F; }
+h3 { font-size: 20px; font-weight: 600; margin: 36px 0 12px; color: #1D1D1F; }
+p { margin: 0 0 16px; color: #1D1D1F; }
+.subtitle { color: #86868B; font-size: 19px; margin: 0 0 32px; font-weight: 400; line-height: 1.5; }
+.muted { color: #86868B; }
+strong { font-weight: 600; color: #1D1D1F; }
+em { font-style: italic; }
+a { color: #0071e3; text-decoration: none; }
+a:hover { text-decoration: underline; }
+code.inline {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: #F5F5F7; color: #1D1D1F; padding: 2px 6px; border-radius: 4px; font-size: 0.9em;
+}
+.code-card {
+    background: #FFFFFF; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    margin: 0 0 24px; overflow: hidden; border: 1px solid #E8E8ED;
+}
+.code-header {
+    background: #F5F5F7; border-bottom: 1px solid #E8E8ED; padding: 10px 16px;
+    display: flex; justify-content: space-between; align-items: center; font-size: 12.5px;
+}
+.code-file { font-family: "SF Mono", Menlo, Consolas, monospace; color: #1D1D1F; font-weight: 600; }
+.code-lines { color: #86868B; }
+.code-block { margin: 0; padding: 16px 18px; overflow-x: auto; background: #FFFFFF; }
+.code-block code {
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; line-height: 1.6;
+    color: #1D1D1F; background: transparent; padding: 0; white-space: pre; display: block;
+}
+.code-block .line { display: block; white-space: pre; }
+.code-block .ln {
+    display: inline-block; width: 3em; text-align: right; color: #BBB;
+    user-select: none; margin-right: 18px; font-variant-numeric: tabular-nums;
+}
+.code-block .code { white-space: pre; }
+.code-block .cmt { color: #5a9e6f; white-space: pre-wrap; }
+.callout {
+    background: #F5F5F7; border-left: 3px solid #0071e3; border-radius: 8px;
+    padding: 14px 18px; margin: 0 0 24px; color: #1D1D1F;
+}
+.callout-label {
+    color: #0071e3; font-weight: 600; font-size: 13px; text-transform: uppercase;
+    letter-spacing: 0.04em; display: block; margin-bottom: 6px;
+}
+.callout p:last-child { margin-bottom: 0; }
+.math-block {
+    background: #F5F5F7; border-radius: 10px; padding: 20px; margin: 0 0 24px;
+    text-align: center; overflow-x: auto;
+}
+ul, ol { margin: 0 0 20px; padding-left: 24px; }
+li { margin-bottom: 8px; }
+table {
+    width: 100%; border-collapse: collapse; margin: 0 0 24px; border-radius: 10px;
+    overflow: hidden; border: 1px solid #E8E8ED; font-size: 15px;
+}
+th, td { padding: 11px 16px; text-align: left; border-bottom: 1px solid #E8E8ED; }
+th { background: #F5F5F7; font-weight: 600; }
+tr:last-child td { border-bottom: none; }
+img { max-width: 100%; border-radius: 12px; }
+.nav-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 64px; padding-top: 24px; border-top: 1px solid #E8E8ED; font-size: 15px;
+}
+.nav-footer a { color: #0071e3; }
+.toc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+.toc-card {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 14px; padding: 20px 22px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04); text-decoration: none; color: #1D1D1F;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.toc-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.08); text-decoration: none; }
+.toc-card .tc-num { font-size: 12px; color: #86868B; font-weight: 600; letter-spacing: 0.04em; }
+.toc-card .tc-title { font-size: 17px; font-weight: 600; margin: 4px 0 6px; }
+.toc-card .tc-desc { font-size: 13.5px; color: #86868B; line-height: 1.5; }
+.concept-map { margin: 24px 0; }
+.cm-layer { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
+.cm-layer-label {
+    width: 92px; flex: 0 0 92px; font-size: 12px; color: #86868B; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em; padding-top: 14px;
+}
+.cm-nodes { flex: 1; display: flex; gap: 10px; flex-wrap: wrap; }
+.cm-node {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 10px; padding: 10px 14px;
+    min-width: 150px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.cm-node .cm-id { font-size: 11px; color: #0071e3; font-weight: 700; }
+.cm-node .cm-name { font-size: 14px; font-weight: 600; color: #1D1D1F; }
+.cm-arrow { text-align: center; color: #86868B; font-size: 12px; margin: 8px 0 8px 92px; }
+.cm-rels { margin-top: 20px; }
+.cm-rel {
+    display: inline-block; background: #F5F5F7; border-radius: 8px; padding: 5px 11px;
+    margin: 4px 6px 4px 0; font-size: 12.5px; color: #1D1D1F;
+}
+.cm-rel b { color: #0071e3; }
+.arch-tree {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 12px; padding: 20px 24px;
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; line-height: 1.7;
+    overflow-x: auto; white-space: pre; color: #1D1D1F;
+}
+.arch-tree .c { color: #86868B; }
+@media (max-width: 860px) {
+    .sidebar { position: static; width: 100%; height: auto; }
+    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .toc-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<aside class="sidebar"><h2 class="sidebar-title">AlphaPROBE</h2><p class="sidebar-sub">深度代码教程</p><a href="index.html">首页</a><div class="group-label">数据层</div><a href="01.html">第1章 Qlib 行情数据加载</a><a href="02.html">第2章 表达式与算子体系</a><a href="03.html">第3章 IC/ICIR 因子评估</a><div class="group-label">核心层</div><a href="04.html">第4章 表达式知识图谱</a><a href="05.html">第5章 贝叶斯因子检索器</a><a href="06.html">第6章 LLM 表达式生成</a><div class="group-label">应用层</div><a href="07.html" class="active">第7章 训练主循环</a><a href="08.html">第8章 表达式验证与入池</a><a href="09.html">第9章 Mega-Alpha 动态组合</a><a href="10.html">第10章 Baseline 对比</a></aside><main class="content">
+<div class="hero"><span class="badge">第 7 章 · 应用层</span></div>
+<h1>第7章：训练主循环</h1>
+<p class="subtitle">像一个闭环工厂：检索原料(因子) → 加工(LLM 变异) → 质检(验证+IC) → 入库(进池) → 记录(日志)。</p>
+<h2>欢迎</h2>
+<p>前面六章铺好了所有零件：数据接口、表达式体系、IC 评估、知识图谱、贝叶斯检索器、LLM 生成器。本章看它们如何被串成一条闭环流水线——<code class="inline">AlphaKnowledgeTrainer._train_one_iteration</code>。这是 AlphaPROBE 的「心脏」，每轮迭代执行 retrieve→generate→validate→insert→log 五步，把 LLM 的创造力与知识图谱的记忆力结合，持续产出高质量因子。</p>
+<h2>它解决什么问题？</h2>
+<p>alpha 挖掘的核心矛盾是「探索 vs 利用」：探索新方向会浪费算力在无效因子上，只利用已知好因子又会陷入局部最优。AlphaPROBE 用闭环工厂解决这个问题：每轮先用贝叶斯检索器（平衡实力/新鲜度/多样性）挑出 top_k 个因子，再让 LLM 在它们的进化 traces 引导下生成变体，变体经验证入池后更新图谱，下一轮检索器就能利用更新后的 depth/times/icir 做更优选择。这种「检索→生成→验证→入池→检索」的闭环，让搜索方向不断自我修正。</p>
+<p>类比闭环工厂：检索器是「原料仓」（挑因子），LLM 是「加工车间」（变异），验证+IC 是「质检」（合法性/量纲/相关性），入池是「成品库」（更新图谱），日志是「出厂记录」（pool_*.json + res.txt）。每轮迭代都让成品库更丰富，下一轮原料选择也更精准。</p>
+<h2>核心设计思路</h2>
+<p>设计上有五个关键点。第一，<strong>检索→生成→验证→入池→日志五步闭环</strong>：<code class="inline">search</code> 选因子，<code class="inline">chat_generate</code> 生成，<code class="inline">parser.parse</code> + IC 评估验证，<code class="inline">try_new_expr</code> 入池，<code class="inline">logger.log</code> 记录。第二，<strong>双路径入池判定</strong>：ICIR 超越父因子直接入池；否则若 MutIC 显著降低且 ICIR 不低于父的 <code class="inline">icir_decay_threshold</code>，也入池（鼓励多样性贡献）。第三，<strong>多窗口搜索</strong>：含 %d 的表达式在 [5,10,20,30] 窗口暴力搜索最优。第四，<strong>已存在表达式复用</strong>：图谱里已有的表达式直接复用节点，不重复生成。第五，<strong>定时日志</strong>：每 log_freq 轮记录池状态与测试 IC。</p>
+<h2>代码深入</h2>
+<h3>AlphaKnowledgeTrainer.__init__ —— 装配零件</h3>
+<p>构造器接收池、初始表达式、测试数据、target、args。它创建图谱并 attach 到池，逐个解析初始表达式入池入图，最后创建 logger 与 OpenAI client。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">alpha_knowledge_trainer.py</span><span class="code-lines">第 472-508 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">472</span><span class="code">class AlphaKnowledgeTrainer:</span></span>
+<span class="line"><span class="ln">473</span><span class="code">    def __init__(self, pool: AlphaKnowledgePool, initial_expressions: List[Tuple[str, str, str]], test_data:StockData, target:exp_module.Expression, args: Any):</span></span>
+<span class="line"><span class="ln">474</span><span class="code">        self.pool = pool</span></span>
+<span class="line"><span class="ln">475</span><span class="code">        self.test_data = test_data</span></span>
+<span class="line"><span class="ln">476</span><span class="code">        self.target = target</span></span>
+<span class="line"><span class="ln">477</span><span class="code">        self.parser = ExpressionParser()</span></span>
+<span class="line"><span class="ln">478</span><span class="code">        self.graph = ExpressionKnowledgeGraph(depth_limit = args.depth_limit, expression_size_limit=args.max_length)<span class="cmt">  # 创建知识图谱，depth_limit/max_length 来自 args</span></span></span>
+<span class="line"><span class="ln">479</span><span class="code">        self.pool.attach_knowledge_graph(self.graph)<span class="cmt">  # 把图谱 attach 到池，供检索器查节点</span></span></span>
+<span class="line"><span class="ln">480</span><span class="code">        for (expr, topic, explanation) in initial_expressions:<span class="cmt">  # 逐个处理 29 个初始表达式</span></span></span>
+<span class="line"><span class="ln">481</span><span class="code">            ic, mutic, icir = self.pool.get_ic_icir_mutics(self.parser.parse(expr.strip().replace(&#x27;%d&#x27;, &#x27;10&#x27;)))<span class="cmt">  # 算初始 IC/ICIR/MutIC（%d 替换为 10）</span></span></span>
+<span class="line"><span class="ln">482</span><span class="code"></span></span>
+<span class="line"><span class="ln">483</span><span class="code">            expression_node = self.graph.build_expression_node(expr.strip(), topic, explanation, args.max_length, ic, icir)<span class="cmt">  # build_expression_node 构造图谱节点</span></span></span>
+<span class="line"><span class="ln">484</span><span class="code">            if expression_node is None:</span></span>
+<span class="line"><span class="ln">485</span><span class="code">                print(f&quot;Initial expression {expr} is invalid, skipping.&quot;)</span></span>
+<span class="line"><span class="ln">486</span><span class="code">                continue</span></span>
+<span class="line"><span class="ln">487</span><span class="code">            res = self.pool.try_new_expr(self.parser.parse(expr.replace(&#x27;%d&#x27;, &#x27;10&#x27;)), topic, explanation, expression_node)<span class="cmt">  # try_new_expr 尝试入池</span></span></span>
+<span class="line"><span class="ln">488</span><span class="code">            if res:</span></span>
+<span class="line"><span class="ln">489</span><span class="code">                inserted = self.graph.insert(expression_node=expression_node, parent_node=None)<span class="cmt">  # insert 接入图谱（初始表达式 parent=None）</span></span></span>
+<span class="line"><span class="ln">490</span><span class="code">                if inserted:</span></span>
+<span class="line"><span class="ln">491</span><span class="code">                    node = self.graph.search(expr.strip())</span></span>
+<span class="line"><span class="ln">492</span><span class="code">                    # if node is not None:</span></span>
+<span class="line"><span class="ln">493</span><span class="code">                    #     self.pool.register_expression_node(node)</span></span>
+<span class="line"><span class="ln">494</span><span class="code">        ##TODO: set your model name</span></span>
+<span class="line"><span class="ln">495</span><span class="code">        model_name = &quot;your_model_name&quot;<span class="cmt">  # 模型名占位，实际需替换</span></span></span>
+<span class="line"><span class="ln">496</span><span class="code">        log_dir = os.path.join(</span></span>
+<span class="line"><span class="ln">497</span><span class="code">        &#x27;data/knowledge_logs&#x27;,</span></span>
+<span class="line"><span class="ln">498</span><span class="code">        f&#x27;pool_{args.pool_capacity}&#x27;,</span></span>
+<span class="line"><span class="ln">499</span><span class="code">        f&#x27;kg_dag_and_bayesian_icir_and_mutl_new_no_decay_{model_name}_{args.generate_num}_{args.instruments}_{args.temp}_{args.depth_limit}_{args.max_length}_{args.ic_mut_threshold}_{args.pool_capacity}_{args.search_time}_{args.ic_threshold}_{args.use_res_correlation}_{args.use_semantic_similarity}_{args.use_edit_distance}_{args.separate_leaf_non_leaf}_{args.icir_decay_threshold}_{args.times_decay}_{args.depth_decay}&#x27;)<span class="cmt">  # 日志目录名编码全部超参，便于实验对比</span></span></span>
+<span class="line"><span class="ln">500</span><span class="code"></span></span>
+<span class="line"><span class="ln">501</span><span class="code">        os.makedirs(log_dir, exist_ok=True)</span></span>
+<span class="line"><span class="ln">502</span><span class="code">        self.logger = AlphaKnowledgeLogger(test_data, target, log_dir, args)</span></span>
+<span class="line"><span class="ln">503</span><span class="code">        ## TODO: set your api key and base url in environment variables</span></span>
+<span class="line"><span class="ln">504</span><span class="code">        self.client = OpenAI(<span class="cmt">  # OpenAI client 从环境变量读 key/base_url</span></span></span>
+<span class="line"><span class="ln">505</span><span class="code">            api_key=os.getenv(&quot;OPENAI_API_KEY&quot;, &quot;&quot;),</span></span>
+<span class="line"><span class="ln">506</span><span class="code">            base_url=os.getenv(&quot;OPENAI_BASE_URL&quot;, &quot;&quot;)</span></span>
+<span class="line"><span class="ln">507</span><span class="code">        )</span></span>
+<span class="line"><span class="ln">508</span><span class="code">        self.model = OpenAIModel(model_name,&quot;&quot;, 400000)</span></span></code></pre></div>
+<p>第 480-493 行是初始化阶段：把 <code class="inline">train_new_work.py:21</code> 的 29 个初始表达式（含 topic 与 explanation）逐个解析、算 IC/ICIR、入池、入图。注意第 481 行把 <code class="inline">%d</code> 替换为 10 作初始窗口。第 499 行的日志目录名拼接了所有超参（generate_num、instruments、temp 等），这是实验复现的关键——每个实验目录名就是一份超参快照。第 504-508 行创建 OpenAI client 与 OpenAIModel，API key 从 <code class="inline">.env</code> 读，避免硬编码。</p>
+<h3>_train_one_iteration —— 闭环主流程</h3>
+<p>这是核心。先 search 选因子，对每个因子取 path_to_root 拼 traces，调 LLM 生成，再逐个验证、算 IC/ICIR、按双路径判定入池并 insert 图谱。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">alpha_knowledge_trainer.py</span><span class="code-lines">第 513-540 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">513</span><span class="code">    def _train_one_iteration(self, step: int, args: Any):</span></span>
+<span class="line"><span class="ln">514</span><span class="code"></span></span>
+<span class="line"><span class="ln">515</span><span class="code">        def build_traces(paths: List[ExpressionNode]) -&gt; str:<span class="cmt">  # build_traces 把进化路径拼成字符串</span></span></span>
+<span class="line"><span class="ln">516</span><span class="code">            if len(paths) &lt;= 1:</span></span>
+<span class="line"><span class="ln">517</span><span class="code">                return &quot;&quot;</span></span>
+<span class="line"><span class="ln">518</span><span class="code">            res = &quot;&quot;</span></span>
+<span class="line"><span class="ln">519</span><span class="code">            for i in range(len(paths)):</span></span>
+<span class="line"><span class="ln">520</span><span class="code">                res += f&quot;Expression: {paths[i].payload.source} Explanation: {paths[i].description}&quot;</span></span>
+<span class="line"><span class="ln">521</span><span class="code">                if i &lt; len(paths) - 1:</span></span>
+<span class="line"><span class="ln">522</span><span class="code">                    res += &quot; -&gt; &quot;</span></span>
+<span class="line"><span class="ln">523</span><span class="code">            # print(f&quot;Built traces: {res} for expression {paths[0].payload.source}&quot;)</span></span>
+<span class="line"><span class="ln">524</span><span class="code">            return res</span></span>
+<span class="line"><span class="ln">525</span><span class="code">        </span></span>
+<span class="line"><span class="ln">526</span><span class="code">        nodes_to_optimize, exprs_to_optimize = self.pool.search()<span class="cmt">  # search 检索 top_k 个因子（第 5 章）</span></span></span>
+<span class="line"><span class="ln">527</span><span class="code">        nodes_str = [node.payload.source for node in nodes_to_optimize]</span></span>
+<span class="line"><span class="ln">528</span><span class="code">        print(f&quot;Step {step}: optimizing {len(nodes_to_optimize)} nodes: {nodes_str}&quot;)</span></span>
+<span class="line"><span class="ln">529</span><span class="code">        iter = 0</span></span>
+<span class="line"><span class="ln">530</span><span class="code">        for node, parent_expr in tqdm(zip(nodes_to_optimize, exprs_to_optimize), desc=f&quot;optimizing step {step}&quot;):<span class="cmt">  # 遍历每个待优化因子</span></span></span>
+<span class="line"><span class="ln">531</span><span class="code">            if node is None:</span></span>
+<span class="line"><span class="ln">532</span><span class="code">                print(f&quot;Node  not found in graph at iter {iter}.&quot;)</span></span>
+<span class="line"><span class="ln">533</span><span class="code">                iter += 1</span></span>
+<span class="line"><span class="ln">534</span><span class="code">                continue</span></span>
+<span class="line"><span class="ln">535</span><span class="code">            iter += 1</span></span>
+<span class="line"><span class="ln">536</span><span class="code">            paths = self.graph.path_to_root(node)<span class="cmt">  # path_to_root 取进化血脉</span></span></span>
+<span class="line"><span class="ln">537</span><span class="code">            traces = build_traces(paths)</span></span>
+<span class="line"><span class="ln">538</span><span class="code">            topic = node.topic<span class="cmt">  # topic 约束生成方向</span></span></span>
+<span class="line"><span class="ln">539</span><span class="code">            generation_prompt = PROMPT_FEATURES_AND_OPERATORS + PROMPT_GENERARTION.format(topic=topic, expressions=node.payload.source, traces=traces, num =args.generate_num, explanations = node.description)<span class="cmt">  # 拼完整生成 prompt 并调 LLM（第 6 章）</span></span></span>
+<span class="line"><span class="ln">540</span><span class="code">            res, _ = self.model.chat_generate(self.client, system_prompt = PROMPT_HEAD, user_prompt = generation_prompt, temperature = args.temp)</span></span></code></pre></div>
+<p>第 526 行的 <code class="inline">self.pool.search()</code> 调用第 5 章的贝叶斯检索器，返回 top_k 个 <code class="inline">ExpressionNode</code> 与表达式。第 536 行的 <code class="inline">self.graph.path_to_root(node)</code> 取出进化血脉，第 515-524 行的 <code class="inline">build_traces</code> 把它拼成 <code class="inline">Expression: <src> Explanation: <desc> -> ...</code> 字符串。第 539 行用 <code class="inline">PROMPT_GENERARTION.format(...)</code> 拼完整 prompt——注意这里 prompt 模板内部用了 <code class="inline">.format()</code>（是源码字符串处理，不是我们生成 HTML），注入 topic/expressions/traces/num。然后调 <code class="inline">self.model.chat_generate</code> 让 LLM 生成。</p>
+<h3>验证与双路径入池判定</h3>
+<p>对 LLM 生成的每个表达式：先查图谱是否已存在（复用），再解析+算 IC/ICIR/MutIC，按「ICIR 超越父」或「MutIC 显著降低且 ICIR 不太差」两条路径判定入池。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">alpha_knowledge_trainer.py</span><span class="code-lines">第 557-625 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">557</span><span class="code">            for i in range(args.generate_num):</span></span>
+<span class="line"><span class="ln">558</span><span class="code">                raw_expr = json_res[&quot;expressions&quot;][i]<span class="cmt">  # 取第 i 个生成表达式</span></span></span>
+<span class="line"><span class="ln">559</span><span class="code">                explanation = json_res[&quot;explanations&quot;][i]</span></span>
+<span class="line"><span class="ln">560</span><span class="code">                if self.graph.search(raw_expr.strip()) is not None:<span class="cmt">  # 先查图谱是否已存在，已存在则复用节点</span></span></span>
+<span class="line"><span class="ln">561</span><span class="code">                    node = self.graph.search(raw_expr.strip())</span></span>
+<span class="line"><span class="ln">562</span><span class="code">                    expr = node.payload.expression</span></span>
+<span class="line"><span class="ln">563</span><span class="code">                    print(f&quot;Expression {raw_expr} already exists in the graph, not inserting.&quot;)</span></span>
+<span class="line"><span class="ln">564</span><span class="code">                    ic, icir, _ = self.pool.get_ic_icir_mutics(expr)</span></span>
+<span class="line"><span class="ln">565</span><span class="code">                    mut_ic = self.pool.get_mutl_ic(expr=expr)</span></span>
+<span class="line"><span class="ln">566</span><span class="code">                    if ic is not None:</span></span>
+<span class="line"><span class="ln">567</span><span class="code">                        if np.abs(parent_icir) &lt; np.abs(icir) and np.abs(ic) &gt; args.ic_threshold:<span class="cmt">  # 路径一：ICIR 超越父因子且 IC 达标，直接入池</span></span></span>
+<span class="line"><span class="ln">568</span><span class="code">                            print(f&quot;Expression {str(expr)} has higher ICIR {icir:.4f} than parent ICir {parent_icir:.4f}, while {str(expr)} ic {ic:.4f}, parent IC {parent_ic:.4f}. Try to insert early generated expression.&quot;)</span></span>
+<span class="line"><span class="ln">569</span><span class="code">                            self.pool.try_new_expr(expr, node.topic, node.description, node)</span></span>
+<span class="line"><span class="ln">570</span><span class="code">                        elif (np.abs(parent_icir) &gt;= np.abs(icir) and mut_ic is not None <span class="cmt">  # 路径二：MutIC 显著降低且 ICIR 不低于父×icir_decay_threshold</span></span></span>
+<span class="line"><span class="ln">571</span><span class="code">                              and np.abs(mut_ic) &lt; args.ic_new_threshold </span></span>
+<span class="line"><span class="ln">572</span><span class="code">                              and np.abs(ic) &gt; args.ic_threshold <span class="cmt">  # MutIC 低于 ic_new_threshold（多样性贡献）</span></span></span>
+<span class="line"><span class="ln">573</span><span class="code">                              and np.abs(icir) &gt; np.abs(parent_icir) * args.icir_decay_threshold<span class="cmt">  # ICIR 不低于父×icir_decay_threshold（不能太差）</span></span></span>
+<span class="line"><span class="ln">574</span><span class="code">                              and np.max(np.abs(mut_ic)) &lt; np.max(np.abs(parent_mut))):</span></span>
+<span class="line"><span class="ln">575</span><span class="code">                            print(f&quot;Expression {str(expr)} has sufficient lower MutIC {mut_ic:.4f}, with parent mutic {np.max(np.abs(parent_mut)):.4f}. Try to insert early generated expression.&quot;)</span></span>
+<span class="line"><span class="ln">576</span><span class="code">                            self.pool.try_new_expr(expr, node.topic, node.description, node)</span></span>
+<span class="line"><span class="ln">577</span><span class="code">                    continue</span></span>
+<span class="line"><span class="ln">578</span><span class="code">                expr_obj: Optional[exp_module.Expression] = None</span></span>
+<span class="line"><span class="ln">579</span><span class="code">                if raw_expr.__contains__(&quot;%d&quot;):<span class="cmt">  # 含 %d 的表达式做多窗口搜索</span></span></span>
+<span class="line"><span class="ln">580</span><span class="code">                    used_windows = [5,10, 20, 30]<span class="cmt">  # 在 [5,10,20,30] 窗口暴力找最优</span></span></span>
+<span class="line"><span class="ln">581</span><span class="code">                    max_ic, max_windows = 0.0, 5</span></span>
+<span class="line"><span class="ln">582</span><span class="code">                    expr_obj = None</span></span>
+<span class="line"><span class="ln">583</span><span class="code">                    for w in used_windows:</span></span>
+<span class="line"><span class="ln">584</span><span class="code">                        expr_ = raw_expr.replace(&quot;%d&quot;, str(w))</span></span>
+<span class="line"><span class="ln">585</span><span class="code">                        try:</span></span>
+<span class="line"><span class="ln">586</span><span class="code">                            expr_obj = self.parser.parse(expr_)<span class="cmt">  # 每个窗口都 parse + 算 IC</span></span></span>
+<span class="line"><span class="ln">587</span><span class="code">                            ic = self.pool.get_ic(expr_obj)</span></span>
+<span class="line"><span class="ln">588</span><span class="code">                        except (InvalidExpressionException, ValueError) as exc:</span></span>
+<span class="line"><span class="ln">589</span><span class="code">                            print(f&quot;Expression {expr_} is invalid: {exc}&quot;)</span></span>
+<span class="line"><span class="ln">590</span><span class="code">                            ic = None</span></span>
+<span class="line"><span class="ln">591</span><span class="code">                        </span></span>
+<span class="line"><span class="ln">592</span><span class="code">                        if ic is not None and np.abs(ic) &gt; max_ic:</span></span>
+<span class="line"><span class="ln">593</span><span class="code">                            max_ic = np.abs(ic)</span></span>
+<span class="line"><span class="ln">594</span><span class="code">                            max_windows = w</span></span>
+<span class="line"><span class="ln">595</span><span class="code">                    expr_ = raw_expr.replace(&quot;%d&quot;, str(max_windows))</span></span>
+<span class="line"><span class="ln">596</span><span class="code">                    try:</span></span>
+<span class="line"><span class="ln">597</span><span class="code">                        expr_obj = self.parser.parse(expr_)</span></span>
+<span class="line"><span class="ln">598</span><span class="code">                    except (InvalidExpressionException, ValueError) as exc:</span></span>
+<span class="line"><span class="ln">599</span><span class="code">                        print(f&quot;Expression {expr_} is invalid: {exc}&quot;)</span></span>
+<span class="line"><span class="ln">600</span><span class="code">                else:</span></span>
+<span class="line"><span class="ln">601</span><span class="code">                    try:</span></span>
+<span class="line"><span class="ln">602</span><span class="code">                        expr_obj = self.parser.parse(raw_expr)<span class="cmt">  # 无 %d 的直接 parse + 算 IC</span></span></span>
+<span class="line"><span class="ln">603</span><span class="code">                        max_ic = self.pool.get_ic(expr_obj)</span></span>
+<span class="line"><span class="ln">604</span><span class="code">                    except (InvalidExpressionException, ValueError) as exc:</span></span>
+<span class="line"><span class="ln">605</span><span class="code">                        print(f&quot;Expression {raw_expr} is invalid: {exc}&quot;)</span></span>
+<span class="line"><span class="ln">606</span><span class="code">                if expr_obj is not None:</span></span>
+<span class="line"><span class="ln">607</span><span class="code">                    ic, icir, mut_ics = self.pool.get_ic_icir_mutics(expr_obj)</span></span>
+<span class="line"><span class="ln">608</span><span class="code">                    expression_node = self.graph.build_expression_node(raw_expr.strip(), topic, explanation, args.max_length, np.abs(ic), np.abs(icir))</span></span>
+<span class="line"><span class="ln">609</span><span class="code">                    if expression_node is None:</span></span>
+<span class="line"><span class="ln">610</span><span class="code">                        print(f&quot;Generated expression {raw_expr} is invalid, skipping.&quot;)</span></span>
+<span class="line"><span class="ln">611</span><span class="code">                        continue</span></span>
+<span class="line"><span class="ln">612</span><span class="code">                    if ic is not None and np.abs(ic) &gt; args.ic_threshold and np.abs(icir) &gt;np.abs(parent_icir):<span class="cmt">  # 路径一入池：ICIR 超越父</span></span></span>
+<span class="line"><span class="ln">613</span><span class="code">                        res = self.pool.try_new_expr(expr_obj, topic, explanation, expression_node)</span></span>
+<span class="line"><span class="ln">614</span><span class="code">                        if res:</span></span>
+<span class="line"><span class="ln">615</span><span class="code">                            print(f&quot;Inserted new expression {str(expr_obj)} with ICIR {icir:.4f} higher than parent ICIR {parent_icir:.4f}, while current ic {ic:.4f}, parent IC {parent_ic:.4f}.&quot;)</span></span>
+<span class="line"><span class="ln">616</span><span class="code">                            self.graph.insert(expression_node=expression_node, parent_node=node)<span class="cmt">  # 入池后 insert 图谱，建立父子链接</span></span></span>
+<span class="line"><span class="ln">617</span><span class="code">                    elif (ic is not None and <span class="cmt">  # 路径二入池：MutIC 显著降低</span></span></span>
+<span class="line"><span class="ln">618</span><span class="code">                          np.max(np.abs(mut_ics)) &lt; args.ic_new_threshold and </span></span>
+<span class="line"><span class="ln">619</span><span class="code">                          np.abs(ic) &gt; args.ic_threshold and</span></span>
+<span class="line"><span class="ln">620</span><span class="code">                          np.abs(icir) &gt; np.abs(parent_icir) * args.icir_decay_threshold and</span></span>
+<span class="line"><span class="ln">621</span><span class="code">                          np.max(np.abs(mut_ics)) &lt; np.max(np.abs(parent_mut))):</span></span>
+<span class="line"><span class="ln">622</span><span class="code">                        res = self.pool.try_new_expr(expr_obj, topic, explanation, expression_node)</span></span>
+<span class="line"><span class="ln">623</span><span class="code">                        if res:</span></span>
+<span class="line"><span class="ln">624</span><span class="code">                            print(f&quot;Inserted new expression {str(expr_obj)} with sufficient lower MutIC {np.max(np.abs(mut_ics)):.4f} than parent expression mutic . Current ic {ic:.4f}, parent IC {parent_ic:.4f}. Current icir {icir:.4f}, parent ICIR {parent_icir:.4f}.&quot;)</span></span>
+<span class="line"><span class="ln">625</span><span class="code">                            self.graph.insert(expression_node=expression_node, parent_node=node)</span></span></code></pre></div>
+<p>第 560-577 行处理「已存在表达式」：如果 LLM 生成的表达式图谱里已有，直接复用节点，但仍按双路径判定是否入池（可能之前被淘汰但现在父因子变了，重新评估）。第 579-605 行的多窗口搜索是 AlphaPROBE 的巧思：LLM 输出 <code class="inline">TsMean($close, %d)</code>，代码在 [5,10,20,30] 四个窗口分别 parse + 算 IC，选 IC 最大的窗口。第 612-625 行的双路径入池判定是核心创新：路径一（第 612 行）要求新因子 ICIR 严格超越父因子；路径二（第 617 行）允许 ICIR 略低（不低于父×<code class="inline">icir_decay_threshold</code>，默认 0.7），但要求 MutIC 显著降低（低于 <code class="inline">ic_new_threshold</code>，默认 0.45）——这鼓励「即使预测力略降，但能提供独立信息的因子」入池，提升池的多样性。</p>
+<h3>train 与日志 —— 外层循环</h3>
+<p>train 跑 search_time 轮，每轮调 _train_one_iteration，每 log_freq 轮记录一次日志。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">alpha_knowledge_trainer.py</span><span class="code-lines">第 630-636 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">630</span><span class="code">    def train(self, args: Any):</span></span>
+<span class="line"><span class="ln">631</span><span class="code">        iter_times = args.search_time<span class="cmt">  # iter_times = search_time（默认 20 轮）</span></span></span>
+<span class="line"><span class="ln">632</span><span class="code">        for it in range(iter_times):<span class="cmt">  # 外层迭代循环</span></span></span>
+<span class="line"><span class="ln">633</span><span class="code">            print(f&quot;=== Iteration {it+1}/{iter_times} ===&quot;)</span></span>
+<span class="line"><span class="ln">634</span><span class="code">            self._train_one_iteration(step=it + 1, args=args)<span class="cmt">  # 每轮调 _train_one_iteration</span></span></span>
+<span class="line"><span class="ln">635</span><span class="code">            if (it + 1) % args.log_freq == 0 or it == iter_times - 1:<span class="cmt">  # 每 log_freq 轮或最后一轮记录日志</span></span></span>
+<span class="line"><span class="ln">636</span><span class="code">                self._log_status(it + 1, args)   <span class="cmt">  # _log_status 写 pool_*.json 与 res.txt</span></span></span></code></pre></div>
+<p>第 631 行的 <code class="inline">iter_times = args.search_time</code>（默认 20 轮）是外层循环次数。每轮会处理 top_k（默认 15）个因子，每个因子生成 generate_num（默认 5）个变体，所以 20 轮最多评估 20×15×5=1500 个候选表达式。第 635 行的 <code class="inline">log_freq</code>（默认 1）控制日志频率，每轮都记录池状态与测试 IC，便于观察训练曲线。</p>
+<h2>数据流</h2>
+<p><strong>输入：</strong>初始 29 表达式、StockData（训练+测试）、target、全部超参。<strong>闭环：</strong>search 选因子 → path_to_root 拼 traces → chat_generate 生成 → parse + 多窗口搜索 + 算 IC/ICIR/MutIC → try_new_expr 双路径入池 → graph.insert 更新图谱 → logger.log 写 pool_*.json + res.txt。<strong>输出：</strong>不断增长的因子池与图谱，以及每轮的测试 IC/ICIR 日志。最终池送第 9 章 Mega-Alpha 组合。</p>
+<h2>关联公式</h2>
+<p>双路径入池判定可形式化为两个条件，满足其一即入池：</p>
+<div class="math-block">$$\text{Path 1: } |\text{ICIR}_{\text{new}}| > |\text{ICIR}_{\text{parent}}| \;\text{and}\; |\text{IC}_{\text{new}}| > \tau_{\text{ic}}$$</div>
+<div class="math-block">$$\text{Path 2: } \max|\text{MutIC}_{\text{new}}| < \tau_{\text{new}} \;\text{and}\; |\text{IC}_{\text{new}}| > \tau_{\text{ic}} \;\text{and}\; |\text{ICIR}_{\text{new}}| > \gamma \cdot |\text{ICIR}_{\text{parent}}|$$</div>
+<p>其中 $\tau_{\text{ic}}$ 是 <code class="inline">ic_threshold</code>（默认 0.006），$\tau_{\text{new}}$ 是 <code class="inline">ic_new_threshold</code>（默认 0.45），$\gamma$ 是 <code class="inline">icir_decay_threshold</code>（默认 0.7）。路径二让「预测力略降但独立性高」的因子入池，这是 AlphaPROBE 多样性保障的关键。</p>
+<div class="callout"><span class="callout-label">设计权衡</span><p>为什么允许 ICIR 略低的因子入池（路径二）？因为 Mega-Alpha 组合（第 9 章）用线性回归融合因子，因子间的低相关性比单因子高 ICIR 更重要——一个 ICIR 平平但与所有池内因子不相关的因子，能显著降低组合方差。路径二用 <code class="inline">icir_decay_threshold=0.7</code> 设下限，防止完全无效的因子混入，平衡了「多样性」与「质量」。</p></div>
+<h2>小结</h2>
+<p>训练主循环用「检索→生成→验证→入池→日志」五步闭环，把贝叶斯检索与 LLM 生成串成自我进化的管线。双路径入池判定兼顾质量与多样性，多窗口搜索让 LLM 不必猜最优窗口。下一章我们更细致地看入池前的验证流程。</p>
+<div class="nav-footer"><a href="06.html">← 第6章 LLM 表达式生成</a><a href="08.html">第8章 表达式验证与入池 →</a></div>
+</main>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+                onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>
+</body>
+</html>

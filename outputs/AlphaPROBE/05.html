@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第05章 贝叶斯因子检索器 | AlphaPROBE</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+    background: #FBFBFD;
+    color: #1D1D1F;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+                 "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+}
+.sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    width: 240px;
+    height: 100vh;
+    overflow-y: auto;
+    background: #F5F5F7;
+    border-right: 1px solid #E8E8ED;
+    padding: 28px 18px 40px;
+    z-index: 100;
+}
+.sidebar-title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; color: #1D1D1F; }
+.sidebar-sub { font-size: 12px; color: #86868B; margin: 0 0 22px; letter-spacing: 0.02em; }
+.sidebar a {
+    display: block; color: #1D1D1F; font-size: 13.5px; padding: 7px 12px;
+    border-radius: 8px; margin-bottom: 2px; text-decoration: none; line-height: 1.4;
+}
+.sidebar a:hover { background: #E8E8ED; text-decoration: none; }
+.sidebar a.active { color: #0071e3; font-weight: 600; background: #E8E8ED; }
+.sidebar .group-label {
+    font-size: 11px; color: #86868B; text-transform: uppercase;
+    letter-spacing: 0.06em; margin: 18px 12px 6px;
+}
+main.content { max-width: 820px; margin: 0 0 0 240px; padding: 64px 40px 120px; }
+.hero { margin-bottom: 8px; }
+.badge {
+    display: inline-block; font-size: 13px; font-weight: 600; color: #0071e3;
+    background: rgba(0,113,227,0.08); padding: 4px 12px; border-radius: 980px; letter-spacing: 0.02em;
+}
+h1 { font-size: 36px; font-weight: 700; letter-spacing: -0.02em; margin: 14px 0 8px; line-height: 1.15; }
+h2 { font-size: 26px; font-weight: 600; letter-spacing: -0.01em; margin: 56px 0 16px; color: #1D1D1F; }
+h3 { font-size: 20px; font-weight: 600; margin: 36px 0 12px; color: #1D1D1F; }
+p { margin: 0 0 16px; color: #1D1D1F; }
+.subtitle { color: #86868B; font-size: 19px; margin: 0 0 32px; font-weight: 400; line-height: 1.5; }
+.muted { color: #86868B; }
+strong { font-weight: 600; color: #1D1D1F; }
+em { font-style: italic; }
+a { color: #0071e3; text-decoration: none; }
+a:hover { text-decoration: underline; }
+code.inline {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: #F5F5F7; color: #1D1D1F; padding: 2px 6px; border-radius: 4px; font-size: 0.9em;
+}
+.code-card {
+    background: #FFFFFF; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    margin: 0 0 24px; overflow: hidden; border: 1px solid #E8E8ED;
+}
+.code-header {
+    background: #F5F5F7; border-bottom: 1px solid #E8E8ED; padding: 10px 16px;
+    display: flex; justify-content: space-between; align-items: center; font-size: 12.5px;
+}
+.code-file { font-family: "SF Mono", Menlo, Consolas, monospace; color: #1D1D1F; font-weight: 600; }
+.code-lines { color: #86868B; }
+.code-block { margin: 0; padding: 16px 18px; overflow-x: auto; background: #FFFFFF; }
+.code-block code {
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; line-height: 1.6;
+    color: #1D1D1F; background: transparent; padding: 0; white-space: pre; display: block;
+}
+.code-block .line { display: block; white-space: pre; }
+.code-block .ln {
+    display: inline-block; width: 3em; text-align: right; color: #BBB;
+    user-select: none; margin-right: 18px; font-variant-numeric: tabular-nums;
+}
+.code-block .code { white-space: pre; }
+.code-block .cmt { color: #5a9e6f; white-space: pre-wrap; }
+.callout {
+    background: #F5F5F7; border-left: 3px solid #0071e3; border-radius: 8px;
+    padding: 14px 18px; margin: 0 0 24px; color: #1D1D1F;
+}
+.callout-label {
+    color: #0071e3; font-weight: 600; font-size: 13px; text-transform: uppercase;
+    letter-spacing: 0.04em; display: block; margin-bottom: 6px;
+}
+.callout p:last-child { margin-bottom: 0; }
+.math-block {
+    background: #F5F5F7; border-radius: 10px; padding: 20px; margin: 0 0 24px;
+    text-align: center; overflow-x: auto;
+}
+ul, ol { margin: 0 0 20px; padding-left: 24px; }
+li { margin-bottom: 8px; }
+table {
+    width: 100%; border-collapse: collapse; margin: 0 0 24px; border-radius: 10px;
+    overflow: hidden; border: 1px solid #E8E8ED; font-size: 15px;
+}
+th, td { padding: 11px 16px; text-align: left; border-bottom: 1px solid #E8E8ED; }
+th { background: #F5F5F7; font-weight: 600; }
+tr:last-child td { border-bottom: none; }
+img { max-width: 100%; border-radius: 12px; }
+.nav-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 64px; padding-top: 24px; border-top: 1px solid #E8E8ED; font-size: 15px;
+}
+.nav-footer a { color: #0071e3; }
+.toc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+.toc-card {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 14px; padding: 20px 22px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04); text-decoration: none; color: #1D1D1F;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.toc-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.08); text-decoration: none; }
+.toc-card .tc-num { font-size: 12px; color: #86868B; font-weight: 600; letter-spacing: 0.04em; }
+.toc-card .tc-title { font-size: 17px; font-weight: 600; margin: 4px 0 6px; }
+.toc-card .tc-desc { font-size: 13.5px; color: #86868B; line-height: 1.5; }
+.concept-map { margin: 24px 0; }
+.cm-layer { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
+.cm-layer-label {
+    width: 92px; flex: 0 0 92px; font-size: 12px; color: #86868B; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em; padding-top: 14px;
+}
+.cm-nodes { flex: 1; display: flex; gap: 10px; flex-wrap: wrap; }
+.cm-node {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 10px; padding: 10px 14px;
+    min-width: 150px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.cm-node .cm-id { font-size: 11px; color: #0071e3; font-weight: 700; }
+.cm-node .cm-name { font-size: 14px; font-weight: 600; color: #1D1D1F; }
+.cm-arrow { text-align: center; color: #86868B; font-size: 12px; margin: 8px 0 8px 92px; }
+.cm-rels { margin-top: 20px; }
+.cm-rel {
+    display: inline-block; background: #F5F5F7; border-radius: 8px; padding: 5px 11px;
+    margin: 4px 6px 4px 0; font-size: 12.5px; color: #1D1D1F;
+}
+.cm-rel b { color: #0071e3; }
+.arch-tree {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 12px; padding: 20px 24px;
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; line-height: 1.7;
+    overflow-x: auto; white-space: pre; color: #1D1D1F;
+}
+.arch-tree .c { color: #86868B; }
+@media (max-width: 860px) {
+    .sidebar { position: static; width: 100%; height: auto; }
+    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .toc-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<aside class="sidebar"><h2 class="sidebar-title">AlphaPROBE</h2><p class="sidebar-sub">深度代码教程</p><a href="index.html">首页</a><div class="group-label">数据层</div><a href="01.html">第1章 Qlib 行情数据加载</a><a href="02.html">第2章 表达式与算子体系</a><a href="03.html">第3章 IC/ICIR 因子评估</a><div class="group-label">核心层</div><a href="04.html">第4章 表达式知识图谱</a><a href="05.html" class="active">第5章 贝叶斯因子检索器</a><a href="06.html">第6章 LLM 表达式生成</a><div class="group-label">应用层</div><a href="07.html">第7章 训练主循环</a><a href="08.html">第8章 表达式验证与入池</a><a href="09.html">第9章 Mega-Alpha 动态组合</a><a href="10.html">第10章 Baseline 对比</a></aside><main class="content">
+<div class="hero"><span class="badge">第 5 章 · 核心层</span></div>
+<h1>第5章：贝叶斯因子检索器</h1>
+<p class="subtitle">像选秀节目的评委，综合「实力(ICIR)」「新鲜度(depth/times decay)」「多样性(互相关/语义/编辑距离)」打分，选出最值得进化的选手。</p>
+<h2>欢迎</h2>
+<p>AlphaPROBE 的两大核心组件之一——Bayesian Factor Retriever。知识图谱里存着所有候选因子，但每轮迭代只能挑出 top_k 个送给 LLM 进化。挑谁？这就是 <code class="inline">AlphaKnowledgePool.search</code> 要回答的问题。它综合「实力(ICIR)」「新鲜度(depth/times decay)」「多样性(互相关/语义/编辑距离)」三维度打分，像选秀评委一样选出最值得进化的选手。本章逐行拆解 <code class="inline">search</code> 方法，这是 AlphaPROBE 论文标题里「Principled Retrieval」的代码核心。</p>
+<h2>它解决什么问题？</h2>
+<p>因子检索看似简单（挑 IC 高的不就行了），实则充满矛盾。第一矛盾：<strong>实力 vs 新鲜度</strong>——ICIR 高的老因子已被反复压榨，再变异收益递减；深层新因子虽 ICIR 低，但可能蕴含新方向。第二矛盾：<strong>实力 vs 多样性</strong>——只挑 ICIR 最高的几个，它们可能高度相关（都是同一个因子的变体），LLM 生成的子代也会同质化。第三矛盾：<strong>叶子 vs 非叶子</strong>——叶子节点（无子代）还没被探索过，应优先；但非叶子节点已有子代增益数据，可评估「进化价值」。</p>
+<p>类比选秀评委：不能只看「当前实力(ICIR)」，还要看「新鲜度(depth/times decay)」（是否被过度开发）和「多样性(互相关/语义/编辑距离)」（与其他选手的差异化）。AlphaPROBE 用贝叶斯式乘法打分综合三维度，再用 leaf/non_leaf 分组保证两类节点都被选中。</p>
+<h2>核心设计思路</h2>
+<p>设计上有五个关键点。第一，<strong>ICIR 质量分经 sigmoid 归一化</strong>：先把 icir 标准化再过 <code class="inline">stable_sigmoid</code>，映射到 (0,1)，避免量纲差异。第二，<strong>双衰减乘子</strong>：<code class="inline">quality_prob = icir_logit * depth_decay * times_decay</code>，乘法让衰减直接压低被过度开发的因子。第三，<strong>叶子用三策略多样性</strong>：残差相关(1-mean_corr)、语义相似度(1-mean_sim)、编辑距离(mean_edit)，三者相乘得 pool_quality。第四，<strong>非叶子用子代增益 + 稀疏度</strong>：子代 ICIR 相对父代的增益（鼓励产出优秀子代的父），乘以父子/子子相关的稀疏度（鼓励产出差异化子代的父）。第五，<strong>leaf/non_leaf 分组选 top_k</strong>：各取一半 top_k，保证探索与利用平衡。</p>
+<h2>代码深入</h2>
+<h3>search 主干 —— 质量分与衰减</h3>
+<p>这是检索器的入口。先收集所有有图谱节点的池内因子，算 ICIR 质量分，再乘 depth/times 衰减，得到 quality_prob。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">alpha_pool.py</span><span class="code-lines">第 140-154 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">140</span><span class="code">        icir_raw = np.array([<span class="cmt">  # 取每个候选的 ICIR（优先池缓存，回退节点 icir）</span></span></span>
+<span class="line"><span class="ln">141</span><span class="code">            self.icir[idx] if self.icir[idx] is not None else node.icir</span></span>
+<span class="line"><span class="ln">142</span><span class="code">            for idx, node in candidate_pairs</span></span>
+<span class="line"><span class="ln">143</span><span class="code">        ], dtype=float)</span></span>
+<span class="line"><span class="ln">144</span><span class="code"></span></span>
+<span class="line"><span class="ln">145</span><span class="code">        finite_mask = np.isfinite(icir_raw)<span class="cmt">  # finite_mask 过滤 NaN/Inf</span></span></span>
+<span class="line"><span class="ln">146</span><span class="code">        mean_icir = icir_raw[finite_mask].mean() if finite_mask.any() else 0.0</span></span>
+<span class="line"><span class="ln">147</span><span class="code">        std_icir = icir_raw[finite_mask].std() if finite_mask.any() else 0.0</span></span>
+<span class="line"><span class="ln">148</span><span class="code">        icir_logit = stable_sigmoid((icir_raw - mean_icir) / (std_icir + 1e-6))<span class="cmt">  # icir 标准化后过 sigmoid，映射到 (0,1)</span></span></span>
+<span class="line"><span class="ln">149</span><span class="code"></span></span>
+<span class="line"><span class="ln">150</span><span class="code">        depths = np.array([node.depth for node in nodes], dtype=float)<span class="cmt">  # depth 是节点谱系深度</span></span></span>
+<span class="line"><span class="ln">151</span><span class="code">        times = np.array([node.times for node in nodes], dtype=float)<span class="cmt">  # times 是被选中次数</span></span></span>
+<span class="line"><span class="ln">152</span><span class="code">        depth_decays = np.power(max(1 - self.depth_decay, 1e-6), depths)<span class="cmt">  # depth 衰减：(1-depth_decay)^depth</span></span></span>
+<span class="line"><span class="ln">153</span><span class="code">        times_decays = np.power(max(1 - self.times_decay, 1e-6), np.maximum(times - self.start_times, 0))<span class="cmt">  # times 衰减：超过 start_times 后才衰减</span></span></span>
+<span class="line"><span class="ln">154</span><span class="code">        quality_prob = np.clip(icir_logit * depth_decays * times_decays, 1e-6, 1 - 1e-6)<span class="cmt">  # 质量分 = ICIR × depth衰减 × times衰减</span></span></span></code></pre></div>
+<p>第 148 行的 <code class="inline">stable_sigmoid((icir_raw - mean_icir)/(std_icir+1e-6))</code> 是贝叶斯式打分的关键：它把 ICIR 标准化后压到 (0,1)，让不同量级的 ICIR 可比。第 152-153 行的双衰减是「新鲜度」核心：depth 大的深层因子衰减强（鼓励回浅层探索新方向），times 大的因子衰减强（避免反复压榨）。注意第 153 行的 <code class="inline">np.maximum(times - start_times, 0)</code>——前 <code class="inline">start_times</code> 次选中不衰减，给新因子足够的探索机会。三者相乘得 quality_prob，这就是「实力×新鲜度」的综合分。</p>
+<h3>compute_leaf_quality —— 叶子节点的三策略多样性</h3>
+<p>叶子节点（无子代）用三策略算多样性分：残差相关、语义相似度、编辑距离，三者相乘。每策略都是「1 - 与其他候选的平均相似度」，越独特分越高。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">alpha_pool.py</span><span class="code-lines">第 216-235 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">216</span><span class="code">        def compute_leaf_quality(pos: int) -&gt; float:</span></span>
+<span class="line"><span class="ln">217</span><span class="code">            corr_score = 1.0</span></span>
+<span class="line"><span class="ln">218</span><span class="code">            if self.use_res_correlation:<span class="cmt">  # 残差相关策略：1 - 与其他候选的平均 |corr|</span></span></span>
+<span class="line"><span class="ln">219</span><span class="code">                others = [j for j in range(num_nodes) if j != pos]</span></span>
+<span class="line"><span class="ln">220</span><span class="code">                if others:</span></span>
+<span class="line"><span class="ln">221</span><span class="code">                    corr_vals = corr_matrix[pos, others]</span></span>
+<span class="line"><span class="ln">222</span><span class="code">                    corr_score = clip_prob(1.0 - float(np.mean(corr_vals)))<span class="cmt">  # corr_score = clip(1 - mean(|corr|))</span></span></span>
+<span class="line"><span class="ln">223</span><span class="code">            semantic_score = 1.0</span></span>
+<span class="line"><span class="ln">224</span><span class="code">            if semantic_matrix is not None:<span class="cmt">  # 语义相似度策略：用嵌入算余弦相似</span></span></span>
+<span class="line"><span class="ln">225</span><span class="code">                others = [j for j in range(num_nodes) if j != pos]</span></span>
+<span class="line"><span class="ln">226</span><span class="code">                if others:</span></span>
+<span class="line"><span class="ln">227</span><span class="code">                    sims = semantic_matrix[pos, others]</span></span>
+<span class="line"><span class="ln">228</span><span class="code">                    mapped = ((np.clip(sims, -1.0, 1.0) + 1.0) * 0.5).mean()<span class="cmt">  # semantic_score = 1 - 平均相似度（映射到 [0,1]）</span></span></span>
+<span class="line"><span class="ln">229</span><span class="code">                    semantic_score = clip_prob(1.0 - float(mapped))</span></span>
+<span class="line"><span class="ln">230</span><span class="code">            edit_score = 1.0<span class="cmt">  # 编辑距离策略：结构差异越大分越高</span></span></span>
+<span class="line"><span class="ln">231</span><span class="code">            if edit_matrix is not None:</span></span>
+<span class="line"><span class="ln">232</span><span class="code">                others = [j for j in range(num_nodes) if j != pos]</span></span>
+<span class="line"><span class="ln">233</span><span class="code">                if others:</span></span>
+<span class="line"><span class="ln">234</span><span class="code">                    edit_score = clip_prob(float(edit_matrix[pos, others].mean()))<span class="cmt">  # edit_score = 平均编辑距离比例</span></span></span>
+<span class="line"><span class="ln">235</span><span class="code">            return clip_prob(corr_score * semantic_score * edit_score)<span class="cmt">  # 三策略相乘得叶子多样性分</span></span></span></code></pre></div>
+<p>第 218-222 行的残差相关用 <code class="inline">mutual_ics</code> 矩阵（第 3 章算的互相关），1 减去与其他候选的平均绝对相关，越独特分越高。第 224-229 行的语义相似度用 SentenceTransformer（默认 Qwen3-Embedding-4B）编码 description/topic，算余弦相似——这能捕获「表达式不同但语义相同」的重复，比如 <code class="inline">Rank($close)</code> 和 <code class="inline">Rank(Rank($close))</code>。第 230-234 行的编辑距离用 token 序列的结构差异。三者相乘（第 235 行）让任一维度高相似都会压低分数，保证选出的因子在数值、语义、结构三方面都足够多样。</p>
+<h3>compute_non_leaf_quality —— 非叶子节点的子代增益与稀疏度</h3>
+<p>非叶子节点（有子代）评估「进化价值」：子代 ICIR 相对父代的增益 × 父子/子子相关的稀疏度。增益高说明这个父因子善于产出优秀子代，稀疏度高说明它的子代彼此差异化。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">alpha_pool.py</span><span class="code-lines">第 237-293 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">237</span><span class="code">        def compute_non_leaf_quality(pos: int, pool_idx: int, node: ExpressionNode) -&gt; float:</span></span>
+<span class="line"><span class="ln">238</span><span class="code">            children_info: List[Tuple[ExpressionNode, Optional[int]]] = []<span class="cmt">  # 收集该父节点的所有子代</span></span></span>
+<span class="line"><span class="ln">239</span><span class="code">            for child_expr in node.children:</span></span>
+<span class="line"><span class="ln">240</span><span class="code">                expr_key = child_expr.strip()</span></span>
+<span class="line"><span class="ln">241</span><span class="code">                child_pos = expr_to_position.get(expr_key)</span></span>
+<span class="line"><span class="ln">242</span><span class="code">                child_node = nodes[child_pos] if child_pos is not None else lookup_node(expr_key)</span></span>
+<span class="line"><span class="ln">243</span><span class="code">                if child_node is not None:</span></span>
+<span class="line"><span class="ln">244</span><span class="code">                    children_info.append((child_node, child_pos))</span></span>
+<span class="line"><span class="ln">245</span><span class="code">            if not children_info:</span></span>
+<span class="line"><span class="ln">246</span><span class="code">                return compute_leaf_quality(pos)</span></span>
+<span class="line"><span class="ln">247</span><span class="code"></span></span>
+<span class="line"><span class="ln">248</span><span class="code">            parent_icir = abs(icir_raw[pos])<span class="cmt">  # 父节点 ICIR 绝对值作分母</span></span></span>
+<span class="line"><span class="ln">249</span><span class="code">            denom = max(parent_icir, 1e-6)</span></span>
+<span class="line"><span class="ln">250</span><span class="code">            child_icirs = []</span></span>
+<span class="line"><span class="ln">251</span><span class="code">            for child_node, child_pos in children_info:</span></span>
+<span class="line"><span class="ln">252</span><span class="code">                if child_pos is not None:</span></span>
+<span class="line"><span class="ln">253</span><span class="code">                    child_icirs.append(abs(icir_raw[child_pos]))</span></span>
+<span class="line"><span class="ln">254</span><span class="code">                else:</span></span>
+<span class="line"><span class="ln">255</span><span class="code">                    child_icirs.append(abs(child_node.icir))</span></span>
+<span class="line"><span class="ln">256</span><span class="code">            child_icirs = np.array(child_icirs, dtype=float)</span></span>
+<span class="line"><span class="ln">257</span><span class="code">            percent_gains = (child_icirs - parent_icir) / denom<span class="cmt">  # 子代 ICIR 相对父代的增益比例</span></span></span>
+<span class="line"><span class="ln">258</span><span class="code">            gain_scores = normalize_scores(percent_gains)<span class="cmt">  # 增益标准化后取均值</span></span></span>
+<span class="line"><span class="ln">259</span><span class="code">            mean_gain = clip_prob(float(gain_scores.mean()))<span class="cmt">  # mean_gain = 子代平均增益分</span></span></span>
+<span class="line"><span class="ln">260</span><span class="code"></span></span>
+<span class="line"><span class="ln">261</span><span class="code">            parent_value = node_values[pos]</span></span>
+<span class="line"><span class="ln">262</span><span class="code">            parent_child_corrs: List[float] = []</span></span>
+<span class="line"><span class="ln">263</span><span class="code">            child_values: List[Tensor] = []</span></span>
+<span class="line"><span class="ln">264</span><span class="code">            for child_node, child_pos in children_info:</span></span>
+<span class="line"><span class="ln">265</span><span class="code">                if child_pos is not None:</span></span>
+<span class="line"><span class="ln">266</span><span class="code">                    corr_val = float(np.clip(corr_matrix[pos, child_pos], 0.0, 1.0))</span></span>
+<span class="line"><span class="ln">267</span><span class="code">                    child_values.append(node_values[child_pos])</span></span>
+<span class="line"><span class="ln">268</span><span class="code">                    parent_child_corrs.append(corr_val)</span></span>
+<span class="line"><span class="ln">269</span><span class="code">                else:</span></span>
+<span class="line"><span class="ln">270</span><span class="code">                    child_value = get_factor_value(child_node)</span></span>
+<span class="line"><span class="ln">271</span><span class="code">                    if child_value is None:</span></span>
+<span class="line"><span class="ln">272</span><span class="code">                        continue</span></span>
+<span class="line"><span class="ln">273</span><span class="code">                    corr_tensor = batch_pearsonr(parent_value, child_value).mean()</span></span>
+<span class="line"><span class="ln">274</span><span class="code">                    corr_val = float(torch.abs(corr_tensor).item())</span></span>
+<span class="line"><span class="ln">275</span><span class="code">                    corr_val = float(np.clip(corr_val, 0.0, 1.0))</span></span>
+<span class="line"><span class="ln">276</span><span class="code">                    child_values.append(child_value)</span></span>
+<span class="line"><span class="ln">277</span><span class="code">                    parent_child_corrs.append(corr_val)</span></span>
+<span class="line"><span class="ln">278</span><span class="code"></span></span>
+<span class="line"><span class="ln">279</span><span class="code">            parent_child_avg = float(np.mean(parent_child_corrs)) if parent_child_corrs else 0.0<span class="cmt">  # 父-子平均相关</span></span></span>
+<span class="line"><span class="ln">280</span><span class="code">            parent_child_avg = float(np.clip(parent_child_avg, 0.0, 1.0))</span></span>
+<span class="line"><span class="ln">281</span><span class="code"></span></span>
+<span class="line"><span class="ln">282</span><span class="code">            sibling_corrs: List[float] = []</span></span>
+<span class="line"><span class="ln">283</span><span class="code">            if len(child_values) &gt; 1:</span></span>
+<span class="line"><span class="ln">284</span><span class="code">                for i in range(len(child_values)):</span></span>
+<span class="line"><span class="ln">285</span><span class="code">                    for j in range(i + 1, len(child_values)):</span></span>
+<span class="line"><span class="ln">286</span><span class="code">                        corr_tensor = batch_pearsonr(child_values[i], child_values[j]).mean()</span></span>
+<span class="line"><span class="ln">287</span><span class="code">                        corr_val = float(torch.abs(corr_tensor).item())</span></span>
+<span class="line"><span class="ln">288</span><span class="code">                        sibling_corrs.append(float(np.clip(corr_val, 0.0, 1.0)))</span></span>
+<span class="line"><span class="ln">289</span><span class="code">            child_child_avg = float(np.mean(sibling_corrs)) if sibling_corrs else 0.0<span class="cmt">  # 子-子平均相关（兄弟间相似度）</span></span></span>
+<span class="line"><span class="ln">290</span><span class="code">            child_child_avg = float(np.clip(child_child_avg, 0.0, 1.0))</span></span>
+<span class="line"><span class="ln">291</span><span class="code"></span></span>
+<span class="line"><span class="ln">292</span><span class="code">            sparsity_score = clip_prob(1.0 - parent_child_avg * child_child_avg)<span class="cmt">  # 稀疏度 = 1 - 父子相关 × 子子相关</span></span></span>
+<span class="line"><span class="ln">293</span><span class="code">            return clip_prob(mean_gain * sparsity_score)<span class="cmt">  # 非叶子分 = 平均增益 × 稀疏度</span></span></span></code></pre></div>
+<p>第 257-259 行的子代增益是 AlphaPROBE 的创新点：它不直接看父因子本身的 ICIR，而看「这个父因子历史上产出的子代，相对它有多少 ICIR 提升」。一个自身 ICIR 平平但善于产出优秀子代的因子，会被赋予高分——因为它「进化潜力大」。第 292 行的稀疏度 <code class="inline">1 - parent_child_avg * child_child_avg</code> 进一步要求子代之间也要差异化：如果某父因子的子代都高度相似，说明它的变异空间已枯竭，应降低优先级。这种「以子代质量评估父代价值」的思路，正是 on-graph biased evolution 的精髓。</p>
+<h3>分组选择 —— leaf/non_leaf 各取一半</h3>
+<p>最后按 separate_leaf_non_leaf 决定是否分组。分组时各取 top_k/2，保证叶子和非叶子都被选中；不分组则统一排序取 top_k。被选中的节点 times += 1。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">alpha_pool.py</span><span class="code-lines">第 319-347 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">319</span><span class="code">        if not self.separate_leaf_non_leaf:<span class="cmt">  # separate_leaf_non_leaf 控制是否分组</span></span></span>
+<span class="line"><span class="ln">320</span><span class="code">            ranking = np.argsort(-scores_combined)<span class="cmt">  # 不分组：统一按 scores 降序取 top_k</span></span></span>
+<span class="line"><span class="ln">321</span><span class="code">            top_positions = ranking[: min(self.top_k, len(ranking))]</span></span>
+<span class="line"><span class="ln">322</span><span class="code">            return [nodes[pos] for pos in top_positions], [self.exprs[pool_idxs[pos]] for pos in top_positions]</span></span>
+<span class="line"><span class="ln">323</span><span class="code"></span></span>
+<span class="line"><span class="ln">324</span><span class="code">        half_k = max(1, self.top_k // 2)<span class="cmt">  # 分组：leaf 与 non_leaf 各取一半 top_k</span></span></span>
+<span class="line"><span class="ln">325</span><span class="code">        selected_positions: List[int] = []</span></span>
+<span class="line"><span class="ln">326</span><span class="code"></span></span>
+<span class="line"><span class="ln">327</span><span class="code">        leaf_sorted = sorted(leaf_positions, key=lambda p: scores_split[p], reverse=True)<span class="cmt">  # 叶子按分排序</span></span></span>
+<span class="line"><span class="ln">328</span><span class="code">        non_leaf_sorted = sorted(non_leaf_positions, key=lambda p: scores_split[p], reverse=True)<span class="cmt">  # 非叶子按分排序</span></span></span>
+<span class="line"><span class="ln">329</span><span class="code"></span></span>
+<span class="line"><span class="ln">330</span><span class="code">        selected_positions.extend(leaf_sorted[:min(half_k, len(leaf_sorted))])<span class="cmt">  # 各取 half_k 个</span></span></span>
+<span class="line"><span class="ln">331</span><span class="code">        selected_positions.extend(non_leaf_sorted[:min(half_k, len(non_leaf_sorted))])</span></span>
+<span class="line"><span class="ln">332</span><span class="code"></span></span>
+<span class="line"><span class="ln">333</span><span class="code">        selected_positions = list(dict.fromkeys(selected_positions))</span></span>
+<span class="line"><span class="ln">334</span><span class="code"></span></span>
+<span class="line"><span class="ln">335</span><span class="code">        if len(selected_positions) &lt; self.top_k:</span></span>
+<span class="line"><span class="ln">336</span><span class="code">            remaining_candidates = [</span></span>
+<span class="line"><span class="ln">337</span><span class="code">                pos for pos in leaf_sorted[min(half_k, len(leaf_sorted)):] +</span></span>
+<span class="line"><span class="ln">338</span><span class="code">                non_leaf_sorted[min(half_k, len(non_leaf_sorted)):] if pos not in selected_positions</span></span>
+<span class="line"><span class="ln">339</span><span class="code">            ]</span></span>
+<span class="line"><span class="ln">340</span><span class="code">            remaining_sorted = sorted(remaining_candidates, key=lambda p: scores_split[p], reverse=True)</span></span>
+<span class="line"><span class="ln">341</span><span class="code">            selected_positions.extend(remaining_sorted[: self.top_k - len(selected_positions)])</span></span>
+<span class="line"><span class="ln">342</span><span class="code"></span></span>
+<span class="line"><span class="ln">343</span><span class="code">        selected_positions = selected_positions[: self.top_k]</span></span>
+<span class="line"><span class="ln">344</span><span class="code">        selected_positions.sort(key=lambda p: scores_split[p], reverse=True)<span class="cmt">  # 按分重排最终选中列表</span></span></span>
+<span class="line"><span class="ln">345</span><span class="code">        for pos in selected_positions:</span></span>
+<span class="line"><span class="ln">346</span><span class="code">            nodes[pos].times += 1<span class="cmt">  # 被选中的节点 times += 1（供下次衰减）</span></span></span>
+<span class="line"><span class="ln">347</span><span class="code">        return [nodes[pos] for pos in selected_positions], [self.exprs[pool_idxs[pos]] for pos in selected_positions]</span></span></code></pre></div>
+<p>第 324 行的 <code class="inline">half_k = max(1, self.top_k // 2)</code> 保证两类节点都有代表。叶子节点代表「未探索的新方向」，非叶子节点代表「已证明有进化价值的旧方向」——两者各占一半是探索与利用的平衡。第 346 行的 <code class="inline">nodes[pos].times += 1</code> 是关键副作用：被选中的因子 times 增加，下次检索时 times_decay 会更强，从而自动轮换不同因子，避免某些因子被反复选中。这是贝叶斯检索的「自适应探索」机制。</p>
+<h2>数据流</h2>
+<p><strong>输入：</strong>池内因子的 ICIR（池缓存或节点 icir）、图谱节点的 depth/times、mutual_ics 互相关矩阵、description/topic 文本、表达式 token。<strong>内部：</strong>ICIR 经 sigmoid 归一化，乘 depth/times 衰减得 quality_prob；叶子算三策略多样性，非叶子算子代增益×稀疏度；二者相乘得最终 score。<strong>输出：</strong>top_k 个 ExpressionNode 及对应表达式，供第 7 章训练循环调用 LLM 生成；被选中节点的 times 递增。</p>
+<h2>关联公式</h2>
+<p>检索器的综合打分是各因子的乘积：</p>
+<div class="math-block">$$\text{score}_i = \underbrace{\sigma(\tilde{\text{ICIR}}_i) \cdot (1-\alpha)^{d_i} \cdot (1-\beta)^{\max(k_i-k_0,0)}}_{\text{quality\_prob}} \cdot \underbrace{Q_i^{\text{pool}}}_{\text{多样性/进化价值}}$$</div>
+<p>其中 $\sigma$ 是 sigmoid，$\tilde{\text{ICIR}}$ 是标准化后的 ICIR，$Q_i^{\text{pool}}$ 对叶子是 <code class="inline">(1-mean_corr)(1-mean_sim)(mean_edit)</code>，对非叶子是 <code class="inline">mean_gain × (1 - parent_child_corr × child_child_corr)</code>。代码第 316 行 <code class="inline">scores = quality_prob * pool_quality</code> 正对应这个公式。</p>
+<div class="callout"><span class="callout-label">设计权衡</span><p>为什么用乘法而非加法融合三维度？因为乘法让任一维度的低分都会显著压低总分——一个 ICIR 极高但与池内因子完全重复的因子，乘法会让它的多样性分≈0，从而被淘汰；加法却可能让高分 ICIR 掩盖低多样性。代价是对极端值敏感，故每项都用 clip_prob 压到 [1e-6, 1-1e-6]，避免乘出 0 或溢出。这种「短板效应」正是贝叶斯检索要的：综合最均衡的因子才值得进化。</p></div>
+<h2>小结</h2>
+<p>贝叶斯检索器用「ICIR 质量分 × depth/times 双衰减 × 三策略多样性/子代增益」三维度乘法打分，再用 leaf/non_leaf 分组保证探索与利用平衡，选出 top_k 个因子送 LLM 进化。这是 AlphaPROBE「Principled Retrieval」的代码核心。下一章看 LLM 如何在这些因子上生成变体。</p>
+<div class="nav-footer"><a href="04.html">← 第4章 表达式知识图谱</a><a href="06.html">第6章 LLM 表达式生成 →</a></div>
+</main>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+                onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>
+</body>
+</html>

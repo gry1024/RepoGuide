@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第08章 表达式验证与入池 | AlphaPROBE</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+    background: #FBFBFD;
+    color: #1D1D1F;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+                 "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+}
+.sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    width: 240px;
+    height: 100vh;
+    overflow-y: auto;
+    background: #F5F5F7;
+    border-right: 1px solid #E8E8ED;
+    padding: 28px 18px 40px;
+    z-index: 100;
+}
+.sidebar-title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; color: #1D1D1F; }
+.sidebar-sub { font-size: 12px; color: #86868B; margin: 0 0 22px; letter-spacing: 0.02em; }
+.sidebar a {
+    display: block; color: #1D1D1F; font-size: 13.5px; padding: 7px 12px;
+    border-radius: 8px; margin-bottom: 2px; text-decoration: none; line-height: 1.4;
+}
+.sidebar a:hover { background: #E8E8ED; text-decoration: none; }
+.sidebar a.active { color: #0071e3; font-weight: 600; background: #E8E8ED; }
+.sidebar .group-label {
+    font-size: 11px; color: #86868B; text-transform: uppercase;
+    letter-spacing: 0.06em; margin: 18px 12px 6px;
+}
+main.content { max-width: 820px; margin: 0 0 0 240px; padding: 64px 40px 120px; }
+.hero { margin-bottom: 8px; }
+.badge {
+    display: inline-block; font-size: 13px; font-weight: 600; color: #0071e3;
+    background: rgba(0,113,227,0.08); padding: 4px 12px; border-radius: 980px; letter-spacing: 0.02em;
+}
+h1 { font-size: 36px; font-weight: 700; letter-spacing: -0.02em; margin: 14px 0 8px; line-height: 1.15; }
+h2 { font-size: 26px; font-weight: 600; letter-spacing: -0.01em; margin: 56px 0 16px; color: #1D1D1F; }
+h3 { font-size: 20px; font-weight: 600; margin: 36px 0 12px; color: #1D1D1F; }
+p { margin: 0 0 16px; color: #1D1D1F; }
+.subtitle { color: #86868B; font-size: 19px; margin: 0 0 32px; font-weight: 400; line-height: 1.5; }
+.muted { color: #86868B; }
+strong { font-weight: 600; color: #1D1D1F; }
+em { font-style: italic; }
+a { color: #0071e3; text-decoration: none; }
+a:hover { text-decoration: underline; }
+code.inline {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: #F5F5F7; color: #1D1D1F; padding: 2px 6px; border-radius: 4px; font-size: 0.9em;
+}
+.code-card {
+    background: #FFFFFF; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    margin: 0 0 24px; overflow: hidden; border: 1px solid #E8E8ED;
+}
+.code-header {
+    background: #F5F5F7; border-bottom: 1px solid #E8E8ED; padding: 10px 16px;
+    display: flex; justify-content: space-between; align-items: center; font-size: 12.5px;
+}
+.code-file { font-family: "SF Mono", Menlo, Consolas, monospace; color: #1D1D1F; font-weight: 600; }
+.code-lines { color: #86868B; }
+.code-block { margin: 0; padding: 16px 18px; overflow-x: auto; background: #FFFFFF; }
+.code-block code {
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; line-height: 1.6;
+    color: #1D1D1F; background: transparent; padding: 0; white-space: pre; display: block;
+}
+.code-block .line { display: block; white-space: pre; }
+.code-block .ln {
+    display: inline-block; width: 3em; text-align: right; color: #BBB;
+    user-select: none; margin-right: 18px; font-variant-numeric: tabular-nums;
+}
+.code-block .code { white-space: pre; }
+.code-block .cmt { color: #5a9e6f; white-space: pre-wrap; }
+.callout {
+    background: #F5F5F7; border-left: 3px solid #0071e3; border-radius: 8px;
+    padding: 14px 18px; margin: 0 0 24px; color: #1D1D1F;
+}
+.callout-label {
+    color: #0071e3; font-weight: 600; font-size: 13px; text-transform: uppercase;
+    letter-spacing: 0.04em; display: block; margin-bottom: 6px;
+}
+.callout p:last-child { margin-bottom: 0; }
+.math-block {
+    background: #F5F5F7; border-radius: 10px; padding: 20px; margin: 0 0 24px;
+    text-align: center; overflow-x: auto;
+}
+ul, ol { margin: 0 0 20px; padding-left: 24px; }
+li { margin-bottom: 8px; }
+table {
+    width: 100%; border-collapse: collapse; margin: 0 0 24px; border-radius: 10px;
+    overflow: hidden; border: 1px solid #E8E8ED; font-size: 15px;
+}
+th, td { padding: 11px 16px; text-align: left; border-bottom: 1px solid #E8E8ED; }
+th { background: #F5F5F7; font-weight: 600; }
+tr:last-child td { border-bottom: none; }
+img { max-width: 100%; border-radius: 12px; }
+.nav-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 64px; padding-top: 24px; border-top: 1px solid #E8E8ED; font-size: 15px;
+}
+.nav-footer a { color: #0071e3; }
+.toc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+.toc-card {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 14px; padding: 20px 22px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04); text-decoration: none; color: #1D1D1F;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.toc-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.08); text-decoration: none; }
+.toc-card .tc-num { font-size: 12px; color: #86868B; font-weight: 600; letter-spacing: 0.04em; }
+.toc-card .tc-title { font-size: 17px; font-weight: 600; margin: 4px 0 6px; }
+.toc-card .tc-desc { font-size: 13.5px; color: #86868B; line-height: 1.5; }
+.concept-map { margin: 24px 0; }
+.cm-layer { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
+.cm-layer-label {
+    width: 92px; flex: 0 0 92px; font-size: 12px; color: #86868B; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em; padding-top: 14px;
+}
+.cm-nodes { flex: 1; display: flex; gap: 10px; flex-wrap: wrap; }
+.cm-node {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 10px; padding: 10px 14px;
+    min-width: 150px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.cm-node .cm-id { font-size: 11px; color: #0071e3; font-weight: 700; }
+.cm-node .cm-name { font-size: 14px; font-weight: 600; color: #1D1D1F; }
+.cm-arrow { text-align: center; color: #86868B; font-size: 12px; margin: 8px 0 8px 92px; }
+.cm-rels { margin-top: 20px; }
+.cm-rel {
+    display: inline-block; background: #F5F5F7; border-radius: 8px; padding: 5px 11px;
+    margin: 4px 6px 4px 0; font-size: 12.5px; color: #1D1D1F;
+}
+.cm-rel b { color: #0071e3; }
+.arch-tree {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 12px; padding: 20px 24px;
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; line-height: 1.7;
+    overflow-x: auto; white-space: pre; color: #1D1D1F;
+}
+.arch-tree .c { color: #86868B; }
+@media (max-width: 860px) {
+    .sidebar { position: static; width: 100%; height: auto; }
+    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .toc-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<aside class="sidebar"><h2 class="sidebar-title">AlphaPROBE</h2><p class="sidebar-sub">深度代码教程</p><a href="index.html">首页</a><div class="group-label">数据层</div><a href="01.html">第1章 Qlib 行情数据加载</a><a href="02.html">第2章 表达式与算子体系</a><a href="03.html">第3章 IC/ICIR 因子评估</a><div class="group-label">核心层</div><a href="04.html">第4章 表达式知识图谱</a><a href="05.html">第5章 贝叶斯因子检索器</a><a href="06.html">第6章 LLM 表达式生成</a><div class="group-label">应用层</div><a href="07.html">第7章 训练主循环</a><a href="08.html" class="active">第8章 表达式验证与入池</a><a href="09.html">第9章 Mega-Alpha 动态组合</a><a href="10.html">第10章 Baseline 对比</a></aside><main class="content">
+<div class="hero"><span class="badge">第 8 章 · 应用层</span></div>
+<h1>第8章：表达式验证与入池</h1>
+<p class="subtitle">像机场安检，新表达式要过「语法合法」「量纲为零」「IC 达标」「与池内因子互相关不超标」四道关。</p>
+<h2>欢迎</h2>
+<p>第 7 章我们看到训练循环把生成的表达式送去入池，但入池前要过一道「安检」。本章拆解 <code class="inline">AlphaKnowledgePool.try_new_expr</code> 与 <code class="inline">ExpressionParser.parse</code>，看一个新表达式如何通过「语法合法」「量纲为零」「IC 达标」「互相关不超标」四道关，最终被加入因子池或被拒绝。这是保证池质量与多样性的最后一道闸门。</p>
+<h2>它解决什么问题？</h2>
+<p>LLM 生成的表达式质量参差不齐。即使 prompt 有 12 条校验规则，LLM 仍可能输出非法语法（如 <code class="inline">Add(x)</code> 参数不足）、量纲不为零（如 <code class="inline">Add($close,$volume)</code>）、IC 过低（噪声因子）、或与池内因子高度重复（<code class="inline">Rank($close)</code> 与 <code class="inline">Rank(Rank($close))</code> 语义等价）。如果这些表达式直接入池，会污染池质量，让 Mega-Alpha 组合（第 9 章）效果劣化。</p>
+<p>类比机场安检：新表达式要过四道关——语法合法（证件真实）、量纲为零（无违禁品）、IC 达标（背景清白）、互相关不超标（行李不超重）。任一关不通过都被拒绝，只有四关全过且（池满时）优于池内最差因子才能入池。</p>
+<h2>核心设计思路</h2>
+<p>设计上有四个关键点。第一，<strong>解析即校验</strong>：<code class="inline">ExpressionParser.parse</code> 在组装表达式树时每步都 validate，非法结构立刻抛 <code class="inline">InvalidExpressionException</code>。第二，<strong>量纲零约束</strong>：虽然 try_new_expr 本身不显式调 DimensionCalculator，但 prompt 已强制 LLM 生成 dimensionless 表达式，解析器间接保证（非法量纲的表达式多会在求值时出错）。第三，<strong>IC + MutIC 双阈值</strong>：IC 绝对值要超 <code class="inline">ic_threshold</code>（第 7 章路径判定），MutIC 最大值要不超过 <code class="inline">ic_mut_threshold</code>（防重复）。第四，<strong>池满则末位淘汰</strong>：池满时新因子必须优于池内 IC 最低的因子，入池后 pop 掉最差因子。</p>
+<h2>代码深入</h2>
+<h3>ExpressionParser.parse —— 语法校验第一道关</h3>
+<p>解析器在 tokenize 后，由 ExpressionBuilder 逐 token 入栈组装，每步 validate 参数契约。这是 LLM 表达式的第一道合法性检查。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">tree.py</span><span class="code-lines">第 197-207 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">197</span><span class="code">    def parse(self, expr: str) -&gt; Expression:</span></span>
+<span class="line"><span class="ln">198</span><span class="code">        self.tokens = self.tokenize(expr)<span class="cmt">  # tokenize 得到 RPN token 序列</span></span></span>
+<span class="line"><span class="ln">199</span><span class="code">        # Create a new builder for each parse operation</span></span>
+<span class="line"><span class="ln">200</span><span class="code">        builder = ExpressionBuilder()<span class="cmt">  # 每次 parse 创建新 builder</span></span></span>
+<span class="line"><span class="ln">201</span><span class="code">        for token in self.tokens:</span></span>
+<span class="line"><span class="ln">202</span><span class="code">            builder.add_token(token)<span class="cmt">  # 逐 token 入栈，每步 validate</span></span></span>
+<span class="line"><span class="ln">203</span><span class="code">        return builder.get_tree()<span class="cmt">  # 栈中应只剩一棵含 Feature 的树</span></span></span>
+<span class="line"><span class="ln">204</span><span class="code"></span></span>
+<span class="line"><span class="ln">205</span><span class="code"></span></span>
+<span class="line"><span class="ln">206</span><span class="code">class InvalidExpressionException(ValueError):</span></span>
+<span class="line"><span class="ln">207</span><span class="code">    pass</span></span></code></pre></div>
+<div class="code-card"><div class="code-header"><span class="code-file">tree.py</span><span class="code-lines">第 41-78 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">41</span><span class="code">    def validate(self, token: Token) -&gt; bool:<span class="cmt">  # validate 总入口，按 token 类型分流</span></span></span>
+<span class="line"><span class="ln">42</span><span class="code">        if isinstance(token, OperatorToken):</span></span>
+<span class="line"><span class="ln">43</span><span class="code">            return self.validate_op(token.operator)</span></span>
+<span class="line"><span class="ln">44</span><span class="code">        elif isinstance(token, DeltaTimeToken):</span></span>
+<span class="line"><span class="ln">45</span><span class="code">            return self.validate_dt()</span></span>
+<span class="line"><span class="ln">46</span><span class="code">        elif isinstance(token, ConstantToken):</span></span>
+<span class="line"><span class="ln">47</span><span class="code">            return self.validate_const()</span></span>
+<span class="line"><span class="ln">48</span><span class="code">        elif isinstance(token, FeatureToken):</span></span>
+<span class="line"><span class="ln">49</span><span class="code">            return self.validate_feature()</span></span>
+<span class="line"><span class="ln">50</span><span class="code">        else:</span></span>
+<span class="line"><span class="ln">51</span><span class="code">            assert False</span></span>
+<span class="line"><span class="ln">52</span><span class="code"></span></span>
+<span class="line"><span class="ln">53</span><span class="code">    def validate_op(self, op: Type[Operator]) -&gt; bool:<span class="cmt">  # 算子校验：栈中参数要足够</span></span></span>
+<span class="line"><span class="ln">54</span><span class="code">        if len(self.stack) &lt; op.n_args():</span></span>
+<span class="line"><span class="ln">55</span><span class="code">            return False</span></span>
+<span class="line"><span class="ln">56</span><span class="code"></span></span>
+<span class="line"><span class="ln">57</span><span class="code">        if issubclass(op, UnaryOperator):<span class="cmt">  # 一元算子：操作数必须是 featured</span></span></span>
+<span class="line"><span class="ln">58</span><span class="code">            if not self.stack[-1].is_featured:</span></span>
+<span class="line"><span class="ln">59</span><span class="code">                return False</span></span>
+<span class="line"><span class="ln">60</span><span class="code">        elif issubclass(op, BinaryOperator):<span class="cmt">  # 二元算子：左右不能都不是 featured</span></span></span>
+<span class="line"><span class="ln">61</span><span class="code">            if not self.stack[-1].is_featured and not self.stack[-2].is_featured:</span></span>
+<span class="line"><span class="ln">62</span><span class="code">                return False</span></span>
+<span class="line"><span class="ln">63</span><span class="code">            if (isinstance(self.stack[-1], DeltaTime) or<span class="cmt">  # 二元算子：操作数不能是 DeltaTime</span></span></span>
+<span class="line"><span class="ln">64</span><span class="code">                    isinstance(self.stack[-2], DeltaTime)):</span></span>
+<span class="line"><span class="ln">65</span><span class="code">                return False</span></span>
+<span class="line"><span class="ln">66</span><span class="code">        elif issubclass(op, RollingOperator):<span class="cmt">  # 滚动算子：栈顶必须是 DeltaTime（时间窗口）</span></span></span>
+<span class="line"><span class="ln">67</span><span class="code">            if not isinstance(self.stack[-1], DeltaTime):</span></span>
+<span class="line"><span class="ln">68</span><span class="code">                return False</span></span>
+<span class="line"><span class="ln">69</span><span class="code">            if not self.stack[-2].is_featured:</span></span>
+<span class="line"><span class="ln">70</span><span class="code">                return False</span></span>
+<span class="line"><span class="ln">71</span><span class="code">        elif issubclass(op, PairRollingOperator):<span class="cmt">  # 成对滚动：需要两个 featured 操作数 + DT</span></span></span>
+<span class="line"><span class="ln">72</span><span class="code">            if not isinstance(self.stack[-1], DeltaTime):</span></span>
+<span class="line"><span class="ln">73</span><span class="code">                return False</span></span>
+<span class="line"><span class="ln">74</span><span class="code">            if not self.stack[-2].is_featured or not self.stack[-3].is_featured:</span></span>
+<span class="line"><span class="ln">75</span><span class="code">                return False</span></span>
+<span class="line"><span class="ln">76</span><span class="code">        else:</span></span>
+<span class="line"><span class="ln">77</span><span class="code">            assert False</span></span>
+<span class="line"><span class="ln">78</span><span class="code">        return True</span></span></code></pre></div>
+<p>第 53-77 行的 validate 是语法校验的核心。它保证算子的参数契约：UnaryOperator 的操作数必须含 Feature（不能对纯常量取 Abs）；RollingOperator 栈顶必须是 DeltaTime（<code class="inline">TsMean($close, 10)</code> 里的 10）；PairRollingOperator 需要两个 featured 操作数 + DT。这些校验在 token 入栈时即时进行，LLM 输出的 <code class="inline">Add(x)</code>（参数不足）或 <code class="inline">TsMean($close)</code>（缺窗口）都会立刻抛 <code class="inline">InvalidExpressionException</code>。第 39 行的 <code class="inline">is_valid</code> 进一步要求最终栈中只剩一棵含 Feature 的树——纯常量表达式（如 <code class="inline">Add(1.0, 2.0)</code>）会被拒绝。</p>
+<h3>try_new_expr —— IC 与互相关双阈值</h3>
+<p>解析通过后，try_new_expr 算 IC/ICIR/MutIC，按 ic_mut_threshold 防重复，池满时与最低 IC 因子比较决定是否淘汰。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">alpha_pool.py</span><span class="code-lines">第 349-381 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">349</span><span class="code">    def try_new_expr(self, expr: Expression | str, topic: str, description: str, expression_node: Optional[ExpressionNode] = None) -&gt; bool:</span></span>
+<span class="line"><span class="ln">350</span><span class="code">        if isinstance(expr, str):<span class="cmt">  # 字符串表达式先 eval 成对象（兼容 str/Expression 输入）</span></span></span>
+<span class="line"><span class="ln">351</span><span class="code">            expr = eval(expr)</span></span>
+<span class="line"><span class="ln">352</span><span class="code">        assert isinstance(expr, Expression)</span></span>
+<span class="line"><span class="ln">353</span><span class="code">        value = self._normalize_by_day(expr.evaluate(self.data))<span class="cmt">  # 按日归一化后求值</span></span></span>
+<span class="line"><span class="ln">354</span><span class="code">        ic_ret, icir, ic_mut = self._calc_ics_and_icir(value, ic_mut_threshold=0.99)<span class="cmt">  # 算 IC/ICIR/MutIC（第 3 章 _calc_ics_and_icir）</span></span></span>
+<span class="line"><span class="ln">355</span><span class="code">        if ic_ret is None or ic_mut is None:<span class="cmt">  # IC 为 None 则直接拒绝（求值失败）</span></span></span>
+<span class="line"><span class="ln">356</span><span class="code">            return False</span></span>
+<span class="line"><span class="ln">357</span><span class="code">        ic_ret = np.abs(ic_ret)<span class="cmt">  # IC 取绝对值</span></span></span>
+<span class="line"><span class="ln">358</span><span class="code">        ic_mut = np.abs(ic_mut)</span></span>
+<span class="line"><span class="ln">359</span><span class="code"></span></span>
+<span class="line"><span class="ln">360</span><span class="code">        # if expression_node is None and self.knowledge_graph is not None:</span></span>
+<span class="line"><span class="ln">361</span><span class="code">        #     expression_node = self.knowledge_graph.search(str(expr))</span></span>
+<span class="line"><span class="ln">362</span><span class="code"></span></span>
+<span class="line"><span class="ln">363</span><span class="code">        if self.size &lt; self.capacity:<span class="cmt">  # 池未满时直接尝试加入</span></span></span>
+<span class="line"><span class="ln">364</span><span class="code">            if ic_mut.size == 0 or np.max(ic_mut) &lt;= self.ic_mut_threshold:<span class="cmt">  # MutIC 最大值不超过 ic_mut_threshold 才入池（防重复）</span></span></span>
+<span class="line"><span class="ln">365</span><span class="code">                self._add_factor(expr, value, ic_ret, icir, ic_mut, topic, description, expression_node)<span class="cmt">  # _add_factor 加入池并记录 topic/description/node/icir</span></span></span>
+<span class="line"><span class="ln">366</span><span class="code">                print(f&quot;[Pool Add] {expr}&quot;)</span></span>
+<span class="line"><span class="ln">367</span><span class="code">                return True</span></span>
+<span class="line"><span class="ln">368</span><span class="code">            print(f&quot;[Pool Reject] {expr}&quot;)</span></span>
+<span class="line"><span class="ln">369</span><span class="code">            return False</span></span>
+<span class="line"><span class="ln">370</span><span class="code"></span></span>
+<span class="line"><span class="ln">371</span><span class="code">        min_ic_idx = np.argmin(self.single_ics[:self.size])<span class="cmt">  # 池满时找 IC 最低的因子</span></span></span>
+<span class="line"><span class="ln">372</span><span class="code">        min_ic = self.single_ics[min_ic_idx]</span></span>
+<span class="line"><span class="ln">373</span><span class="code"></span></span>
+<span class="line"><span class="ln">374</span><span class="code">        if ic_ret &gt; min_ic and (ic_mut.size == 0 or np.max(ic_mut) &lt;= self.ic_mut_threshold):<span class="cmt">  # 新 IC 须优于最低 IC 且 MutIC 达标才入池</span></span></span>
+<span class="line"><span class="ln">375</span><span class="code">            self._add_factor(expr, value, ic_ret, icir, ic_mut, topic, description, expression_node)</span></span>
+<span class="line"><span class="ln">376</span><span class="code">            print(f&quot;[Pool Add] {expr}&quot;)</span></span>
+<span class="line"><span class="ln">377</span><span class="code">            print(f&quot;[Pool Pop] {self.exprs[np.argmin(self.single_ics[:self.size])]}&quot;)</span></span>
+<span class="line"><span class="ln">378</span><span class="code">            self._pop()<span class="cmt">  # 入池后 _pop 淘汰最差因子</span></span></span>
+<span class="line"><span class="ln">379</span><span class="code">            return True</span></span>
+<span class="line"><span class="ln">380</span><span class="code">        print(f&quot;[Pool Reject] {expr}&quot;)</span></span>
+<span class="line"><span class="ln">381</span><span class="code">        return False</span></span></code></pre></div>
+<p>第 364 行的 <code class="inline">np.max(ic_mut) <= self.ic_mut_threshold</code> 是防重复的核心：<code class="inline">ic_mut_threshold</code>（默认 0.9，<code class="inline">train_new_work.py:105</code>）要求新因子与池内任一因子的互相关不超过 0.9。这避免语义等价的表达式重复入池（如 <code class="inline">Rank($close)</code> 与 <code class="inline">Rank(Rank($close))</code> 的互相关接近 1）。第 371-378 行是池满时的末位淘汰：找池内 IC 绝对值最低的因子，新因子 IC 必须严格更高才能替换。注意第 366/376 行的 print 是训练日志的关键，让你实时看到「Pool Add/Reject/Pop」的流转。</p>
+<h3>_add_factor —— 写入池与元数据</h3>
+<p>_add_factor 调父类方法写入表达式/值/IC/MutIC，再写入 AlphaPROBE 特有的 topic/description/node/icir。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">alpha_pool.py</span><span class="code-lines">第 383-401 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">383</span><span class="code">    def _add_factor(</span></span>
+<span class="line"><span class="ln">384</span><span class="code">        self,</span></span>
+<span class="line"><span class="ln">385</span><span class="code">        expr: Expression,</span></span>
+<span class="line"><span class="ln">386</span><span class="code">        value: Tensor,</span></span>
+<span class="line"><span class="ln">387</span><span class="code">        ic_ret: float,</span></span>
+<span class="line"><span class="ln">388</span><span class="code">        ic_ir: float,</span></span>
+<span class="line"><span class="ln">389</span><span class="code">        ic_mut: List[float],</span></span>
+<span class="line"><span class="ln">390</span><span class="code">        topic: str,</span></span>
+<span class="line"><span class="ln">391</span><span class="code">        description: str,</span></span>
+<span class="line"><span class="ln">392</span><span class="code">        expression_node: Optional[ExpressionNode] = None</span></span>
+<span class="line"><span class="ln">393</span><span class="code">    ):</span></span>
+<span class="line"><span class="ln">394</span><span class="code">        super()._add_factor(expr, value, ic_ret, ic_mut)<span class="cmt">  # 调父类 _add_factor 写 exprs/values/single_ics/mutual_ics</span></span></span>
+<span class="line"><span class="ln">395</span><span class="code">        n = self.size - 1  # size was incremented in parent method<span class="cmt">  # size 已在父类方法里自增，取最新索引</span></span></span>
+<span class="line"><span class="ln">396</span><span class="code">        self.topics[n] = topic<span class="cmt">  # 写入 topic（用于检索器语义相似度）</span></span></span>
+<span class="line"><span class="ln">397</span><span class="code">        self.descriptions[n] = description<span class="cmt">  # 写入 description（LLM 生成的解释）</span></span></span>
+<span class="line"><span class="ln">398</span><span class="code">        # if expression_node is None and self.knowledge_graph is not None:</span></span>
+<span class="line"><span class="ln">399</span><span class="code">        #     expression_node = self.knowledge_graph.search(str(expr))</span></span>
+<span class="line"><span class="ln">400</span><span class="code">        self.expr2node[n] = expression_node<span class="cmt">  # 写入 expression_node（图谱节点引用）</span></span></span>
+<span class="line"><span class="ln">401</span><span class="code">        self.icir[n] = ic_ir<span class="cmt">  # 写入 icir（检索器质量分）</span></span></span></code></pre></div>
+<p>第 394 行的 <code class="inline">super()._add_factor(expr, value, ic_ret, ic_mut)</code> 调用基类 <code class="inline">AlphaPool._add_factor</code>（<code class="inline">models/alpha_pool.py:241</code>），它负责维护 exprs/values/single_ics/mutual_ics 四个数组与 size 计数。AlphaPROBE 在此基础上额外写入四个字段：topic（第 5 章检索器算语义相似度的文本源）、description（LLM 解释，也用于语义相似度）、expression_node（图谱节点引用，让检索器能拿到 depth/times）、icir（检索器质量分核心）。这四个字段是 AlphaKnowledgePool 区别于基类 AlphaPool 的关键扩展。</p>
+<h3>_pop 与 _swap_idx —— 末位淘汰与交换</h3>
+<p>_pop 找 IC 最低的因子与池末尾交换并截断 size。_swap_idx 在交换因子时同步交换所有元数据。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">alpha_pool.py</span><span class="code-lines">第 404-421 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">404</span><span class="code">    def _pop(self) -&gt; None:</span></span>
+<span class="line"><span class="ln">405</span><span class="code">        # Pop the factor with the lowest ic</span></span>
+<span class="line"><span class="ln">406</span><span class="code">        if self.size &lt;= self.capacity:<span class="cmt">  # size 未超 capacity 则不淘汰</span></span></span>
+<span class="line"><span class="ln">407</span><span class="code">            return</span></span>
+<span class="line"><span class="ln">408</span><span class="code">        idx = np.argmin(self.single_ics[:self.size])<span class="cmt">  # 找 IC 绝对值最低的因子索引</span></span></span>
+<span class="line"><span class="ln">409</span><span class="code">        self._swap_idx(idx, self.capacity)<span class="cmt">  # 把它换到 capacity 位置</span></span></span>
+<span class="line"><span class="ln">410</span><span class="code">        self.size = self.capacity<span class="cmt">  # 截断 size 到 capacity</span></span></span>
+<span class="line"><span class="ln">411</span><span class="code">    </span></span>
+<span class="line"><span class="ln">412</span><span class="code">    def _swap_idx(self, i, j) -&gt; None:<span class="cmt">  # _swap_idx 交换两个因子</span></span></span>
+<span class="line"><span class="ln">413</span><span class="code">        if i == j:</span></span>
+<span class="line"><span class="ln">414</span><span class="code">            return</span></span>
+<span class="line"><span class="ln">415</span><span class="code">        # Call parent method to handle standard factor swapping</span></span>
+<span class="line"><span class="ln">416</span><span class="code">        super()._swap_idx(i, j)<span class="cmt">  # 调父类交换 exprs/values/ics</span></span></span>
+<span class="line"><span class="ln">417</span><span class="code">        # Swap embeddings</span></span>
+<span class="line"><span class="ln">418</span><span class="code">        self.topics[i], self.topics[j] = self.topics[j], self.topics[i]<span class="cmt">  # 同步交换 topics/descriptions</span></span></span>
+<span class="line"><span class="ln">419</span><span class="code">        self.descriptions[i], self.descriptions[j] = self.descriptions[j], self.descriptions[i]   </span></span>
+<span class="line"><span class="ln">420</span><span class="code">        self.expr2node[i], self.expr2node[j] = self.expr2node[j], self.expr2node[i]<span class="cmt">  # 同步交换 expr2node/icir</span></span></span>
+<span class="line"><span class="ln">421</span><span class="code">        self.icir[i], self.icir[j] = self.icir[j], self.icir[i]</span></span></code></pre></div>
+<p>第 416-420 行的同步交换是关键：交换两个因子时，不仅交换父类的 exprs/values/single_ics/mutual_ics，还要交换 AlphaPROBE 特有的 topics/descriptions/expr2node/icir。如果漏掉任一字段，检索器会读到错位的元数据（如用 A 因子的 icir 配 B 因子的 description），导致打分失真。这种「扩展字段必须同步交换」是继承式扩展的典型负担，但保证了元数据与因子的一致性。</p>
+<h2>数据流</h2>
+<p><strong>输入：</strong>LLM 生成的表达式字符串（或 Expression 对象）、topic、description、图谱节点。<strong>验证：</strong>parser.parse 语法校验 → expr.evaluate 求值 → _calc_ics_and_icir 算 IC/ICIR/MutIC → ic_mut_threshold 防重复 → 池满时与最低 IC 比较。<strong>输出：</strong>True（入池）或 False（拒绝）。入池则更新 exprs/values/icir/mutual_ics 及 topic/description/node，并触发 _pop 末位淘汰。</p>
+<h2>关联公式</h2>
+<p>入池判定（池未满时）的核心是互相关阈值：</p>
+<div class="math-block">$$\text{accept} \iff \max_{j \in \text{pool}} |\text{MutIC}_{\text{new}, j}| \leq \tau_{\text{mut}}$$</div>
+<p>池满时额外要求（末位淘汰）：</p>
+<div class="math-block">$$\text{accept} \iff |\text{IC}_{\text{new}}| > \min_{j \in \text{pool}} |\text{IC}_j| \;\text{and}\; \max_{j} |\text{MutIC}_{\text{new}, j}| \leq \tau_{\text{mut}}$$</div>
+<p>其中 $\tau_{\text{mut}}$ 是 <code class="inline">ic_mut_threshold</code>（默认 0.9）。MutIC 是新因子与池内因子的逐日 Pearson IC 均值（第 3 章 _calc_ics_and_icir 第 234 行）。这个阈值防止「语义等价」的因子重复占池，是池多样性的硬保障。</p>
+<div class="callout"><span class="callout-label">设计权衡</span><p>为什么 ic_mut_threshold 设 0.9 这么高？因为 AlphaPROBE 还有第 5 章的贝叶斯检索器做软性多样性引导，入池判定只做硬性防重复。0.9 允许「相关但不完全等价」的因子共存（如 <code class="inline">TsMean($close,5)</code> 与 <code class="inline">TsMean($close,10)</code>），它们在某些时段可能互补。若阈值设太低（如 0.5），池会过度稀疏，无法支撑 Mega-Alpha 组合所需的因子数量。</p></div>
+<h2>小结</h2>
+<p>表达式验证与入池用「parser 语法校验 + IC/MutIC 双阈值 + 末位淘汰」四道关，保证池内每个因子都合法、有效、不重复。try_new_expr 是入口，_add_factor 写入元数据，_pop/_swap_idx 维护池容量。下一章看池中因子如何被组合成 Mega-Alpha 预测。</p>
+<div class="nav-footer"><a href="07.html">← 第7章 训练主循环</a><a href="09.html">第9章 Mega-Alpha 动态组合 →</a></div>
+</main>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+                onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>
+</body>
+</html>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第10章 Baseline 对比 | AlphaPROBE</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+    background: #FBFBFD;
+    color: #1D1D1F;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+                 "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+}
+.sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    width: 240px;
+    height: 100vh;
+    overflow-y: auto;
+    background: #F5F5F7;
+    border-right: 1px solid #E8E8ED;
+    padding: 28px 18px 40px;
+    z-index: 100;
+}
+.sidebar-title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; color: #1D1D1F; }
+.sidebar-sub { font-size: 12px; color: #86868B; margin: 0 0 22px; letter-spacing: 0.02em; }
+.sidebar a {
+    display: block; color: #1D1D1F; font-size: 13.5px; padding: 7px 12px;
+    border-radius: 8px; margin-bottom: 2px; text-decoration: none; line-height: 1.4;
+}
+.sidebar a:hover { background: #E8E8ED; text-decoration: none; }
+.sidebar a.active { color: #0071e3; font-weight: 600; background: #E8E8ED; }
+.sidebar .group-label {
+    font-size: 11px; color: #86868B; text-transform: uppercase;
+    letter-spacing: 0.06em; margin: 18px 12px 6px;
+}
+main.content { max-width: 820px; margin: 0 0 0 240px; padding: 64px 40px 120px; }
+.hero { margin-bottom: 8px; }
+.badge {
+    display: inline-block; font-size: 13px; font-weight: 600; color: #0071e3;
+    background: rgba(0,113,227,0.08); padding: 4px 12px; border-radius: 980px; letter-spacing: 0.02em;
+}
+h1 { font-size: 36px; font-weight: 700; letter-spacing: -0.02em; margin: 14px 0 8px; line-height: 1.15; }
+h2 { font-size: 26px; font-weight: 600; letter-spacing: -0.01em; margin: 56px 0 16px; color: #1D1D1F; }
+h3 { font-size: 20px; font-weight: 600; margin: 36px 0 12px; color: #1D1D1F; }
+p { margin: 0 0 16px; color: #1D1D1F; }
+.subtitle { color: #86868B; font-size: 19px; margin: 0 0 32px; font-weight: 400; line-height: 1.5; }
+.muted { color: #86868B; }
+strong { font-weight: 600; color: #1D1D1F; }
+em { font-style: italic; }
+a { color: #0071e3; text-decoration: none; }
+a:hover { text-decoration: underline; }
+code.inline {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: #F5F5F7; color: #1D1D1F; padding: 2px 6px; border-radius: 4px; font-size: 0.9em;
+}
+.code-card {
+    background: #FFFFFF; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    margin: 0 0 24px; overflow: hidden; border: 1px solid #E8E8ED;
+}
+.code-header {
+    background: #F5F5F7; border-bottom: 1px solid #E8E8ED; padding: 10px 16px;
+    display: flex; justify-content: space-between; align-items: center; font-size: 12.5px;
+}
+.code-file { font-family: "SF Mono", Menlo, Consolas, monospace; color: #1D1D1F; font-weight: 600; }
+.code-lines { color: #86868B; }
+.code-block { margin: 0; padding: 16px 18px; overflow-x: auto; background: #FFFFFF; }
+.code-block code {
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; line-height: 1.6;
+    color: #1D1D1F; background: transparent; padding: 0; white-space: pre; display: block;
+}
+.code-block .line { display: block; white-space: pre; }
+.code-block .ln {
+    display: inline-block; width: 3em; text-align: right; color: #BBB;
+    user-select: none; margin-right: 18px; font-variant-numeric: tabular-nums;
+}
+.code-block .code { white-space: pre; }
+.code-block .cmt { color: #5a9e6f; white-space: pre-wrap; }
+.callout {
+    background: #F5F5F7; border-left: 3px solid #0071e3; border-radius: 8px;
+    padding: 14px 18px; margin: 0 0 24px; color: #1D1D1F;
+}
+.callout-label {
+    color: #0071e3; font-weight: 600; font-size: 13px; text-transform: uppercase;
+    letter-spacing: 0.04em; display: block; margin-bottom: 6px;
+}
+.callout p:last-child { margin-bottom: 0; }
+.math-block {
+    background: #F5F5F7; border-radius: 10px; padding: 20px; margin: 0 0 24px;
+    text-align: center; overflow-x: auto;
+}
+ul, ol { margin: 0 0 20px; padding-left: 24px; }
+li { margin-bottom: 8px; }
+table {
+    width: 100%; border-collapse: collapse; margin: 0 0 24px; border-radius: 10px;
+    overflow: hidden; border: 1px solid #E8E8ED; font-size: 15px;
+}
+th, td { padding: 11px 16px; text-align: left; border-bottom: 1px solid #E8E8ED; }
+th { background: #F5F5F7; font-weight: 600; }
+tr:last-child td { border-bottom: none; }
+img { max-width: 100%; border-radius: 12px; }
+.nav-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 64px; padding-top: 24px; border-top: 1px solid #E8E8ED; font-size: 15px;
+}
+.nav-footer a { color: #0071e3; }
+.toc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+.toc-card {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 14px; padding: 20px 22px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04); text-decoration: none; color: #1D1D1F;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.toc-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.08); text-decoration: none; }
+.toc-card .tc-num { font-size: 12px; color: #86868B; font-weight: 600; letter-spacing: 0.04em; }
+.toc-card .tc-title { font-size: 17px; font-weight: 600; margin: 4px 0 6px; }
+.toc-card .tc-desc { font-size: 13.5px; color: #86868B; line-height: 1.5; }
+.concept-map { margin: 24px 0; }
+.cm-layer { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
+.cm-layer-label {
+    width: 92px; flex: 0 0 92px; font-size: 12px; color: #86868B; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em; padding-top: 14px;
+}
+.cm-nodes { flex: 1; display: flex; gap: 10px; flex-wrap: wrap; }
+.cm-node {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 10px; padding: 10px 14px;
+    min-width: 150px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.cm-node .cm-id { font-size: 11px; color: #0071e3; font-weight: 700; }
+.cm-node .cm-name { font-size: 14px; font-weight: 600; color: #1D1D1F; }
+.cm-arrow { text-align: center; color: #86868B; font-size: 12px; margin: 8px 0 8px 92px; }
+.cm-rels { margin-top: 20px; }
+.cm-rel {
+    display: inline-block; background: #F5F5F7; border-radius: 8px; padding: 5px 11px;
+    margin: 4px 6px 4px 0; font-size: 12.5px; color: #1D1D1F;
+}
+.cm-rel b { color: #0071e3; }
+.arch-tree {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 12px; padding: 20px 24px;
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; line-height: 1.7;
+    overflow-x: auto; white-space: pre; color: #1D1D1F;
+}
+.arch-tree .c { color: #86868B; }
+@media (max-width: 860px) {
+    .sidebar { position: static; width: 100%; height: auto; }
+    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .toc-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<aside class="sidebar"><h2 class="sidebar-title">AlphaPROBE</h2><p class="sidebar-sub">深度代码教程</p><a href="index.html">首页</a><div class="group-label">数据层</div><a href="01.html">第1章 Qlib 行情数据加载</a><a href="02.html">第2章 表达式与算子体系</a><a href="03.html">第3章 IC/ICIR 因子评估</a><div class="group-label">核心层</div><a href="04.html">第4章 表达式知识图谱</a><a href="05.html">第5章 贝叶斯因子检索器</a><a href="06.html">第6章 LLM 表达式生成</a><div class="group-label">应用层</div><a href="07.html">第7章 训练主循环</a><a href="08.html">第8章 表达式验证与入池</a><a href="09.html">第9章 Mega-Alpha 动态组合</a><a href="10.html" class="active">第10章 Baseline 对比</a></aside><main class="content">
+<div class="hero"><span class="badge">第 10 章 · 应用层</span></div>
+<h1>第10章：Baseline 对比</h1>
+<p class="subtitle">像 A/B 测试，GFlowNet/FQF/IQN/QRDQN/GAN/PPO 是不同流派的「选手」，与 AlphaPROBE 的 LLM+DAG 路线对比。</p>
+<h2>欢迎</h2>
+<p>AlphaPROBE 不是凭空出现的，它要在已成熟的 alpha 挖掘流派里证明自己。本章拆解仓库里的六个 baseline 训练脚本——<code class="inline">train_gfn.py</code>（GFlowNet）、<code class="inline">train_qcm.py</code>（FQF/IQN/QRDQN）、<code class="inline">train_AFF.py</code>（GAN）、<code class="inline">train_ppo.py</code>（PPO）、<code class="inline">train_GP.py</code>（遗传规划）、<code class="inline">combine_AFF.py</code>（AlphaFactory 集成），看它们各自的技术路线、与 AlphaPROBE 的关键差异，以及为什么 AlphaPROBE 选择 LLM + DAG 这条新路径。</p>
+<h2>它解决什么问题？</h2>
+<p>alpha 挖掘的 baseline 大致分三类。<strong>强化学习派</strong>：把表达式生成建模成动作序列决策（每步选一个 token），用 PPO/GFlowNet/Q-learning 学策略。优点是端到端可微，缺点是探索空间巨大、训练慢、易陷入局部最优。<strong>生成模型派</strong>：用 GAN/VAE 学习「好因子」的分布再采样，优点是能批量生成，缺点是模式坍塌与判别器设计困难。<strong>演化算法派</strong>：用遗传规划（GP）做表达式树的交叉变异，优点是天然适合 DSL，缺点是变异无方向、易早熟。</p>
+<p>AlphaPROBE 与它们的核心区别是「用 LLM 替代策略网络/遗传算子」做变异，用 DAG + 贝叶斯检索做有方向探索。本章用代码对比让差异看得见。</p>
+<h2>核心设计思路</h2>
+<p>六个 baseline 共享同一个数据接口（<code class="inline">StockData</code>）和池机制（<code class="inline">AlphaPool</code>），差别只在「如何生成新表达式」：<strong>GFlowNet</strong>学一个前向策略网络，按轨迹概率采样表达式；<strong>FQF/IQN/QRDQN</strong>用分布强化学习建模动作价值分布；<strong>GAN</strong>训练生成器对抗判别器；<strong>PPO</strong>用策略梯度优化 actor-critic；<strong>GP</strong>做表达式树交叉变异；<strong>AlphaFactory</strong>集成多源因子。AlphaPROBE 用 LLM + DAG 在「变异方向性」与「探索记忆」上突破——这是后文要对比的关键。</p>
+<h2>代码深入</h2>
+<h3>train_gfn.py —— GFlowNet 路线</h3>
+<p>GFlowNet 把表达式生成建模成 DAG 上的轨迹采样，目标是让前向策略 p_F 与终止奖励 R(x) 成比例。<code class="inline">EntropyTBGFlowNet</code> 用 Trajectory Balance 损失 + 熵正则，<code class="inline">WeightScheduler</code> 让 SSL/novelty 奖励权重在训练中线性/指数衰减。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">train_gfn.py</span><span class="code-lines">第 161-200 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">161</span><span class="code">    # Initialize model</span></span>
+<span class="line"><span class="ln">162</span><span class="code">    n_tokens = len(FEATURES) + len(OPERATORS) + len(DELTA_TIMES) + len(CONSTANTS)<span class="cmt">  # n_tokens = 特征+算子+DeltaTime+常量 词表大小</span></span></span>
+<span class="line"><span class="ln">163</span><span class="code">    </span></span>
+<span class="line"><span class="ln">164</span><span class="code">    backbone = SequenceEncoder(<span class="cmt">  # SequenceEncoder 编码表达式 token 序列</span></span></span>
+<span class="line"><span class="ln">165</span><span class="code">        n_tokens,</span></span>
+<span class="line"><span class="ln">166</span><span class="code">        args.encoder_type</span></span>
+<span class="line"><span class="ln">167</span><span class="code">    )</span></span>
+<span class="line"><span class="ln">168</span><span class="code">    </span></span>
+<span class="line"><span class="ln">169</span><span class="code">    # Initialize environment with encoder and mask dropout</span></span>
+<span class="line"><span class="ln">170</span><span class="code">    env = GFNEnvCore(pool=pool,<span class="cmt">  # GFNEnvCore 包装池与编码器，提供 step/重置</span></span></span>
+<span class="line"><span class="ln">171</span><span class="code">                     encoder=backbone, </span></span>
+<span class="line"><span class="ln">172</span><span class="code">                     device=device, </span></span>
+<span class="line"><span class="ln">173</span><span class="code">                     mask_dropout_prob=args.mask_dropout_prob,</span></span>
+<span class="line"><span class="ln">174</span><span class="code">                     ssl_weight=args.ssl_weight,</span></span>
+<span class="line"><span class="ln">175</span><span class="code">                     nov_weight=args.nov_weight)</span></span>
+<span class="line"><span class="ln">176</span><span class="code">    </span></span>
+<span class="line"><span class="ln">177</span><span class="code">    pf_head = NeuralNet(input_dim=HIDDEN_DIM, output_dim=env.n_actions, n_hidden_layers=0)<span class="cmt">  # pf_head 前向策略头，输出 n_actions 个 logits</span></span></span>
+<span class="line"><span class="ln">178</span><span class="code">    pb_head = NeuralNet(input_dim=HIDDEN_DIM, output_dim=env.n_actions - 1, n_hidden_layers=0) # pb does not predict exit action<span class="cmt">  # pb_head 后向策略头，不预测 exit 动作</span></span></span>
+<span class="line"><span class="ln">179</span><span class="code">    </span></span>
+<span class="line"><span class="ln">180</span><span class="code">    pf_module = nn.Sequential(backbone, pf_head)</span></span>
+<span class="line"><span class="ln">181</span><span class="code">    pb_module = nn.Sequential(backbone, pb_head)</span></span>
+<span class="line"><span class="ln">182</span><span class="code">    </span></span>
+<span class="line"><span class="ln">183</span><span class="code">    pf = DiscretePolicyEstimator(pf_module, n_actions=env.n_actions, preprocessor=env.preprocessor)</span></span>
+<span class="line"><span class="ln">184</span><span class="code">    pb = DiscretePolicyEstimator(pb_module, n_actions=env.n_actions, preprocessor=env.preprocessor, is_backward=True)</span></span>
+<span class="line"><span class="ln">185</span><span class="code"></span></span>
+<span class="line"><span class="ln">186</span><span class="code">    loss_fn = EntropyTBGFlowNet(<span class="cmt">  # EntropyTBGFlowNet TB 损失 + 熵正则</span></span></span>
+<span class="line"><span class="ln">187</span><span class="code">        pf=pf,</span></span>
+<span class="line"><span class="ln">188</span><span class="code">        pb=pb,</span></span>
+<span class="line"><span class="ln">189</span><span class="code">        entropy_coef=args.entropy_coef,</span></span>
+<span class="line"><span class="ln">190</span><span class="code">        entropy_temperature=args.entropy_temperature</span></span>
+<span class="line"><span class="ln">191</span><span class="code">    )</span></span>
+<span class="line"><span class="ln">192</span><span class="code">    loss_fn.to(device)</span></span>
+<span class="line"><span class="ln">193</span><span class="code">    sampler = Sampler(estimator=pf)<span class="cmt">  # Sampler 按前向策略采轨迹</span></span></span>
+<span class="line"><span class="ln">194</span><span class="code">    </span></span>
+<span class="line"><span class="ln">195</span><span class="code">    params = list(backbone.parameters()) + list(pf_head.parameters()) + list(pb_head.parameters()) + [loss_fn.logZ]</span></span>
+<span class="line"><span class="ln">196</span><span class="code">    optimizer = Adam(params, lr=LEARNING_RATE)<span class="cmt">  # Adam 优化 backbone+pf+pb+logZ</span></span></span>
+<span class="line"><span class="ln">197</span><span class="code"></span></span>
+<span class="line"><span class="ln">198</span><span class="code"></span></span>
+<span class="line"><span class="ln">199</span><span class="code">    # Setup logging</span></span>
+<span class="line"><span class="ln">200</span><span class="code">    timestamp = datetime.now().strftime(&#x27;%Y%m%d%H%M%S&#x27;)</span></span></code></pre></div>
+<p>GFlowNet 与 AlphaPROBE 的本质区别：GFlowNet 用<strong>神经网络学变异策略</strong>，需要海量训练样本（默认 1 万 episodes）才能让策略收敛；AlphaPROBE 用 LLM 直接生成，prompt 注入的进化 traces 让 LLM 「一次到位」理解进化方向，20 轮迭代即可。代价是 LLM 调用成本远高于本地神经网络前向，但在研究阶段这种「重思考轻训练」的权衡是合理的。第 84 行的 <code class="inline">WeightScheduler</code> 是 GFlowNet 独有的工程细节——SSL/novelty 奖励在探索后期衰减到 0，让模型专注于主奖励（IC），AlphaPROBE 不需要这种调度，因为它的「探索 vs 利用」由贝叶斯检索器的 depth/times 衰减软性管理。</p>
+<h3>train_qcm.py —— 分布强化学习派</h3>
+<p>QRDQN/IQN/FQF 都把动作价值 Q(s,a) 建模成分布而非标量，用 QR/QCM 改进池选择。三者模型结构不同，但训练循环统一由 <code class="inline">agent.run()</code> 驱动。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">train_qcm.py</span><span class="code-lines">第 47-97 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">47</span><span class="code">    train_pool = AlphaPool(<span class="cmt">  # AlphaPool 池容量默认 50</span></span></span>
+<span class="line"><span class="ln">48</span><span class="code">        capacity=args.pool,</span></span>
+<span class="line"><span class="ln">49</span><span class="code">        stock_data=data_train,</span></span>
+<span class="line"><span class="ln">50</span><span class="code">        target=target,</span></span>
+<span class="line"><span class="ln">51</span><span class="code">        ic_lower_bound=None</span></span>
+<span class="line"><span class="ln">52</span><span class="code">    )</span></span>
+<span class="line"><span class="ln">53</span><span class="code">    train_env = AlphaEnv(pool=train_pool, device=device, print_expr=True)<span class="cmt">  # AlphaEnv 包装池成 RL 环境</span></span></span>
+<span class="line"><span class="ln">54</span><span class="code"></span></span>
+<span class="line"><span class="ln">55</span><span class="code">    # Specify the directory to log.</span></span>
+<span class="line"><span class="ln">56</span><span class="code">    name = args.model</span></span>
+<span class="line"><span class="ln">57</span><span class="code">    time = datetime.now().strftime(&quot;%Y%m%d-%H%M&quot;)</span></span>
+<span class="line"><span class="ln">58</span><span class="code">    if name in [&#x27;qrdqn&#x27;, &#x27;iqn&#x27;]:</span></span>
+<span class="line"><span class="ln">59</span><span class="code">        log_dir = os.path.join(f&#x27;data/{args.instruments}_logs&#x27;,</span></span>
+<span class="line"><span class="ln">60</span><span class="code">                           f&#x27;pool_{args.pool}_QCM_{args.std_lam}&#x27;,</span></span>
+<span class="line"><span class="ln">61</span><span class="code">                           f&quot;{name}-seed{args.seed}-{time}-N{config[&#x27;N&#x27;]}-lr{config[&#x27;lr&#x27;]}-per{config[&#x27;use_per&#x27;]}-gamma{config[&#x27;gamma&#x27;]}-step{config[&#x27;multi_step&#x27;]}&quot;)</span></span>
+<span class="line"><span class="ln">62</span><span class="code">    elif name == &#x27;fqf&#x27;:</span></span>
+<span class="line"><span class="ln">63</span><span class="code">        log_dir = os.path.join(f&#x27;data/{args.instruments}_logs&#x27;,</span></span>
+<span class="line"><span class="ln">64</span><span class="code">                           f&#x27;pool_{args.pool}_QCM_{args.std_lam}&#x27;,</span></span>
+<span class="line"><span class="ln">65</span><span class="code">                           f&quot;{name}-seed{args.seed}-{time}-N{config[&#x27;N&#x27;]}-lr{config[&#x27;quantile_lr&#x27;]}-per{config[&#x27;use_per&#x27;]}-gamma{config[&#x27;gamma&#x27;]}-step{config[&#x27;multi_step&#x27;]}&quot;)</span></span>
+<span class="line"><span class="ln">66</span><span class="code"></span></span>
+<span class="line"><span class="ln">67</span><span class="code">    # Create the agent and run.</span></span>
+<span class="line"><span class="ln">68</span><span class="code">    if name == &#x27;qrdqn&#x27;:<span class="cmt">  # 按 --model 选 agent：qrdqn/iqn/fqf</span></span></span>
+<span class="line"><span class="ln">69</span><span class="code">        agent = QRQCMAgent(env=train_env,</span></span>
+<span class="line"><span class="ln">70</span><span class="code">                           data_valid=data_valid,<span class="cmt">  # QRQCMAgent 量化回归 + QCM 池管理</span></span></span>
+<span class="line"><span class="ln">71</span><span class="code">                           data_test=data_test,</span></span>
+<span class="line"><span class="ln">72</span><span class="code">                           target=target,</span></span>
+<span class="line"><span class="ln">73</span><span class="code">                           log_dir=log_dir,</span></span>
+<span class="line"><span class="ln">74</span><span class="code">                           seed=args.seed,</span></span>
+<span class="line"><span class="ln">75</span><span class="code">                           std_lam=args.std_lam,</span></span>
+<span class="line"><span class="ln">76</span><span class="code">                           cuda=True,</span></span>
+<span class="line"><span class="ln">77</span><span class="code">                           **config)</span></span>
+<span class="line"><span class="ln">78</span><span class="code">    elif name == &#x27;iqn&#x27;:</span></span>
+<span class="line"><span class="ln">79</span><span class="code">        agent = IQCMAgent(env=train_env,<span class="cmt">  # IQCMAgent 分位数隐式量化</span></span></span>
+<span class="line"><span class="ln">80</span><span class="code">                          data_valid=data_valid,</span></span>
+<span class="line"><span class="ln">81</span><span class="code">                          data_test=data_test,</span></span>
+<span class="line"><span class="ln">82</span><span class="code">                          target=target,</span></span>
+<span class="line"><span class="ln">83</span><span class="code">                          log_dir=log_dir,</span></span>
+<span class="line"><span class="ln">84</span><span class="code">                          seed=args.seed,</span></span>
+<span class="line"><span class="ln">85</span><span class="code">                          std_lam=args.std_lam,</span></span>
+<span class="line"><span class="ln">86</span><span class="code">                          cuda=True, **config)</span></span>
+<span class="line"><span class="ln">87</span><span class="code">    elif name == &#x27;fqf&#x27;:</span></span>
+<span class="line"><span class="ln">88</span><span class="code">        agent = FQCMAgent(env=train_env,<span class="cmt">  # FQCMAgent 全分位数函数</span></span></span>
+<span class="line"><span class="ln">89</span><span class="code">                          data_valid=data_valid,</span></span>
+<span class="line"><span class="ln">90</span><span class="code">                          data_test=data_test,</span></span>
+<span class="line"><span class="ln">91</span><span class="code">                          target=target,</span></span>
+<span class="line"><span class="ln">92</span><span class="code">                          log_dir=log_dir,</span></span>
+<span class="line"><span class="ln">93</span><span class="code">                          seed=args.seed,</span></span>
+<span class="line"><span class="ln">94</span><span class="code">                          std_lam=args.std_lam,</span></span>
+<span class="line"><span class="ln">95</span><span class="code">                          cuda=True, **config)</span></span>
+<span class="line"><span class="ln">96</span><span class="code">        </span></span>
+<span class="line"><span class="ln">97</span><span class="code">    agent.run()<span class="cmt">  # agent.run() 跑完整训练循环</span></span></span></code></pre></div>
+<p>QCM 派与 AlphaPROBE 的区别在「探索机制」：QCM 用 ε-greedy 或熵采样做动作探索，本质是无记忆随机；AlphaPROBE 的贝叶斯检索器综合 ICIR/depth/times/多样性，是<strong>有记忆有方向</strong>的探索。第 47 行的 <code class="inline">AlphaPool</code> 是基类池，没有 AlphaKnowledgePool 的 topic/description/node 扩展字段——QCM 不关心「因子从哪来」，只关心「因子 IC 多少」，这让它无法利用进化信息。</p>
+<h3>train_AFF.py —— GAN 生成派</h3>
+<p>GAN 路线训练一个生成器网络，对抗判别器学习「好因子 token 序列」的分布。<code class="inline">train_network_generator</code> 是核心，生成器产出 token 序列后转表达式入池。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">train_AFF.py</span><span class="code-lines">第 42-60 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">42</span><span class="code">def blds_list_to_tensor(blds_list,weights_list:List[int]):<span class="cmt">  # blds_list_to_tensor 把生成样本转 one-hot 张量</span></span></span>
+<span class="line"><span class="ln">43</span><span class="code">    assert len(blds_list) == len(weights_list)</span></span>
+<span class="line"><span class="ln">44</span><span class="code"></span></span>
+<span class="line"><span class="ln">45</span><span class="code">    x_numpy_list = []</span></span>
+<span class="line"><span class="ln">46</span><span class="code">    y_numpy_list = []</span></span>
+<span class="line"><span class="ln">47</span><span class="code">    weights_numpy_list = []</span></span>
+<span class="line"><span class="ln">48</span><span class="code">    for blds,weight_int in zip(blds_list,weights_list):</span></span>
+<span class="line"><span class="ln">49</span><span class="code">        x_numpy = numpy2onehot(np.array(blds.builders_tokens),SIZE_ACTION,0).astype(&#x27;float32&#x27;)<span class="cmt">  # x_numpy = token 序列 one-hot 编码</span></span></span>
+<span class="line"><span class="ln">50</span><span class="code">        y_numpy = np.array(blds.scores).astype(&#x27;float32&#x27;)[:,None]<span class="cmt">  # y_numpy = 对应分数（IC）</span></span></span>
+<span class="line"><span class="ln">51</span><span class="code">        weights_numpy = np.ones(x_numpy.shape[0]).astype(&#x27;float32&#x27;)[:,None] * weight_int<span class="cmt">  # weights 按样本重要度加权</span></span></span>
+<span class="line"><span class="ln">52</span><span class="code">        x_numpy_list.append(x_numpy)</span></span>
+<span class="line"><span class="ln">53</span><span class="code">        y_numpy_list.append(y_numpy)</span></span>
+<span class="line"><span class="ln">54</span><span class="code">        weights_numpy_list.append(weights_numpy)</span></span>
+<span class="line"><span class="ln">55</span><span class="code">    x_numpy = np.concatenate(x_numpy_list,axis=0)</span></span>
+<span class="line"><span class="ln">56</span><span class="code">    y_numpy = np.concatenate(y_numpy_list,axis=0)<span class="cmt">  # x/y/weights 拼成训练集</span></span></span>
+<span class="line"><span class="ln">57</span><span class="code">    weights_numpy = np.concatenate(weights_numpy_list,axis=0)</span></span>
+<span class="line"><span class="ln">58</span><span class="code">    x = torch.from_numpy(x_numpy)<span class="cmt">  # 转 torch 张量供网络训练</span></span></span>
+<span class="line"><span class="ln">59</span><span class="code">    y = torch.from_numpy(y_numpy)</span></span>
+<span class="line"><span class="ln">60</span><span class="code">    weights = torch.from_numpy(weights_numpy)</span></span></code></pre></div>
+<p>GAN 与 AlphaPROBE 的最大差异：<strong>GAN 是无监督学习因子分布</strong>，生成器学到的是「好因子长什么样」的隐式表示；AlphaPROBE 是<strong>有引导的变异</strong>，LLM 用父表达式 + traces 做「定向修改」。GAN 的常见痛点是模式坍塌——生成器会反复产出几种相似因子，AlphaPROBE 的三策略多样性打分（残差相关/语义/编辑距离）天然避免这一点。代价是 AlphaPROBE 依赖 LLM API，离线批量生成不如 GAN 高效。</p>
+<h3>train_ppo.py —— 经典强化学习</h3>
+<p>PPO 用 MaskablePPO（带动作掩码的 PPO）做策略梯度训练，<code class="inline">LSTMSharedNet</code> 是 actor-critic 共享 backbone 的网络结构。<code class="inline">CustomCallback</code> 在每轮 rollout 结束时记录池状态。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">train_ppo.py</span><span class="code-lines">第 22-60 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">22</span><span class="code">class CustomCallback(BaseCallback):<span class="cmt">  # CustomCallback 训练中回调，记池状态</span></span></span>
+<span class="line"><span class="ln">23</span><span class="code">    def __init__(self,</span></span>
+<span class="line"><span class="ln">24</span><span class="code">                 save_freq: int,</span></span>
+<span class="line"><span class="ln">25</span><span class="code">                 show_freq: int,</span></span>
+<span class="line"><span class="ln">26</span><span class="code">                 save_path: str,</span></span>
+<span class="line"><span class="ln">27</span><span class="code">                 valid_data: StockData,</span></span>
+<span class="line"><span class="ln">28</span><span class="code">                 test_data: StockData,</span></span>
+<span class="line"><span class="ln">29</span><span class="code">                 target: Expression,</span></span>
+<span class="line"><span class="ln">30</span><span class="code">                 name_prefix: str = &#x27;rl_model&#x27;,</span></span>
+<span class="line"><span class="ln">31</span><span class="code">                 timestamp: Optional[str] = None,</span></span>
+<span class="line"><span class="ln">32</span><span class="code">                 verbose: int = 0):</span></span>
+<span class="line"><span class="ln">33</span><span class="code">        super().__init__(verbose)</span></span>
+<span class="line"><span class="ln">34</span><span class="code">        self.save_freq = save_freq</span></span>
+<span class="line"><span class="ln">35</span><span class="code">        self.show_freq = show_freq</span></span>
+<span class="line"><span class="ln">36</span><span class="code">        self.save_path = save_path</span></span>
+<span class="line"><span class="ln">37</span><span class="code">        self.name_prefix = name_prefix</span></span>
+<span class="line"><span class="ln">38</span><span class="code"></span></span>
+<span class="line"><span class="ln">39</span><span class="code">        self.valid_data = valid_data</span></span>
+<span class="line"><span class="ln">40</span><span class="code">        self.test_data = test_data</span></span>
+<span class="line"><span class="ln">41</span><span class="code">        self.target = target</span></span>
+<span class="line"><span class="ln">42</span><span class="code"></span></span>
+<span class="line"><span class="ln">43</span><span class="code">        if timestamp is None:</span></span>
+<span class="line"><span class="ln">44</span><span class="code">            self.timestamp = datetime.now().strftime(&#x27;%Y%m%d%H%M%S&#x27;)</span></span>
+<span class="line"><span class="ln">45</span><span class="code">        else:</span></span>
+<span class="line"><span class="ln">46</span><span class="code">            self.timestamp = timestamp</span></span>
+<span class="line"><span class="ln">47</span><span class="code"></span></span>
+<span class="line"><span class="ln">48</span><span class="code">    def _init_callback(self) -&gt; None:</span></span>
+<span class="line"><span class="ln">49</span><span class="code">        if self.save_path is not None:</span></span>
+<span class="line"><span class="ln">50</span><span class="code">            os.makedirs(self.save_path, exist_ok=True)</span></span>
+<span class="line"><span class="ln">51</span><span class="code"></span></span>
+<span class="line"><span class="ln">52</span><span class="code">    def _on_step(self) -&gt; bool:</span></span>
+<span class="line"><span class="ln">53</span><span class="code">        return True</span></span>
+<span class="line"><span class="ln">54</span><span class="code"></span></span>
+<span class="line"><span class="ln">55</span><span class="code">    def _on_rollout_end(self) -&gt; None:</span></span>
+<span class="line"><span class="ln">56</span><span class="code">        assert self.logger is not None</span></span>
+<span class="line"><span class="ln">57</span><span class="code">        self.logger.record(&#x27;pool/size&#x27;, self.pool.size)<span class="cmt">  # _on_rollout_end 在每轮 rollout 结束触发</span></span></span>
+<span class="line"><span class="ln">58</span><span class="code">        self.logger.record(&#x27;pool/significant&#x27;, (np.abs(self.pool.weights[:self.pool.size]) &gt; 1e-4).sum())<span class="cmt">  # 记录 pool 中权重 > 1e-4 的有效因子数</span></span></span>
+<span class="line"><span class="ln">59</span><span class="code">        self.logger.record(&#x27;pool/best_ic_ret&#x27;, self.pool.best_ic_ret)</span></span>
+<span class="line"><span class="ln">60</span><span class="code">        self.logger.record(&#x27;pool/eval_cnt&#x27;, self.pool.eval_cnt)</span></span></code></pre></div>
+<p>PPO 与 AlphaPROBE 的对比最直观：PPO 用神经网络学策略，AlphaPROBE 用 LLM 做策略。PPO 的优势是 on-policy 训练稳定、可微；劣势是策略网络只能学「当前池见过的」模式，泛化能力受限。AlphaPROBE 借助 LLM 的预训练知识，能生成训练池里从未出现过的算子组合（如把 TsCorr 和 TsSkew 嵌套），这是 PPO 的策略网络无法做到的。第 58 行的「significant factors」统计是 PPO 的健康指标，AlphaPROBE 在 <code class="inline">alpha_knowledge_trainer.py</code> 里也有类似监控（<code class="inline">pool.size</code> 与 <code class="inline">best_ic_ret</code>）。</p>
+<h3>train_GP.py —— 遗传规划</h3>
+<p>GP 用 <code class="inline">utils.gplearn</code> 做表达式树交叉变异，<code class="inline">_metric</code> 是适应度函数（IC），用 LRU 缓存避免重复求值。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">train_GP.py</span><span class="code-lines">第 24-44 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">24</span><span class="code">def _metric(x, y, w):</span></span>
+<span class="line"><span class="ln">25</span><span class="code">    key = y[0]</span></span>
+<span class="line"><span class="ln">26</span><span class="code"></span></span>
+<span class="line"><span class="ln">27</span><span class="code">    if key in cache:<span class="cmt">  # cache 按 token 序列缓存 IC，避免重复求值</span></span></span>
+<span class="line"><span class="ln">28</span><span class="code">        return cache[key]</span></span>
+<span class="line"><span class="ln">29</span><span class="code">    token_len = key.count(&#x27;(&#x27;) + key.count(&#x27;)&#x27;)<span class="cmt">  # token_len 限制表达式复杂度（≤20 对括号）</span></span></span>
+<span class="line"><span class="ln">30</span><span class="code">    if token_len &gt; 20:</span></span>
+<span class="line"><span class="ln">31</span><span class="code">        return -1.</span></span>
+<span class="line"><span class="ln">32</span><span class="code"></span></span>
+<span class="line"><span class="ln">33</span><span class="code">    expr = eval(key)<span class="cmt">  # eval 把字符串转 Expression 对象</span></span></span>
+<span class="line"><span class="ln">34</span><span class="code">    try:</span></span>
+<span class="line"><span class="ln">35</span><span class="code">        factor = expr.evaluate(data)<span class="cmt">  # evaluate 在 StockData 上求值</span></span></span>
+<span class="line"><span class="ln">36</span><span class="code">        factor = normalize_by_day(factor)<span class="cmt">  # normalize_by_day 按日归一化</span></span></span>
+<span class="line"><span class="ln">37</span><span class="code">        ic = batch_pearsonr(factor, target_factor)<span class="cmt">  # batch_pearsonr 算逐日 IC</span></span></span>
+<span class="line"><span class="ln">38</span><span class="code">        ic = torch.nan_to_num(ic).mean().item()<span class="cmt">  # 取均值作适应度</span></span></span>
+<span class="line"><span class="ln">39</span><span class="code">    except OutOfDataRangeError:</span></span>
+<span class="line"><span class="ln">40</span><span class="code">        ic = -1.</span></span>
+<span class="line"><span class="ln">41</span><span class="code">    if np.isnan(ic):</span></span>
+<span class="line"><span class="ln">42</span><span class="code">        ic = -1.</span></span>
+<span class="line"><span class="ln">43</span><span class="code">    cache[key] = ic<span class="cmt">  # cache[key] = ic 写回缓存</span></span></span>
+<span class="line"><span class="ln">44</span><span class="code">    return ic</span></span></code></pre></div>
+<p>GP 与 AlphaPROBE 的关系最近——都是「在表达式空间做演化」，但变异机制完全不同。GP 用预定义的交叉/变异算子（如子树交换、节点替换），是<strong>无方向随机</strong>；AlphaPROBE 用 LLM 做语义级变异（如「把 TsMean 换成 TsSkew 以捕捉分布偏态」），是<strong>有语义方向</strong>。GP 的优势是无需 LLM、可大规模并行；劣势是变异质量低、易早熟。第 27 行的 cache 是 GP 的工程优化，AlphaPROBE 也有类似机制——<code class="inline">expression_knowledge_graph.py:153</code> 的查重返回已有节点，避免重复建图。</p>
+<h3>AlphaFactory 集成 —— combine_AFF.py</h3>
+<p>combine_AFF.py 集成 AlphaFactory 的多源因子，与 AlphaPROBE 自产因子融合。它体现了 AlphaPROBE 的<strong>开放性</strong>——可以作为因子源接入更大的 alpha 工厂。</p>
+<p>这种集成能力是 AlphaPROBE 区别于其他 baseline 的工程优势：GFlowNet/PPO/GP 都是封闭管线，难以注入外部因子；AlphaPROBE 的池与图谱以表达式字符串为媒介，天然支持与外部因子源互操作。组合阶段（第 9 章）的 <code class="inline">load_alpha_pool_by_path</code> 接受 JSON/CSV 格式的外部因子列表，让 AlphaPROBE 既能独立运行，也能作为 alpha 工厂的一环。</p>
+<h2>横向对比</h2>
+<p>六个 baseline 与 AlphaPROBE 的关键维度对比：</p>
+<table><thead><tr><th>维度</th><th>AlphaPROBE</th><th>GFlowNet</th><th>QCM (FQF/IQN/QRDQN)</th><th>GAN</th><th>PPO</th><th>GP</th></tr></thead><tbody>
+<tr><td>变异机制</td><td>LLM 语义变异</td><td>策略网络采样</td><td>ε-greedy/熵</td><td>生成器采样</td><td>策略梯度</td><td>树交叉变异</td></tr>
+<tr><td>探索记忆</td><td>DAG + depth/times</td><td>无（轨迹独立）</td><td>无</td><td>隐式（判别器）</td><td>无</td><td>无</td></tr>
+<tr><td>变异方向</td><td>有（traces 引导）</td><td>无方向</td><td>无方向</td><td>无方向</td><td>无方向</td><td>无方向</td></tr>
+<tr><td>多样性保障</td><td>三策略打分 + MutIC 阈值</td><td>熵正则</td><td>无</td><td>模式坍塌风险</td><td>无</td><td>早熟风险</td></tr>
+<tr><td>训练成本</td><td>LLM API 调用</td><td>1 万 episodes</td><td>数万步</td><td>对抗训练</td><td>数万步</td><td>百代种群</td></tr>
+<tr><td>泛化能力</td><td>高（LLM 预训练知识）</td><td>低（限于词表）</td><td>低</td><td>中</td><td>低</td><td>低</td></tr>
+<tr><td>可解释性</td><td>description + traces</td><td>黑盒</td><td>黑盒</td><td>黑盒</td><td>黑盒</td><td>表达式树</td></tr>
+</tbody></table>
+<p>从对比可见，AlphaPROBE 在「变异方向性」「探索记忆」「多样性保障」「可解释性」四项上有结构性优势，代价是 LLM API 调用成本。这种「重思考轻训练」的取舍，在 LLM 时代越来越合理——用算力换思考深度，而非用算力换样本数量。</p>
+<h2>数据流</h2>
+<p><strong>共同输入：</strong><code class="inline">StockData</code>（训练/验证/测试）、<code class="inline">target</code>（未来 20 天收益）、<code class="inline">AlphaPool</code> 池机制。<strong>差异点：</strong>GFlowNet/QCM/PPO 把池包装成 RL 环境用 <code class="inline">AlphaEnv</code>；GAN 用 <code class="inline">Collector</code> 收集训练数据；GP 直接调 <code class="inline">SymbolicRegressor</code>；AlphaPROBE 用 <code class="inline">AlphaKnowledgeTrainer</code> 串接 LLM 与图谱。<strong>共同输出：</strong>pool_*.json 表达式列表，供第 9 章 Mega-Alpha 组合使用。</p>
+<h2>关联公式</h2>
+<p>GFlowNet 的 Trajectory Balance 目标是让前向策略与奖励成比例：</p>
+<div class="math-block">$$\mathcal{L}_{\text{TB}} = \left(\log Z + \sum_{s \to s'} \log p_F(s'|s) - \log R(x) - \sum_{s \to s'} \log p_B(s|s')\right)^2$$</div>
+<p>PPO 的 clipped surrogate 目标：</p>
+<div class="math-block">$$\mathcal{L}_{\text{PPO}} = \mathbb{E}\left[\min\left(r_t(\theta) \hat{A}_t,\, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon) \hat{A}_t\right)\right]$$</div>
+<p>对比 AlphaPROBE 的「目标」：<strong>无显式损失函数</strong>，它通过 LLM prompt + 贝叶斯检索隐式优化「因子池的 ICIR × 多样性」。这种「无梯度优化」让 AlphaPROBE 不必关心反向传播，但也失去了理论收敛性保证——这是用 LLM 替代策略网络的根本权衡。</p>
+<div class="callout"><span class="callout-label">设计权衡</span><p>为什么 AlphaPROBE 选择 LLM 而非强化学习？关键在「探索效率」。RL 的探索靠 ε-greedy 或熵正则，本质是<strong>随机扰动</strong>；LLM 的探索是<strong>语义级变异</strong>——它能理解「这个因子在捕捉动量，把它换成波动率版本试试」这种高层抽象。代价是单次变异成本高（LLM API 调用），且依赖模型质量。但 AlphaPROBE 的设计（贝叶斯检索 + DAG 记忆）让每次 LLM 调用都「物有所值」——选最值得进化的因子、用 traces 引导变异方向、用三策略多样性防重复，把 LLM 的每次调用都榨干价值。这种「少而精」的思路，与 GFlowNet 的「多而随机」形成鲜明对比。</p></div>
+<h2>小结</h2>
+<p>六个 baseline 共享数据与池机制，差异在变异机制：GFlowNet 学策略网络，QCM 用分布 RL，GAN 训生成器，PPO 用策略梯度，GP 做树交叉。AlphaPROBE 用 LLM + DAG 在「变异方向性」与「探索记忆」上突破，代价是 API 调用成本。横向对比表清晰展示了这种「重思考轻训练」路线的结构性优势。至此，从数据层到核心层再到应用层与 baseline 对比，AlphaPROBE 的全貌已完整呈现。</p>
+<div class="nav-footer"><a href="09.html">← 第9章 Mega-Alpha 动态组合</a><a href="index.html">返回目录 →</a></div>
+</main>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+                onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>
+</body>
+</html>

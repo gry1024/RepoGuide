@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第09章 Mega-Alpha 动态组合 | AlphaPROBE</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+    background: #FBFBFD;
+    color: #1D1D1F;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+                 "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+}
+.sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    width: 240px;
+    height: 100vh;
+    overflow-y: auto;
+    background: #F5F5F7;
+    border-right: 1px solid #E8E8ED;
+    padding: 28px 18px 40px;
+    z-index: 100;
+}
+.sidebar-title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; color: #1D1D1F; }
+.sidebar-sub { font-size: 12px; color: #86868B; margin: 0 0 22px; letter-spacing: 0.02em; }
+.sidebar a {
+    display: block; color: #1D1D1F; font-size: 13.5px; padding: 7px 12px;
+    border-radius: 8px; margin-bottom: 2px; text-decoration: none; line-height: 1.4;
+}
+.sidebar a:hover { background: #E8E8ED; text-decoration: none; }
+.sidebar a.active { color: #0071e3; font-weight: 600; background: #E8E8ED; }
+.sidebar .group-label {
+    font-size: 11px; color: #86868B; text-transform: uppercase;
+    letter-spacing: 0.06em; margin: 18px 12px 6px;
+}
+main.content { max-width: 820px; margin: 0 0 0 240px; padding: 64px 40px 120px; }
+.hero { margin-bottom: 8px; }
+.badge {
+    display: inline-block; font-size: 13px; font-weight: 600; color: #0071e3;
+    background: rgba(0,113,227,0.08); padding: 4px 12px; border-radius: 980px; letter-spacing: 0.02em;
+}
+h1 { font-size: 36px; font-weight: 700; letter-spacing: -0.02em; margin: 14px 0 8px; line-height: 1.15; }
+h2 { font-size: 26px; font-weight: 600; letter-spacing: -0.01em; margin: 56px 0 16px; color: #1D1D1F; }
+h3 { font-size: 20px; font-weight: 600; margin: 36px 0 12px; color: #1D1D1F; }
+p { margin: 0 0 16px; color: #1D1D1F; }
+.subtitle { color: #86868B; font-size: 19px; margin: 0 0 32px; font-weight: 400; line-height: 1.5; }
+.muted { color: #86868B; }
+strong { font-weight: 600; color: #1D1D1F; }
+em { font-style: italic; }
+a { color: #0071e3; text-decoration: none; }
+a:hover { text-decoration: underline; }
+code.inline {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: #F5F5F7; color: #1D1D1F; padding: 2px 6px; border-radius: 4px; font-size: 0.9em;
+}
+.code-card {
+    background: #FFFFFF; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    margin: 0 0 24px; overflow: hidden; border: 1px solid #E8E8ED;
+}
+.code-header {
+    background: #F5F5F7; border-bottom: 1px solid #E8E8ED; padding: 10px 16px;
+    display: flex; justify-content: space-between; align-items: center; font-size: 12.5px;
+}
+.code-file { font-family: "SF Mono", Menlo, Consolas, monospace; color: #1D1D1F; font-weight: 600; }
+.code-lines { color: #86868B; }
+.code-block { margin: 0; padding: 16px 18px; overflow-x: auto; background: #FFFFFF; }
+.code-block code {
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; line-height: 1.6;
+    color: #1D1D1F; background: transparent; padding: 0; white-space: pre; display: block;
+}
+.code-block .line { display: block; white-space: pre; }
+.code-block .ln {
+    display: inline-block; width: 3em; text-align: right; color: #BBB;
+    user-select: none; margin-right: 18px; font-variant-numeric: tabular-nums;
+}
+.code-block .code { white-space: pre; }
+.code-block .cmt { color: #5a9e6f; white-space: pre-wrap; }
+.callout {
+    background: #F5F5F7; border-left: 3px solid #0071e3; border-radius: 8px;
+    padding: 14px 18px; margin: 0 0 24px; color: #1D1D1F;
+}
+.callout-label {
+    color: #0071e3; font-weight: 600; font-size: 13px; text-transform: uppercase;
+    letter-spacing: 0.04em; display: block; margin-bottom: 6px;
+}
+.callout p:last-child { margin-bottom: 0; }
+.math-block {
+    background: #F5F5F7; border-radius: 10px; padding: 20px; margin: 0 0 24px;
+    text-align: center; overflow-x: auto;
+}
+ul, ol { margin: 0 0 20px; padding-left: 24px; }
+li { margin-bottom: 8px; }
+table {
+    width: 100%; border-collapse: collapse; margin: 0 0 24px; border-radius: 10px;
+    overflow: hidden; border: 1px solid #E8E8ED; font-size: 15px;
+}
+th, td { padding: 11px 16px; text-align: left; border-bottom: 1px solid #E8E8ED; }
+th { background: #F5F5F7; font-weight: 600; }
+tr:last-child td { border-bottom: none; }
+img { max-width: 100%; border-radius: 12px; }
+.nav-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 64px; padding-top: 24px; border-top: 1px solid #E8E8ED; font-size: 15px;
+}
+.nav-footer a { color: #0071e3; }
+.toc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+.toc-card {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 14px; padding: 20px 22px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04); text-decoration: none; color: #1D1D1F;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.toc-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.08); text-decoration: none; }
+.toc-card .tc-num { font-size: 12px; color: #86868B; font-weight: 600; letter-spacing: 0.04em; }
+.toc-card .tc-title { font-size: 17px; font-weight: 600; margin: 4px 0 6px; }
+.toc-card .tc-desc { font-size: 13.5px; color: #86868B; line-height: 1.5; }
+.concept-map { margin: 24px 0; }
+.cm-layer { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
+.cm-layer-label {
+    width: 92px; flex: 0 0 92px; font-size: 12px; color: #86868B; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em; padding-top: 14px;
+}
+.cm-nodes { flex: 1; display: flex; gap: 10px; flex-wrap: wrap; }
+.cm-node {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 10px; padding: 10px 14px;
+    min-width: 150px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.cm-node .cm-id { font-size: 11px; color: #0071e3; font-weight: 700; }
+.cm-node .cm-name { font-size: 14px; font-weight: 600; color: #1D1D1F; }
+.cm-arrow { text-align: center; color: #86868B; font-size: 12px; margin: 8px 0 8px 92px; }
+.cm-rels { margin-top: 20px; }
+.cm-rel {
+    display: inline-block; background: #F5F5F7; border-radius: 8px; padding: 5px 11px;
+    margin: 4px 6px 4px 0; font-size: 12.5px; color: #1D1D1F;
+}
+.cm-rel b { color: #0071e3; }
+.arch-tree {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 12px; padding: 20px 24px;
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; line-height: 1.7;
+    overflow-x: auto; white-space: pre; color: #1D1D1F;
+}
+.arch-tree .c { color: #86868B; }
+@media (max-width: 860px) {
+    .sidebar { position: static; width: 100%; height: auto; }
+    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .toc-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<aside class="sidebar"><h2 class="sidebar-title">AlphaPROBE</h2><p class="sidebar-sub">深度代码教程</p><a href="index.html">首页</a><div class="group-label">数据层</div><a href="01.html">第1章 Qlib 行情数据加载</a><a href="02.html">第2章 表达式与算子体系</a><a href="03.html">第3章 IC/ICIR 因子评估</a><div class="group-label">核心层</div><a href="04.html">第4章 表达式知识图谱</a><a href="05.html">第5章 贝叶斯因子检索器</a><a href="06.html">第6章 LLM 表达式生成</a><div class="group-label">应用层</div><a href="07.html">第7章 训练主循环</a><a href="08.html">第8章 表达式验证与入池</a><a href="09.html" class="active">第9章 Mega-Alpha 动态组合</a><a href="10.html">第10章 Baseline 对比</a></aside><main class="content">
+<div class="hero"><span class="badge">第 9 章 · 应用层</span></div>
+<h1>第9章：Mega-Alpha 动态组合</h1>
+<p class="subtitle">像投资组合经理，每天重新评估池中因子的近期表现，选出最优子集做线性回归预测。</p>
+<h2>欢迎</h2>
+<p>训练循环产出了一个高质量、多样化的因子池，但单个因子的预测力终究有限。AlphaPROBE 的最终目标是把这些因子融合成一个稳健的「Mega-Alpha」预测。本章拆解 <code class="inline">run_adaptive_combination.py</code> 与 <code class="inline">AlphaKnowledgeLogger.load_test_res</code>，看它如何每天重新评估池中因子的近期表现，用 OLS 回归 + 共线性去除生成日度预测。这是 AlphaPROBE 从「因子挖掘」走向「可交易信号」的最后一公里。</p>
+<h2>它解决什么问题？</h2>
+<p>因子组合的核心难题是「权重怎么定」。静态权重（如等权、IC 加权）无法适应市场风格切换——某因子在过去一年表现优异，下个月可能完全失效。AlphaPROBE 用<strong>滚动窗口动态组合</strong>解决：每天只用历史窗口内的因子表现数据，重新筛选有效因子并 OLS 回归当天权重，预测下一天收益。这样组合能自动适应因子表现的时变特性。</p>
+<p>类比投资组合经理：每天开盘前，他重新审视池中每个因子近期的 IC/ICIR，选出近期仍有效的因子（IC 超阈值），剔除共线性过高的因子（避免重复下注），用历史数据回归出当天最优权重，生成预测。这套流程每天重跑，让组合始终跟随市场。</p>
+<h2>核心设计思路</h2>
+<p>设计上有五个关键点。第一，<strong>预计算逐日指标</strong>：先把池中所有因子在全程的逐日 IC/RankIC预计算成张量，避免每天重复算。第二，<strong>滚动窗口筛选</strong>：每天用历史窗口的 IC/ICIR筛出有效因子（<code class="inline">threshold_ric</code> 与 <code class="inline">threshold_ricir</code>）。第三，<strong>共线性去除</strong>：用 SVD/QR 检测并移除线性相关的因子列，保证回归数值稳定。第四，<strong>OLS 回归</strong>：<code class="inline">torch.linalg.lstsq</code> 解最小二乘，用历史因子值预测未来收益，权重用于当天预测。第五，<strong>lookahead 避免</strong>：用 shift = label_days + 1 偏移，确保回归窗口不含未来标签信息。</p>
+<h2>代码深入</h2>
+<h3>remove_linearly_dependent_cols —— 共线性因子去除</h3>
+<p>用 SVD 检测因子矩阵的秩，移除线性相关的因子列，保证 OLS 回归数值稳定。这是组合阶段的数值保护层。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">run_adaptive_combination.py</span><span class="code-lines">第 79-126 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">79</span><span class="code">def remove_linearly_dependent_cols(x, to_pred, tol=1e-10):<span class="cmt">  # 移除线性相关的因子列（共线性检测）</span></span></span>
+<span class="line"><span class="ln">80</span><span class="code">    &quot;&quot;&quot;</span></span>
+<span class="line"><span class="ln">81</span><span class="code">    Remove linearly dependent columns (factors) using QR decomposition with pivoting for speed.</span></span>
+<span class="line"><span class="ln">82</span><span class="code">    </span></span>
+<span class="line"><span class="ln">83</span><span class="code">    Args:</span></span>
+<span class="line"><span class="ln">84</span><span class="code">        x: Training factor matrix (n_samples, n_factors)</span></span>
+<span class="line"><span class="ln">85</span><span class="code">        to_pred: Prediction factor matrix (n_stocks, n_factors)</span></span>
+<span class="line"><span class="ln">86</span><span class="code">        tol: Tolerance for linear independence</span></span>
+<span class="line"><span class="ln">87</span><span class="code">    </span></span>
+<span class="line"><span class="ln">88</span><span class="code">    Returns:</span></span>
+<span class="line"><span class="ln">89</span><span class="code">        x_filtered: Filtered training matrix</span></span>
+<span class="line"><span class="ln">90</span><span class="code">        to_pred_filtered: Filtered prediction matrix</span></span>
+<span class="line"><span class="ln">91</span><span class="code">        selected_factors: List of selected factor indices</span></span>
+<span class="line"><span class="ln">92</span><span class="code">    &quot;&quot;&quot;</span></span>
+<span class="line"><span class="ln">93</span><span class="code">    if x.shape[1] &lt;= 1:<span class="cmt">  # 单因子直接返回</span></span></span>
+<span class="line"><span class="ln">94</span><span class="code">        return x, to_pred, list(range(x.shape[1]))</span></span>
+<span class="line"><span class="ln">95</span><span class="code">    </span></span>
+<span class="line"><span class="ln">96</span><span class="code">    # Use SVD for more robust rank detection (faster than iterative QR)</span></span>
+<span class="line"><span class="ln">97</span><span class="code">    try:</span></span>
+<span class="line"><span class="ln">98</span><span class="code">        U, S, Vh = torch.linalg.svd(x, full_matrices=False)<span class="cmt">  # SVD 分解因子矩阵</span></span></span>
+<span class="line"><span class="ln">99</span><span class="code">        </span></span>
+<span class="line"><span class="ln">100</span><span class="code">        # Find columns corresponding to significant singular values</span></span>
+<span class="line"><span class="ln">101</span><span class="code">        rank = torch.sum(S &gt; tol * S[0]).item()  # Relative tolerance<span class="cmt">  # 用相对容差判定有效秩</span></span></span>
+<span class="line"><span class="ln">102</span><span class="code">        </span></span>
+<span class="line"><span class="ln">103</span><span class="code">        if rank == 0:</span></span>
+<span class="line"><span class="ln">104</span><span class="code">            selected_factors = [0]</span></span>
+<span class="line"><span class="ln">105</span><span class="code">        else:</span></span>
+<span class="line"><span class="ln">106</span><span class="code">            # Use the first &#x27;rank&#x27; columns as they correspond to largest singular values</span></span>
+<span class="line"><span class="ln">107</span><span class="code">            selected_factors = list(range(min(rank, x.shape[1])))<span class="cmt">  # 取前 rank 个奇异值对应的因子</span></span></span>
+<span class="line"><span class="ln">108</span><span class="code">            </span></span>
+<span class="line"><span class="ln">109</span><span class="code">    except:</span></span>
+<span class="line"><span class="ln">110</span><span class="code">        # Fallback to QR decomposition if SVD fails</span></span>
+<span class="line"><span class="ln">111</span><span class="code">        Q, R = torch.linalg.qr(x, mode=&#x27;reduced&#x27;)<span class="cmt">  # QR 分解作 SVD 失败时的兜底</span></span></span>
+<span class="line"><span class="ln">112</span><span class="code">        diag_R = torch.diagonal(R, dim1=-2, dim2=-1)</span></span>
+<span class="line"><span class="ln">113</span><span class="code">        pivot_mask = torch.abs(diag_R) &gt; tol</span></span>
+<span class="line"><span class="ln">114</span><span class="code">        <span class="cmt">  # 对角元大于 tol 的列是独立因子</span></span></span>
+<span class="line"><span class="ln">115</span><span class="code">        if not torch.any(pivot_mask):</span></span>
+<span class="line"><span class="ln">116</span><span class="code">            selected_factors = [0]</span></span>
+<span class="line"><span class="ln">117</span><span class="code">        else:</span></span>
+<span class="line"><span class="ln">118</span><span class="code">            selected_factors = torch.where(pivot_mask)[0].tolist()</span></span>
+<span class="line"><span class="ln">119</span><span class="code">            if len(selected_factors) == 0:</span></span>
+<span class="line"><span class="ln">120</span><span class="code">                selected_factors = [0]</span></span>
+<span class="line"><span class="ln">121</span><span class="code">    </span></span>
+<span class="line"><span class="ln">122</span><span class="code">    # Filter matrices</span></span>
+<span class="line"><span class="ln">123</span><span class="code">    x_filtered = x[:, selected_factors]<span class="cmt">  # 按选中因子筛选训练与预测矩阵</span></span></span>
+<span class="line"><span class="ln">124</span><span class="code">    to_pred_filtered = to_pred[:, selected_factors]</span></span>
+<span class="line"><span class="ln">125</span><span class="code">    </span></span>
+<span class="line"><span class="ln">126</span><span class="code">    return x_filtered, to_pred_filtered, selected_factors</span></span></code></pre></div>
+<p>第 98 行的 SVD 是共线性检测的核心：因子矩阵 X 的奇异值若接近 0，说明某些因子是其他因子的线性组合（如 <code class="inline">TsSum($close,5)</code> ≈ 5×<code class="inline">TsMean($close,5)</code>）。第 101 行用相对容差 <code class="inline">S > tol * S[0]</code> 判定有效秩，秩小于因子数说明有冗余。第 107 行取前 rank 个因子（对应最大奇异值），移除冗余列。这一步是 OLS 回归的数值前提——若不除共线性，<code class="inline">lstsq</code> 会因矩阵病态产生极大权重，让预测失效。</p>
+<h3>get_tensor_metrics —— 组合评估指标</h3>
+<p>把预测与目标算成 IC/ICIR/RankIC/RankICIR/收益/夏普/最大回撤全套指标，是组合效果的最终评分卡。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">alpha_knowledge_trainer.py</span><span class="code-lines">第 226-262 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">226</span><span class="code">def get_tensor_metrics(x, y, risk_free_rate=0.0, args: Any = None):</span></span>
+<span class="line"><span class="ln">227</span><span class="code">    # Ensure tensors are 2D (days, stocks)</span></span>
+<span class="line"><span class="ln">228</span><span class="code">    if x.dim() &gt; 2: x = x.squeeze(-1)<span class="cmt">  # 确保张量是 (days, stocks) 二维</span></span></span>
+<span class="line"><span class="ln">229</span><span class="code">    if y.dim() &gt; 2: y = y.squeeze(-1)</span></span>
+<span class="line"><span class="ln">230</span><span class="code"></span></span>
+<span class="line"><span class="ln">231</span><span class="code">    ic_s = batch_pearsonr(x, y)<span class="cmt">  # Pearson IC 逐日序列</span></span></span>
+<span class="line"><span class="ln">232</span><span class="code">    ric_s = chunk_batch_spearmanr(x, y, chunk_size=args.chunk_size)<span class="cmt">  # RankIC 用分块 spearmanr 节省显存</span></span></span>
+<span class="line"><span class="ln">233</span><span class="code">    ret_s = batch_ret(x, y)<span class="cmt">  # ret = top 20% 股票的平均收益</span></span></span>
+<span class="line"><span class="ln">234</span><span class="code"></span></span>
+<span class="line"><span class="ln">235</span><span class="code">    ic_s = torch.nan_to_num(ic_s, nan=0.)</span></span>
+<span class="line"><span class="ln">236</span><span class="code">    ric_s = torch.nan_to_num(ric_s, nan=0.)</span></span>
+<span class="line"><span class="ln">237</span><span class="code">    ret_s = torch.nan_to_num(ret_s, nan=0.) / args.label_days</span></span>
+<span class="line"><span class="ln">238</span><span class="code">    ic_s_mean = ic_s.mean().item()<span class="cmt">  # IC 均值</span></span></span>
+<span class="line"><span class="ln">239</span><span class="code">    ic_s_std = ic_s.std().item() if ic_s.std().item() &gt; 1e-6 else 1.0<span class="cmt">  # IC 标准差（过小则置 1）</span></span></span>
+<span class="line"><span class="ln">240</span><span class="code">    ric_s_mean = ric_s.mean().item()</span></span>
+<span class="line"><span class="ln">241</span><span class="code">    ric_s_std = ric_s.std().item() if ric_s.std().item() &gt; 1e-6 else 1.0</span></span>
+<span class="line"><span class="ln">242</span><span class="code">    ret_s_mean = (ret_s).mean().item()</span></span>
+<span class="line"><span class="ln">243</span><span class="code">    ret_s_std = (ret_s).std().item() if (ret_s).std().item() &gt; 1e-6 else 1.0</span></span>
+<span class="line"><span class="ln">244</span><span class="code"></span></span>
+<span class="line"><span class="ln">245</span><span class="code">    # Calculate Sharpe Ratio and Maximum Drawdown for ret series</span></span>
+<span class="line"><span class="ln">246</span><span class="code">    ret_sharpe = batch_sharpe_ratio(ret_s, risk_free_rate).item()<span class="cmt">  # 夏普比率 = 超额收益均值/标准差 × √252</span></span></span>
+<span class="line"><span class="ln">247</span><span class="code">    ret_mdd = batch_max_drawdown(ret_s).item()<span class="cmt">  # 最大回撤</span></span></span>
+<span class="line"><span class="ln">248</span><span class="code"></span></span>
+<span class="line"><span class="ln">249</span><span class="code">    result = dict(</span></span>
+<span class="line"><span class="ln">250</span><span class="code">        ic=ic_s_mean,</span></span>
+<span class="line"><span class="ln">251</span><span class="code">        ic_std=ic_s_std,</span></span>
+<span class="line"><span class="ln">252</span><span class="code">        icir=ic_s_mean / ic_s_std,<span class="cmt">  # ICIR = IC 均值 / IC 标准差</span></span></span>
+<span class="line"><span class="ln">253</span><span class="code">        ric=ric_s_mean,</span></span>
+<span class="line"><span class="ln">254</span><span class="code">        ric_std=ric_s_std,</span></span>
+<span class="line"><span class="ln">255</span><span class="code">        ricir=ric_s_mean / ric_s_std,</span></span>
+<span class="line"><span class="ln">256</span><span class="code">        ret=ret_s_mean * len(ret_s) / 3,<span class="cmt">  # ret 年化 = 日均收益 × 天数 / 3</span></span></span>
+<span class="line"><span class="ln">257</span><span class="code">        ret_std=ret_s_std,</span></span>
+<span class="line"><span class="ln">258</span><span class="code">        retir=ret_s_mean / ret_s_std,</span></span>
+<span class="line"><span class="ln">259</span><span class="code">        ret_sharpe=ret_sharpe,</span></span>
+<span class="line"><span class="ln">260</span><span class="code">        ret_mdd=ret_mdd,</span></span>
+<span class="line"><span class="ln">261</span><span class="code">    )</span></span>
+<span class="line"><span class="ln">262</span><span class="code">    return result, ret_s</span></span></code></pre></div>
+<p>第 232 行的 <code class="inline">chunk_batch_spearmanr</code> 用分块计算 RankIC，避免对长序列直接算 spearmanr 时显存溢出（<code class="inline">chunk_size</code> 默认 180）。第 233 行的 <code class="inline">batch_ret</code> 是 top 20% 股票的平均收益——它模拟「按因子值排序买入最高 20%」的多头组合收益。第 246-247 行的夏普与最大回撤是组合的风险调整收益指标，ICIR（第 252 行）则是预测稳定性的核心。这些指标共同构成组合的「评分卡」。</p>
+<h3>load_test_res —— 滚动组合主循环</h3>
+<p>这是 Mega-Alpha 生成的核心循环。预计算全部因子的逐日 IC，每天用历史窗口筛因子、除共线性、OLS 回归、生成当天预测。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">alpha_knowledge_trainer.py</span><span class="code-lines">第 311-393 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">311</span><span class="code">        # 4. Main adaptive combination loop</span></span>
+<span class="line"><span class="ln">312</span><span class="code">        pred_list = []</span></span>
+<span class="line"><span class="ln">313</span><span class="code">        shift = self.args.label_days + 1  # To avoid lookahead bias<span class="cmt">  # shift = label_days + 1，避免 lookahead bias</span></span></span>
+<span class="line"><span class="ln">314</span><span class="code">        </span></span>
+<span class="line"><span class="ln">315</span><span class="code">        valid_test_days = data_valid.n_days + data_test.n_days<span class="cmt">  # valid + test 总天数</span></span></span>
+<span class="line"><span class="ln">316</span><span class="code">        start_day = len(fct_tensor) - valid_test_days<span class="cmt">  # 从全程张量切出验证+测试起点</span></span></span>
+<span class="line"><span class="ln">317</span><span class="code">        </span></span>
+<span class="line"><span class="ln">318</span><span class="code">        print(&quot;Starting adaptive combination process...&quot;)</span></span>
+<span class="line"><span class="ln">319</span><span class="code">        pbar = tqdm(range(start_day, len(fct_tensor)))</span></span>
+<span class="line"><span class="ln">320</span><span class="code">        for cur in pbar:<span class="cmt">  # 逐日滚动组合循环</span></span></span>
+<span class="line"><span class="ln">321</span><span class="code">            # Define rolling window for evaluation</span></span>
+<span class="line"><span class="ln">322</span><span class="code">            # begin = 0 if not np.isfinite(self.args.window) else max(0, cur - self.args.window - shift)</span></span>
+<span class="line"><span class="ln">323</span><span class="code">            begin = 0</span></span>
+<span class="line"><span class="ln">324</span><span class="code">            # Slice metrics for the current window</span></span>
+<span class="line"><span class="ln">325</span><span class="code">            cur_ic = ic_s[begin:cur-shift]<span class="cmt">  # 用历史窗口（begin:cur-shift）的 IC</span></span></span>
+<span class="line"><span class="ln">326</span><span class="code">            cur_ric = ric_s[begin:cur-shift]</span></span>
+<span class="line"><span class="ln">327</span><span class="code">            </span></span>
+<span class="line"><span class="ln">328</span><span class="code">            # Calculate performance metrics over the window</span></span>
+<span class="line"><span class="ln">329</span><span class="code">            ic_mean = cur_ic.mean(dim=0)</span></span>
+<span class="line"><span class="ln">330</span><span class="code">            ic_std = cur_ic.std(dim=0)</span></span>
+<span class="line"><span class="ln">331</span><span class="code">            ric_mean = cur_ric.mean(dim=0)</span></span>
+<span class="line"><span class="ln">332</span><span class="code">            ric_std = cur_ric.std(dim=0)</span></span>
+<span class="line"><span class="ln">333</span><span class="code"></span></span>
+<span class="line"><span class="ln">334</span><span class="code">            icir = ic_mean / ic_std<span class="cmt">  # ICIR = IC 均值 / IC 标准差</span></span></span>
+<span class="line"><span class="ln">335</span><span class="code">            ricir = ric_mean / ric_std</span></span>
+<span class="line"><span class="ln">336</span><span class="code">            </span></span>
+<span class="line"><span class="ln">337</span><span class="code">            # Filter and select best factors</span></span>
+<span class="line"><span class="ln">338</span><span class="code">            metrics_df = pd.DataFrame({</span></span>
+<span class="line"><span class="ln">339</span><span class="code">                &#x27;ric&#x27;: ric_mean.cpu().numpy(),</span></span>
+<span class="line"><span class="ln">340</span><span class="code">                &#x27;ricir&#x27;: ricir.cpu().numpy()</span></span>
+<span class="line"><span class="ln">341</span><span class="code">            })</span></span>
+<span class="line"><span class="ln">342</span><span class="code">            good_factors = metrics_df[(metrics_df[&#x27;ric&#x27;].abs() &gt; self.args.threshold_ric) &amp; (metrics_df[&#x27;ricir&#x27;].abs() &gt; self.args.threshold_ricir)]<span class="cmt">  # 筛 RankIC 与 RankICIR 都超阈值的因子</span></span></span>
+<span class="line"><span class="ln">343</span><span class="code">            if len(good_factors) &lt; 1:</span></span>
+<span class="line"><span class="ln">344</span><span class="code">                good_factors = metrics_df.reindex(metrics_df.ricir.abs().sort_values(ascending=False).index).iloc[:1]</span></span>
+<span class="line"><span class="ln">345</span><span class="code">            </span></span>
+<span class="line"><span class="ln">346</span><span class="code">            good_idx = good_factors.iloc[:self.args.n_factors].index.to_list()</span></span>
+<span class="line"><span class="ln">347</span><span class="code">            </span></span>
+<span class="line"><span class="ln">348</span><span class="code">            # Prepare data for linear regression</span></span>
+<span class="line"><span class="ln">349</span><span class="code">            x = fct_tensor[begin:cur-shift, :, good_idx]<span class="cmt">  # 取历史因子值作训练 X（begin:cur-shift）</span></span></span>
+<span class="line"><span class="ln">350</span><span class="code">            y = tgt_tensor[begin:cur-shift, :, :]<span class="cmt">  # 对应未来收益 y 作回归目标</span></span></span>
+<span class="line"><span class="ln">351</span><span class="code">            to_pred = fct_tensor[cur, :, good_idx]<span class="cmt">  # to_pred 是当天因子值，要预测的下一天收益</span></span></span>
+<span class="line"><span class="ln">352</span><span class="code">            y = y.reshape(-1, y.shape[-1])<span class="cmt">  # y / x reshape 成 2D 矩阵供 OLS 求解</span></span></span>
+<span class="line"><span class="ln">353</span><span class="code">            x = x.reshape(-1, x.shape[-1])</span></span>
+<span class="line"><span class="ln">354</span><span class="code">            </span></span>
+<span class="line"><span class="ln">355</span><span class="code">            # Filter out NaNs</span></span>
+<span class="line"><span class="ln">356</span><span class="code">            valid_mask = torch.isfinite(y)[:, 0]<span class="cmt">  # valid_mask 过滤 y 含 NaN 的样本</span></span></span>
+<span class="line"><span class="ln">357</span><span class="code">            y = y[valid_mask]</span></span>
+<span class="line"><span class="ln">358</span><span class="code">            x = x[valid_mask]</span></span>
+<span class="line"><span class="ln">359</span><span class="code">            </span></span>
+<span class="line"><span class="ln">360</span><span class="code">            to_pred = torch.nan_to_num(to_pred, nan=0.)<span class="cmt">  # to_pred 上的 NaN 用 0 填充，避免预测时崩</span></span></span>
+<span class="line"><span class="ln">361</span><span class="code">            </span></span>
+<span class="line"><span class="ln">362</span><span class="code">            # Remove linearly dependent columns (factors) for speed</span></span>
+<span class="line"><span class="ln">363</span><span class="code">            x, to_pred, selected_factors = remove_linearly_dependent_cols(x, to_pred, tol=self.args.linear_dep_tol)<span class="cmt">  # 调用 remove_linearly_dependent_cols 去除共线性因子列</span></span></span>
+<span class="line"><span class="ln">364</span><span class="code">            </span></span>
+<span class="line"><span class="ln">365</span><span class="code">            # Remove linearly dependent rows (samples) for speed  </span></span>
+<span class="line"><span class="ln">366</span><span class="code">            x, y, to_pred, selected_rows = remove_linearly_dependent_rows(x, y, to_pred, tol=self.args.linear_dep_tol)<span class="cmt">  # 再调用 remove_linearly_dependent_rows 去除冗余样本行</span></span></span>
+<span class="line"><span class="ln">367</span><span class="code">            </span></span>
+<span class="line"><span class="ln">368</span><span class="code">            # Add constant for intercept</span></span>
+<span class="line"><span class="ln">369</span><span class="code">            ones = torch.ones_like(x[..., 0:1])<span class="cmt">  # 在 x 末尾拼一列 1，作 OLS 截距项</span></span></span>
+<span class="line"><span class="ln">370</span><span class="code">            x = torch.cat([x, ones], dim=-1)</span></span>
+<span class="line"><span class="ln">371</span><span class="code">            ones_pred = torch.ones_like(to_pred[..., 0:1])</span></span>
+<span class="line"><span class="ln">372</span><span class="code">            to_pred = torch.cat([to_pred, ones_pred], dim=-1)</span></span>
+<span class="line"><span class="ln">373</span><span class="code">            </span></span>
+<span class="line"><span class="ln">374</span><span class="code">            # Train regression and predict with improved stability</span></span>
+<span class="line"><span class="ln">375</span><span class="code">            try:</span></span>
+<span class="line"><span class="ln">376</span><span class="code">                # Check condition number before solving</span></span>
+<span class="line"><span class="ln">377</span><span class="code">                coef = torch.linalg.lstsq(x, y).solution<span class="cmt">  # torch.linalg.lstsq 求最小二乘解 coef</span></span></span>
+<span class="line"><span class="ln">378</span><span class="code">                </span></span>
+<span class="line"><span class="ln">379</span><span class="code">                pred = to_pred @ coef<span class="cmt">  # pred = to_pred @ coef 生成当天预测</span></span></span>
+<span class="line"><span class="ln">380</span><span class="code">                </span></span>
+<span class="line"><span class="ln">381</span><span class="code">            except Exception as e:</span></span>
+<span class="line"><span class="ln">382</span><span class="code">                print(f&quot;Warning: Regression failed with error {e}, using zero prediction&quot;)</span></span>
+<span class="line"><span class="ln">383</span><span class="code">                # Handle singular matrix case</span></span>
+<span class="line"><span class="ln">384</span><span class="code">                pred = torch.zeros_like(to_pred[:, 0:1])<span class="cmt">  # 回归失败兜底：用零向量作预测，不中断循环</span></span></span>
+<span class="line"><span class="ln">385</span><span class="code"></span></span>
+<span class="line"><span class="ln">386</span><span class="code">            pred_list.append(pred[:, 0])</span></span>
+<span class="line"><span class="ln">387</span><span class="code">            </span></span>
+<span class="line"><span class="ln">388</span><span class="code">            # Update progress bar description with running IC</span></span>
+<span class="line"><span class="ln">389</span><span class="code">            if len(pred_list) &gt; 1:</span></span>
+<span class="line"><span class="ln">390</span><span class="code">                running_preds = torch.stack(pred_list, dim=0)</span></span>
+<span class="line"><span class="ln">391</span><span class="code">                running_targets = tgt_tensor[start_day:cur+1, :, 0]</span></span>
+<span class="line"><span class="ln">392</span><span class="code">                running_ic = batch_pearsonr(running_preds, running_targets).mean().item()</span></span>
+<span class="line"><span class="ln">393</span><span class="code">                pbar.set_description(f&quot;Running IC: {running_ic:.4f}, Factors selected: {len(good_idx)}&quot;)</span></span></code></pre></div>
+<p>这段就是 Mega-Alpha 的核心循环。第 313 行的 <code class="inline">shift = label_days + 1</code> 是<strong>避免 lookahead bias</strong>的关键：label_days=20 表示预测未来 20 天收益，所以今天的标签要到 20 天后才能算出，回归窗口必须截止到 <code class="inline">cur - shift</code>，否则就是「用未来信息预测今天」。<code class="inline">begin = 0</code>（默认 expanding window）意味着用全部历史数据，若想用滚动窗口可设置 <code class="inline">window</code> 参数。</p>
+<p>第 325-326 行用预计算的 <code class="inline">ic_s</code> 与 <code class="inline">ric_s</code> 切出当前历史窗口的逐日 IC 序列。第 329-335 行把这些逐日 IC 聚合成 ICIR（均值/标准差）。第 342 行的 <code class="inline">good_factors</code> 是双阈值筛选：RankIC 绝对值超 <code class="inline">threshold_ric</code>（0.015）且 RankICIR 绝对值超 <code class="inline">threshold_ricir</code>（0.15），保证选出的因子既有方向性又有稳定性。若全部因子都不达标，第 344 行兜底取 RankICIR 绝对值最大的一个——空池比烂池更糟。</p>
+<p>第 348-353 行把选中的因子切片成训练矩阵。<code class="inline">x = fct_tensor[begin:cur-shift, :, good_idx]</code> 是历史因子值，<code class="inline">y = tgt_tensor[begin:cur-shift, :, :]</code> 是对应未来收益，<code class="inline">to_pred = fct_tensor[cur, :, good_idx]</code> 是当天因子值，用来生成下一天的预测。reshape 把三维张量压成二维矩阵，因为 OLS 只接受 2D 输入。第 356 行的 <code class="inline">valid_mask</code> 过滤掉标签为 NaN 的样本（停牌股票），保证回归只用有效数据。</p>
+<p>第 377 行的 <code class="inline">torch.linalg.lstsq(x, y).solution</code> 是 OLS 求解核心：它解 <code class="inline">min ||x @ coef - y||^2</code> 得到最优权重 coef，形状为 (n_factors+1, n_targets)（+1 是截距）。第 379 行的 <code class="inline">pred = to_pred @ coef</code> 把当天因子值乘以权重得到预测，这就是 Mega-Alpha 的当日信号。第 381-384 行的 try/except 是数值保护：极少数情况下矩阵奇异会让 lstsq 抛异常，此时用零向量兜底，不让一轮失败中断整个滚动循环。</p>
+<h3>结果评估 —— valid / test 双集指标</h3>
+<p>滚动循环跑完后，把预测切分成 valid 与 test 两段，分别算 IC/ICIR/RankIC/RankICIR/收益/夏普/最大回撤。</p>
+<div class="code-card"><div class="code-header"><span class="code-file">alpha_knowledge_trainer.py</span><span class="code-lines">第 396-432 行</span></div><pre class="code-block"><code><span class="line"><span class="ln">396</span><span class="code">        # 5. Evaluate and display results</span></span>
+<span class="line"><span class="ln">397</span><span class="code">        print(&quot;\n&quot; + &quot;=&quot;*50)<span class="cmt">  # 把 pred_list 堆叠成全程预测张量</span></span></span>
+<span class="line"><span class="ln">398</span><span class="code">        print(&quot;Adaptive combination finished. Calculating final metrics...&quot;)</span></span>
+<span class="line"><span class="ln">399</span><span class="code">        <span class="cmt">  # valid 段：前 data_valid.n_days 天</span></span></span>
+<span class="line"><span class="ln">400</span><span class="code">        all_pred = torch.stack(pred_list, dim=0)<span class="cmt">  # test 段：剩余天数</span></span></span>
+<span class="line"><span class="ln">401</span><span class="code">        </span></span>
+<span class="line"><span class="ln">402</span><span class="code">        # Slice predictions and targets for validation and test sets<span class="cmt">  # 从 tgt_tensor 切出 valid 对应的真实标签</span></span></span>
+<span class="line"><span class="ln">403</span><span class="code">        pred_valid = all_pred[:data_valid.n_days]<span class="cmt">  # 切出 test 对应的真实标签</span></span></span>
+<span class="line"><span class="ln">404</span><span class="code">        pred_test = all_pred[data_valid.n_days:]</span></span>
+<span class="line"><span class="ln">405</span><span class="code">        </span></span>
+<span class="line"><span class="ln">406</span><span class="code">        tgt_valid = tgt_tensor[start_day : start_day + data_valid.n_days, :, 0]</span></span>
+<span class="line"><span class="ln">407</span><span class="code">        tgt_test = tgt_tensor[start_day + data_valid.n_days :, :, 0]</span></span>
+<span class="line"><span class="ln">408</span><span class="code">        </span></span>
+<span class="line"><span class="ln">409</span><span class="code">        # Calculate metrics<span class="cmt">  # 对 valid 算全套指标（IC/ICIR/RankIC/收益/夏普/回撤）</span></span></span>
+<span class="line"><span class="ln">410</span><span class="code">        valid_results, _ = get_tensor_metrics(pred_valid.cuda(), tgt_valid.cuda(), 0, self.args)<span class="cmt">  # 对 test 算全套指标，这是最终成绩单</span></span></span>
+<span class="line"><span class="ln">411</span><span class="code">        test_results, ret_s = get_tensor_metrics(pred_test.cuda(), tgt_test.cuda(), 0, self.args)</span></span>
+<span class="line"><span class="ln">412</span><span class="code">        ret_s = ret_s.cpu().numpy()</span></span>
+<span class="line"><span class="ln">413</span><span class="code">        # Format and print results</span></span>
+<span class="line"><span class="ln">414</span><span class="code">        results_df = pd.DataFrame([valid_results, test_results], index=[&#x27;Validation&#x27;, &#x27;Test&#x27;])</span></span>
+<span class="line"><span class="ln">415</span><span class="code">        print(&quot;\n--- Final Performance Metrics ---&quot;)<span class="cmt">  # 把 ret_s 收益序列保存为 npy，便于后续画图分析</span></span></span>
+<span class="line"><span class="ln">416</span><span class="code">        </span></span>
+<span class="line"><span class="ln">417</span><span class="code">        # Print with full precision and no truncation</span></span>
+<span class="line"><span class="ln">418</span><span class="code">        pd.set_option(&#x27;display.max_columns&#x27;, None)</span></span>
+<span class="line"><span class="ln">419</span><span class="code">        pd.set_option(&#x27;display.width&#x27;, None)</span></span>
+<span class="line"><span class="ln">420</span><span class="code">        pd.set_option(&#x27;display.max_colwidth&#x27;, None)</span></span>
+<span class="line"><span class="ln">421</span><span class="code">        print(results_df.round(4))</span></span>
+<span class="line"><span class="ln">422</span><span class="code">        </span></span>
+<span class="line"><span class="ln">423</span><span class="code">        # Also print in a more parseable format</span></span>
+<span class="line"><span class="ln">424</span><span class="code">        file.write(&quot;\n--- Parseable Format ---&quot;)</span></span>
+<span class="line"><span class="ln">425</span><span class="code">        file.write(f&quot;{&#x27;Dataset&#x27;:&lt;12} {&#x27;IC&#x27;:&gt;8} {&#x27;IC_STD&#x27;:&gt;8} {&#x27;ICIR&#x27;:&gt;8} {&#x27;RIC&#x27;:&gt;8} {&#x27;RIC_STD&#x27;:&gt;8} {&#x27;RICIR&#x27;:&gt;8} {&#x27;RET&#x27;:&gt;8} {&#x27;RET_STD&#x27;:&gt;8} {&#x27;RETIR&#x27;:&gt;8} {&#x27;RET_SR&#x27;:&gt;8} {&#x27;RET_MDD&#x27;:&gt;8}\n&quot;)</span></span>
+<span class="line"><span class="ln">426</span><span class="code">        for index, row in results_df.iterrows():</span></span>
+<span class="line"><span class="ln">427</span><span class="code">            file.write(f&quot;{index:&lt;12} {row[&#x27;ic&#x27;]:&gt;8.4f} {row[&#x27;ic_std&#x27;]:&gt;8.4f} {row[&#x27;icir&#x27;]:&gt;8.4f} {row[&#x27;ric&#x27;]:&gt;8.4f} {row[&#x27;ric_std&#x27;]:&gt;8.4f} {row[&#x27;ricir&#x27;]:&gt;8.4f} {row[&#x27;ret&#x27;]:&gt;8.4f} {row[&#x27;ret_std&#x27;]:&gt;8.4f} {row[&#x27;retir&#x27;]:&gt;8.4f} {row[&#x27;ret_sharpe&#x27;]:&gt;8.4f} {row[&#x27;ret_mdd&#x27;]:&gt;8.4f}&quot;)</span></span>
+<span class="line"><span class="ln">428</span><span class="code">        </span></span>
+<span class="line"><span class="ln">429</span><span class="code">        file.write(&quot;=&quot;*50)</span></span>
+<span class="line"><span class="ln">430</span><span class="code">    </span></span>
+<span class="line"><span class="ln">431</span><span class="code">    def log(self, pool: AlphaKnowledgePool, graph: ExpressionKnowledgeGraph, iteration: int):</span></span>
+<span class="line"><span class="ln">432</span><span class="code">        print(f&quot;=== Logging at iteration {iteration} ===&quot;)</span></span></code></pre></div>
+<p>第 409-410 行调用第 243-279 行的 <code class="inline">get_tensor_metrics</code>，它对预测与真实标签算全套评估指标。valid 段用于超参调优（如 threshold_ric、n_factors），test 段是最终成绩单。第 415 行保存的 <code class="inline">ret_s.npy</code> 是按日收益序列，可用于回测净值曲线、计算胜率等。这种「valid 选超参 / test 报告」的分离是量化研究的标准做法，避免在 test 集上过拟合超参。</p>
+<h2>数据流</h2>
+<p><strong>输入：</strong>训练循环产出的 <code class="inline">pool_*.json</code>（表达式列表）、StockData（全程数据）、target（未来 20 天收益）、超参（threshold_ric、threshold_ricir、n_factors、window、label_days）。<strong>预计算：</strong>把所有因子在全程求值并归一化成 <code class="inline">(T, N, K)</code> 张量，逐日算 IC/RankIC 序列缓存。<strong>滚动循环：</strong>每天切历史窗口 → 算 ICIR → 双阈值筛因子 → 去除共线性 → OLS 回归 → 生成当天预测。<strong>输出：</strong>valid 与 test 的全套指标 + <code class="inline">ret_s.npy</code> 收益序列。</p>
+<h2>关联公式</h2>
+<p>OLS 回归的目标是最小化残差平方和：</p>
+<div class="math-block">$$\hat{\beta} = \arg\min_{\beta} \|X\beta - y\|_2^2 = (X^T X)^{-1} X^T y$$</div>
+<p>预测为因子值与权重的线性组合：</p>
+<div class="math-block">$$\hat{r}_{t+1, n} = \sum_{k \in \text{selected}} x_{t, n, k} \cdot \hat{\beta}_k + \hat{\beta}_0$$</div>
+<p>其中 $X \in \mathbb{R}^{(T \cdot N) \times K}$ 是历史因子值矩阵，$y$ 是对应未来收益，$\hat{\beta}$ 是 OLS 解（含截距 $\hat{\beta}_0$）。代码第 377 行的 <code class="inline">torch.linalg.lstsq</code> 在数值上用 SVD 分解求解，比直接算 <code class="inline">(X^T X)^{-1} X^T y</code> 更稳健——这也是前面要先做共线性去除的原因：若 X 接近奇异，SVD 仍会给出解但权重会极大，共线性去除让 X 列满秩，保证解有意义。</p>
+<div class="callout"><span class="callout-label">设计权衡</span><p>为什么用 OLS 而非 Ridge/Lasso？因为 AlphaPROBE 已经在前面做了多重共线性去除（<code class="inline">remove_linearly_dependent_cols</code> + <code class="inline">remove_linearly_dependent_rows</code>），X 列满秩后 OLS 解稳定，正则化反而会引入偏差。代价是对极端共线性敏感——若 SVD 容差设太松（<code class="inline">linear_dep_tol</code> 默认 1e-10），仍可能漏掉冗余因子，此时 OLS 权重会膨胀。源码里也提供了 <code class="inline">remove_multicollinearity_vif</code>（VIF 阈值法）作备选，让用户按需切换。这种「先除共线性再 OLS」的两步法，比直接 Ridge 更显式可控。</p></div>
+<h2>小结</h2>
+<p>Mega-Alpha 动态组合用「预计算逐日指标 → 滚动窗口双阈值筛因子 → 共线性去除 → OLS 回归预测」四步法，每天重生成权重以适应因子表现的时变特性。<code class="inline">shift = label_days + 1</code> 严格避免 lookahead bias，<code class="inline">torch.linalg.lstsq</code> 给出数值稳健的 OLS 解。这套流程让因子池从「静态资产」变成「动态信号」，是 AlphaPROBE 落地为可交易 alpha 的最后一公里。下一章我们看AlphaPROBE 与其他 alpha 挖掘流派的对比。</p>
+<div class="nav-footer"><a href="08.html">← 第8章 表达式验证与入池</a><a href="10.html">第10章 Baseline 对比 →</a></div>
+</main>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+                onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>
+</body>
+</html>
