@@ -16,17 +16,25 @@ body {
     font-size: 17px;
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
+    display: flex;
 }
 .sidebar {
-    position: fixed;
-    left: 0; top: 0;
     width: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
     height: 100vh;
     overflow-y: auto;
     background: #F5F5F7;
     border-right: 1px solid #E8E8ED;
     padding: 28px 18px 40px;
     z-index: 100;
+}
+.main-wrap {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
 }
 .sidebar-title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; color: #1D1D1F; }
 .sidebar-sub { font-size: 12px; color: #86868B; margin: 0 0 22px; letter-spacing: 0.02em; }
@@ -40,7 +48,7 @@ body {
     font-size: 11px; color: #86868B; text-transform: uppercase;
     letter-spacing: 0.06em; margin: 18px 12px 6px;
 }
-main.content { max-width: 820px; margin: 0 0 0 240px; padding: 64px 40px 120px; }
+main.content { max-width: 820px; width: 100%; padding: 64px 40px 120px; }
 .hero { margin-bottom: 8px; }
 .badge {
     display: inline-block; font-size: 13px; font-weight: 600; color: #0071e3;
@@ -146,23 +154,47 @@ img { max-width: 100%; border-radius: 12px; }
     overflow-x: auto; white-space: pre; color: #1D1D1F;
 }
 .arch-tree .c { color: #86868B; }
+.flow-diagram {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+    margin: 24px 0; padding: 20px; background: #F5F5F7; border-radius: 12px;
+}
+.flow-node {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 8px;
+    padding: 10px 14px; font-size: 13px; font-weight: 600; color: #1D1D1F;
+    white-space: nowrap;
+}
+.flow-arrow { color: #0071e3; font-size: 18px; font-weight: 700; }
+.arch-layer {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 12px;
+    padding: 16px 20px; margin: 0 0 8px;
+}
+.arch-layer-title {
+    font-size: 13px; font-weight: 700; color: #0071e3;
+    text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px;
+}
+.arch-layer-nodes { display: flex; gap: 8px; flex-wrap: wrap; }
+.arch-node {
+    background: #F5F5F7; border-radius: 6px; padding: 6px 12px;
+    font-size: 13px; font-weight: 500; color: #1D1D1F;
+}
+.arch-arrow { text-align: center; color: #0071e3; font-size: 18px; margin: 4px 0; }
 @media (max-width: 860px) {
+    body { display: block; }
     .sidebar { position: static; width: 100%; height: auto; }
-    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .main-wrap { display: block; }
+    main.content { padding: 32px 20px 80px; }
     .toc-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
-<aside class="sidebar"><h2 class="sidebar-title">AlphaPROBE</h2><p class="sidebar-sub">深度代码教程</p><a href="index.html">首页</a><div class="group-label">数据层</div><a href="01.html">第1章 Qlib 行情数据加载</a><a href="02.html">第2章 表达式与算子体系</a><a href="03.html">第3章 IC/ICIR 因子评估</a><div class="group-label">核心层</div><a href="04.html">第4章 表达式知识图谱</a><a href="05.html">第5章 贝叶斯因子检索器</a><a href="06.html">第6章 LLM 表达式生成</a><div class="group-label">应用层</div><a href="07.html">第7章 训练主循环</a><a href="08.html">第8章 表达式验证与入池</a><a href="09.html">第9章 Mega-Alpha 动态组合</a><a href="10.html" class="active">第10章 Baseline 对比</a></aside><main class="content">
+<aside class="sidebar"><h2 class="sidebar-title">AlphaPROBE</h2><p class="sidebar-sub">深度代码教程</p><a href="index.html">首页</a><div class="group-label">数据层</div><a href="01.html">第1章 Qlib 行情数据加载</a><a href="02.html">第2章 表达式与算子体系</a><a href="03.html">第3章 IC/ICIR 因子评估</a><div class="group-label">核心层</div><a href="04.html">第4章 表达式知识图谱</a><a href="05.html">第5章 贝叶斯因子检索器</a><a href="06.html">第6章 LLM 表达式生成</a><div class="group-label">应用层</div><a href="07.html">第7章 训练主循环</a><a href="08.html">第8章 表达式验证与入池</a><a href="09.html">第9章 Mega-Alpha 动态组合</a><a href="10.html" class="active">第10章 Baseline 对比</a></aside><div class="main-wrap"><main class="content">
 <div class="hero"><span class="badge">第 10 章 · 应用层</span></div>
 <h1>第10章：Baseline 对比</h1>
 <p class="subtitle">像 A/B 测试，GFlowNet/FQF/IQN/QRDQN/GAN/PPO 是不同流派的「选手」，与 AlphaPROBE 的 LLM+DAG 路线对比。</p>
-<h2>欢迎</h2>
-<p>AlphaPROBE 不是凭空出现的，它要在已成熟的 alpha 挖掘流派里证明自己。本章拆解仓库里的六个 baseline 训练脚本——<code class="inline">train_gfn.py</code>（GFlowNet）、<code class="inline">train_qcm.py</code>（FQF/IQN/QRDQN）、<code class="inline">train_AFF.py</code>（GAN）、<code class="inline">train_ppo.py</code>（PPO）、<code class="inline">train_GP.py</code>（遗传规划）、<code class="inline">combine_AFF.py</code>（AlphaFactory 集成），看它们各自的技术路线、与 AlphaPROBE 的关键差异，以及为什么 AlphaPROBE 选择 LLM + DAG 这条新路径。</p>
-<h2>它解决什么问题？</h2>
-<p>alpha 挖掘的 baseline 大致分三类。<strong>强化学习派</strong>：把表达式生成建模成动作序列决策（每步选一个 token），用 PPO/GFlowNet/Q-learning 学策略。优点是端到端可微，缺点是探索空间巨大、训练慢、易陷入局部最优。<strong>生成模型派</strong>：用 GAN/VAE 学习「好因子」的分布再采样，优点是能批量生成，缺点是模式坍塌与判别器设计困难。<strong>演化算法派</strong>：用遗传规划（GP）做表达式树的交叉变异，优点是天然适合 DSL，缺点是变异无方向、易早熟。</p>
-<p>AlphaPROBE 与它们的核心区别是「用 LLM 替代策略网络/遗传算子」做变异，用 DAG + 贝叶斯检索做有方向探索。本章用代码对比让差异看得见。</p>
+<h2>本章概览</h2>
+<p>本章拆解仓库里的六个 baseline 训练脚本——<code class="inline">train_gfn.py</code>（GFlowNet）、<code class="inline">train_qcm.py</code>（FQF/IQN/QRDQN）、<code class="inline">train_AFF.py</code>（GAN）、<code class="inline">train_ppo.py</code>（PPO）、<code class="inline">train_GP.py</code>（遗传规划）、<code class="inline">combine_AFF.py</code>（AlphaFactory 集成），看它们与 AlphaPROBE 的关键差异。<strong>共同输入：</strong><code class="inline">StockData</code>（训练/验证/测试）、<code class="inline">target</code>（未来 20 天收益）、<code class="inline">AlphaPool</code> 池机制。<strong>差异点：</strong>GFlowNet/QCM/PPO 把池包装成 RL 环境用 <code class="inline">AlphaEnv</code>；GAN 用 <code class="inline">Collector</code> 收集训练数据；GP 直接调 <code class="inline">SymbolicRegressor</code>；AlphaPROBE 用 <code class="inline">AlphaKnowledgeTrainer</code> 串接 LLM 与图谱。<strong>共同输出：</strong>pool_*.json 表达式列表，供第 9 章 Mega-Alpha 组合使用。</p>
+<p>alpha 挖掘的 baseline 分三类：<strong>强化学习派</strong>（PPO/GFlowNet/Q-learning）把表达式生成建模成动作序列决策，端到端可微但探索空间巨大；<strong>生成模型派</strong>（GAN/VAE）学习「好因子」分布再采样，能批量生成但有模式坍塌风险；<strong>演化算法派</strong>（GP）做表达式树交叉变异，天然适合 DSL 但变异无方向。AlphaPROBE 与它们的核心区别是「用 LLM 替代策略网络/遗传算子」做变异，用 DAG + 贝叶斯检索做有方向探索。</p>
 <h2>核心设计思路</h2>
 <p>六个 baseline 共享同一个数据接口（<code class="inline">StockData</code>）和池机制（<code class="inline">AlphaPool</code>），差别只在「如何生成新表达式」：<strong>GFlowNet</strong>学一个前向策略网络，按轨迹概率采样表达式；<strong>FQF/IQN/QRDQN</strong>用分布强化学习建模动作价值分布；<strong>GAN</strong>训练生成器对抗判别器；<strong>PPO</strong>用策略梯度优化 actor-critic；<strong>GP</strong>做表达式树交叉变异；<strong>AlphaFactory</strong>集成多源因子。AlphaPROBE 用 LLM + DAG 在「变异方向性」与「探索记忆」上突破——这是后文要对比的关键。</p>
 <h2>代码深入</h2>
@@ -378,7 +410,7 @@ img { max-width: 100%; border-radius: 12px; }
 <h2>小结</h2>
 <p>六个 baseline 共享数据与池机制，差异在变异机制：GFlowNet 学策略网络，QCM 用分布 RL，GAN 训生成器，PPO 用策略梯度，GP 做树交叉。AlphaPROBE 用 LLM + DAG 在「变异方向性」与「探索记忆」上突破，代价是 API 调用成本。横向对比表清晰展示了这种「重思考轻训练」路线的结构性优势。至此，从数据层到核心层再到应用层与 baseline 对比，AlphaPROBE 的全貌已完整呈现。</p>
 <div class="nav-footer"><a href="09.html">← 第9章 Mega-Alpha 动态组合</a><a href="index.html">返回目录 →</a></div>
-</main>
+</main></div>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
                 onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>

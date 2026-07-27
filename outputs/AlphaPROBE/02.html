@@ -16,17 +16,25 @@ body {
     font-size: 17px;
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
+    display: flex;
 }
 .sidebar {
-    position: fixed;
-    left: 0; top: 0;
     width: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
     height: 100vh;
     overflow-y: auto;
     background: #F5F5F7;
     border-right: 1px solid #E8E8ED;
     padding: 28px 18px 40px;
     z-index: 100;
+}
+.main-wrap {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
 }
 .sidebar-title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; color: #1D1D1F; }
 .sidebar-sub { font-size: 12px; color: #86868B; margin: 0 0 22px; letter-spacing: 0.02em; }
@@ -40,7 +48,7 @@ body {
     font-size: 11px; color: #86868B; text-transform: uppercase;
     letter-spacing: 0.06em; margin: 18px 12px 6px;
 }
-main.content { max-width: 820px; margin: 0 0 0 240px; padding: 64px 40px 120px; }
+main.content { max-width: 820px; width: 100%; padding: 64px 40px 120px; }
 .hero { margin-bottom: 8px; }
 .badge {
     display: inline-block; font-size: 13px; font-weight: 600; color: #0071e3;
@@ -146,23 +154,47 @@ img { max-width: 100%; border-radius: 12px; }
     overflow-x: auto; white-space: pre; color: #1D1D1F;
 }
 .arch-tree .c { color: #86868B; }
+.flow-diagram {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+    margin: 24px 0; padding: 20px; background: #F5F5F7; border-radius: 12px;
+}
+.flow-node {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 8px;
+    padding: 10px 14px; font-size: 13px; font-weight: 600; color: #1D1D1F;
+    white-space: nowrap;
+}
+.flow-arrow { color: #0071e3; font-size: 18px; font-weight: 700; }
+.arch-layer {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 12px;
+    padding: 16px 20px; margin: 0 0 8px;
+}
+.arch-layer-title {
+    font-size: 13px; font-weight: 700; color: #0071e3;
+    text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px;
+}
+.arch-layer-nodes { display: flex; gap: 8px; flex-wrap: wrap; }
+.arch-node {
+    background: #F5F5F7; border-radius: 6px; padding: 6px 12px;
+    font-size: 13px; font-weight: 500; color: #1D1D1F;
+}
+.arch-arrow { text-align: center; color: #0071e3; font-size: 18px; margin: 4px 0; }
 @media (max-width: 860px) {
+    body { display: block; }
     .sidebar { position: static; width: 100%; height: auto; }
-    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .main-wrap { display: block; }
+    main.content { padding: 32px 20px 80px; }
     .toc-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
-<aside class="sidebar"><h2 class="sidebar-title">AlphaPROBE</h2><p class="sidebar-sub">深度代码教程</p><a href="index.html">首页</a><div class="group-label">数据层</div><a href="01.html">第1章 Qlib 行情数据加载</a><a href="02.html" class="active">第2章 表达式与算子体系</a><a href="03.html">第3章 IC/ICIR 因子评估</a><div class="group-label">核心层</div><a href="04.html">第4章 表达式知识图谱</a><a href="05.html">第5章 贝叶斯因子检索器</a><a href="06.html">第6章 LLM 表达式生成</a><div class="group-label">应用层</div><a href="07.html">第7章 训练主循环</a><a href="08.html">第8章 表达式验证与入池</a><a href="09.html">第9章 Mega-Alpha 动态组合</a><a href="10.html">第10章 Baseline 对比</a></aside><main class="content">
+<aside class="sidebar"><h2 class="sidebar-title">AlphaPROBE</h2><p class="sidebar-sub">深度代码教程</p><a href="index.html">首页</a><div class="group-label">数据层</div><a href="01.html">第1章 Qlib 行情数据加载</a><a href="02.html" class="active">第2章 表达式与算子体系</a><a href="03.html">第3章 IC/ICIR 因子评估</a><div class="group-label">核心层</div><a href="04.html">第4章 表达式知识图谱</a><a href="05.html">第5章 贝叶斯因子检索器</a><a href="06.html">第6章 LLM 表达式生成</a><div class="group-label">应用层</div><a href="07.html">第7章 训练主循环</a><a href="08.html">第8章 表达式验证与入池</a><a href="09.html">第9章 Mega-Alpha 动态组合</a><a href="10.html">第10章 Baseline 对比</a></aside><div class="main-wrap"><main class="content">
 <div class="hero"><span class="badge">第 2 章 · 数据层</span></div>
 <h1>第2章：表达式与算子体系</h1>
 <p class="subtitle">像 LEGO 积木，Abs/Add/Sub/Mul/Div/TsMean/TsCorr 等算子是基础块，组合成复杂 alpha 表达式。</p>
-<h2>欢迎</h2>
-<p>上一章我们拿到了干净的三维行情张量，但 LLM 不会直接输出张量——它输出的是字符串，比如 <code class="inline">Div(Sub($close, $open), Add(Sub($high, $low), 0.000001))</code>。AlphaPROBE 需要一套机制把这些字符串解析成可求值的对象树，再在张量上算出因子值。本章拆解 <code class="inline">src/alphagen/data/expression.py</code>、<code class="inline">tree.py</code>、<code class="inline">dimension.py</code> 三件套：表达式类层次、AST 解析器、量纲计算器。它们共同定义了 AlphaPROBE 的表达式 DSL，是 LLM 生成与池验证的共用语言。</p>
-<h2>它解决什么问题？</h2>
-<p>alpha 表达式本质上是一种小型 DSL（领域特定语言）。它有「词法」（Feature、Constant、DeltaTime）和「语法」（一元/二元/滚动/成对滚动四类算子）。如果没有统一的表达式体系，LLM 生成的字符串就无法被验证、无法被求值、更无法被纳入知识图谱。更麻烦的是，AlphaPROBE 要求所有候选因子<strong>量纲为零</strong>（dimensionless）——因为只有无量纲的因子才能在不同股票、不同价位间横向比较。这就需要一套量纲推导规则，自动判断一个表达式是否可比。</p>
-<p>类比 LEGO 积木：<code class="inline">Abs</code>、<code class="inline">Add</code>、<code class="inline">TsMean</code>、<code class="inline">TsCorr</code> 等算子是基础块，它们按固定接口（参数个数、类型）拼接，组合成复杂的 alpha 表达式。表达式体系既定义了积木块的形状，也定义了拼接规则，还提供了一把「量纲尺」量出成品是否合格。</p>
+<h2>本章概览</h2>
+<p>表达式体系是 AlphaPROBE 的 DSL，把 LLM 输出的字符串（如 <code class="inline">Div(Sub($close, $open), Add(Sub($high, $low), 0.000001))</code>）解析成可求值的对象树。本章拆解 <code class="inline">expression.py</code>、<code class="inline">tree.py</code>、<code class="inline">dimension.py</code> 三件套。<strong>输入：</strong>LLM 生成的表达式字符串。<strong>中间：</strong>ExpressionParser 递归拆解为 RPN token，ExpressionBuilder 在栈上组装成表达式对象树，DimensionCalculator 递归算量纲。<strong>输出：</strong>一棵可求值的 Expression 对象树，调用 <code class="inline">expr.evaluate(data)</code> 即得 <code class="inline">(T, N)</code> 因子张量。</p>
+<p>为什么要求量纲为零？因为只有无量纲的因子才能在不同股票、不同价位间横向比较。表达式体系既定义了算子的拼接规则，也提供了一把「量纲尺」自动判断表达式是否可比。</p>
 <h2>核心设计思路</h2>
 <p>设计上有四个关键点。第一，<strong>抽象基类 Expression</strong>：所有表达式都实现 <code class="inline">evaluate(data)</code> 接口，统一返回张量，并用 Python 运算符重载（<code class="inline">__add__</code> 等）让表达式可以用 <code class="inline">Ref(close,-20)/close-1</code> 这样自然的语法构造。第二，<strong>四类算子基类</strong>：UnaryOperator、BinaryOperator、RollingOperator、PairRollingOperator，每类有统一的构造与求值模板，新增算子只需实现 <code class="inline">_apply</code>。第三，<strong>RPN 解析器</strong>：ExpressionParser 把中缀字符串递归拆成逆波兰 token 序列，再由 ExpressionBuilder 在栈上组装成表达式树，每步都做合法性校验。第四，<strong>量纲递归推导</strong>：DimensionCalculator 按算子规则递归算出整棵树的量纲，Dim=0 才允许入池。</p>
 <h2>代码深入</h2>
@@ -391,7 +423,7 @@ img { max-width: 100%; border-radius: 12px; }
 <h2>小结</h2>
 <p>表达式体系用「抽象基类 + 四类算子 + RPN 解析器 + 量纲计算器」定义了 AlphaPROBE 的 DSL。Expression 统一求值接口，算子基类用 unfold 实现向量化滚动，解析器在栈上做即时校验，量纲计算器用代数规则保证因子可比。下一章我们看这些表达式如何被评估出 IC/ICIR。</p>
 <div class="nav-footer"><a href="01.html">← 第1章 Qlib 行情数据加载</a><a href="03.html">第3章 IC/ICIR 因子评估 →</a></div>
-</main>
+</main></div>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
                 onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>

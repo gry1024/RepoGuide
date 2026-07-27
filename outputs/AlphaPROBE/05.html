@@ -16,17 +16,25 @@ body {
     font-size: 17px;
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
+    display: flex;
 }
 .sidebar {
-    position: fixed;
-    left: 0; top: 0;
     width: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
     height: 100vh;
     overflow-y: auto;
     background: #F5F5F7;
     border-right: 1px solid #E8E8ED;
     padding: 28px 18px 40px;
     z-index: 100;
+}
+.main-wrap {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
 }
 .sidebar-title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; color: #1D1D1F; }
 .sidebar-sub { font-size: 12px; color: #86868B; margin: 0 0 22px; letter-spacing: 0.02em; }
@@ -40,7 +48,7 @@ body {
     font-size: 11px; color: #86868B; text-transform: uppercase;
     letter-spacing: 0.06em; margin: 18px 12px 6px;
 }
-main.content { max-width: 820px; margin: 0 0 0 240px; padding: 64px 40px 120px; }
+main.content { max-width: 820px; width: 100%; padding: 64px 40px 120px; }
 .hero { margin-bottom: 8px; }
 .badge {
     display: inline-block; font-size: 13px; font-weight: 600; color: #0071e3;
@@ -146,23 +154,47 @@ img { max-width: 100%; border-radius: 12px; }
     overflow-x: auto; white-space: pre; color: #1D1D1F;
 }
 .arch-tree .c { color: #86868B; }
+.flow-diagram {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+    margin: 24px 0; padding: 20px; background: #F5F5F7; border-radius: 12px;
+}
+.flow-node {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 8px;
+    padding: 10px 14px; font-size: 13px; font-weight: 600; color: #1D1D1F;
+    white-space: nowrap;
+}
+.flow-arrow { color: #0071e3; font-size: 18px; font-weight: 700; }
+.arch-layer {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 12px;
+    padding: 16px 20px; margin: 0 0 8px;
+}
+.arch-layer-title {
+    font-size: 13px; font-weight: 700; color: #0071e3;
+    text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px;
+}
+.arch-layer-nodes { display: flex; gap: 8px; flex-wrap: wrap; }
+.arch-node {
+    background: #F5F5F7; border-radius: 6px; padding: 6px 12px;
+    font-size: 13px; font-weight: 500; color: #1D1D1F;
+}
+.arch-arrow { text-align: center; color: #0071e3; font-size: 18px; margin: 4px 0; }
 @media (max-width: 860px) {
+    body { display: block; }
     .sidebar { position: static; width: 100%; height: auto; }
-    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .main-wrap { display: block; }
+    main.content { padding: 32px 20px 80px; }
     .toc-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
-<aside class="sidebar"><h2 class="sidebar-title">AlphaPROBE</h2><p class="sidebar-sub">深度代码教程</p><a href="index.html">首页</a><div class="group-label">数据层</div><a href="01.html">第1章 Qlib 行情数据加载</a><a href="02.html">第2章 表达式与算子体系</a><a href="03.html">第3章 IC/ICIR 因子评估</a><div class="group-label">核心层</div><a href="04.html">第4章 表达式知识图谱</a><a href="05.html" class="active">第5章 贝叶斯因子检索器</a><a href="06.html">第6章 LLM 表达式生成</a><div class="group-label">应用层</div><a href="07.html">第7章 训练主循环</a><a href="08.html">第8章 表达式验证与入池</a><a href="09.html">第9章 Mega-Alpha 动态组合</a><a href="10.html">第10章 Baseline 对比</a></aside><main class="content">
+<aside class="sidebar"><h2 class="sidebar-title">AlphaPROBE</h2><p class="sidebar-sub">深度代码教程</p><a href="index.html">首页</a><div class="group-label">数据层</div><a href="01.html">第1章 Qlib 行情数据加载</a><a href="02.html">第2章 表达式与算子体系</a><a href="03.html">第3章 IC/ICIR 因子评估</a><div class="group-label">核心层</div><a href="04.html">第4章 表达式知识图谱</a><a href="05.html" class="active">第5章 贝叶斯因子检索器</a><a href="06.html">第6章 LLM 表达式生成</a><div class="group-label">应用层</div><a href="07.html">第7章 训练主循环</a><a href="08.html">第8章 表达式验证与入池</a><a href="09.html">第9章 Mega-Alpha 动态组合</a><a href="10.html">第10章 Baseline 对比</a></aside><div class="main-wrap"><main class="content">
 <div class="hero"><span class="badge">第 5 章 · 核心层</span></div>
 <h1>第5章：贝叶斯因子检索器</h1>
 <p class="subtitle">像选秀节目的评委，综合「实力(ICIR)」「新鲜度(depth/times decay)」「多样性(互相关/语义/编辑距离)」打分，选出最值得进化的选手。</p>
-<h2>欢迎</h2>
-<p>AlphaPROBE 的两大核心组件之一——Bayesian Factor Retriever。知识图谱里存着所有候选因子，但每轮迭代只能挑出 top_k 个送给 LLM 进化。挑谁？这就是 <code class="inline">AlphaKnowledgePool.search</code> 要回答的问题。它综合「实力(ICIR)」「新鲜度(depth/times decay)」「多样性(互相关/语义/编辑距离)」三维度打分，像选秀评委一样选出最值得进化的选手。本章逐行拆解 <code class="inline">search</code> 方法，这是 AlphaPROBE 论文标题里「Principled Retrieval」的代码核心。</p>
-<h2>它解决什么问题？</h2>
-<p>因子检索看似简单（挑 IC 高的不就行了），实则充满矛盾。第一矛盾：<strong>实力 vs 新鲜度</strong>——ICIR 高的老因子已被反复压榨，再变异收益递减；深层新因子虽 ICIR 低，但可能蕴含新方向。第二矛盾：<strong>实力 vs 多样性</strong>——只挑 ICIR 最高的几个，它们可能高度相关（都是同一个因子的变体），LLM 生成的子代也会同质化。第三矛盾：<strong>叶子 vs 非叶子</strong>——叶子节点（无子代）还没被探索过，应优先；但非叶子节点已有子代增益数据，可评估「进化价值」。</p>
-<p>类比选秀评委：不能只看「当前实力(ICIR)」，还要看「新鲜度(depth/times decay)」（是否被过度开发）和「多样性(互相关/语义/编辑距离)」（与其他选手的差异化）。AlphaPROBE 用贝叶斯式乘法打分综合三维度，再用 leaf/non_leaf 分组保证两类节点都被选中。</p>
+<h2>本章概览</h2>
+<p>贝叶斯因子检索器是 AlphaPROBE 两大核心组件之一，每轮迭代从知识图谱里挑出 top_k 个最值得进化的因子送 LLM。本章逐行拆解 <code class="inline">AlphaKnowledgePool.search</code> 方法。<strong>输入：</strong>池内因子的 ICIR、图谱节点的 depth/times、mutual_ics 互相关矩阵、description/topic 文本、表达式 token。<strong>中间：</strong>ICIR 经 sigmoid 归一化，乘 depth/times 衰减得 quality_prob；叶子算三策略多样性，非叶子算子代增益×稀疏度；二者相乘得最终 score。<strong>输出：</strong>top_k 个 ExpressionNode 及对应表达式，供训练循环调用 LLM 生成；被选中节点的 times 递增。</p>
+<p>检索的三大矛盾：实力 vs 新鲜度（老因子已被压榨、新因子可能蕴含新方向）；实力 vs 多样性（只挑 ICIR 最高会让子代同质化）；叶子 vs 非叶子（叶子未探索、非叶子有进化数据）。AlphaPROBE 用乘法打分综合三维度，再用 leaf/non_leaf 分组保证两类节点都被选中。</p>
 <h2>核心设计思路</h2>
 <p>设计上有五个关键点。第一，<strong>ICIR 质量分经 sigmoid 归一化</strong>：先把 icir 标准化再过 <code class="inline">stable_sigmoid</code>，映射到 (0,1)，避免量纲差异。第二，<strong>双衰减乘子</strong>：<code class="inline">quality_prob = icir_logit * depth_decay * times_decay</code>，乘法让衰减直接压低被过度开发的因子。第三，<strong>叶子用三策略多样性</strong>：残差相关(1-mean_corr)、语义相似度(1-mean_sim)、编辑距离(mean_edit)，三者相乘得 pool_quality。第四，<strong>非叶子用子代增益 + 稀疏度</strong>：子代 ICIR 相对父代的增益（鼓励产出优秀子代的父），乘以父子/子子相关的稀疏度（鼓励产出差异化子代的父）。第五，<strong>leaf/non_leaf 分组选 top_k</strong>：各取一半 top_k，保证探索与利用平衡。</p>
 <h2>代码深入</h2>
@@ -309,7 +341,7 @@ img { max-width: 100%; border-radius: 12px; }
 <h2>小结</h2>
 <p>贝叶斯检索器用「ICIR 质量分 × depth/times 双衰减 × 三策略多样性/子代增益」三维度乘法打分，再用 leaf/non_leaf 分组保证探索与利用平衡，选出 top_k 个因子送 LLM 进化。这是 AlphaPROBE「Principled Retrieval」的代码核心。下一章看 LLM 如何在这些因子上生成变体。</p>
 <div class="nav-footer"><a href="04.html">← 第4章 表达式知识图谱</a><a href="06.html">第6章 LLM 表达式生成 →</a></div>
-</main>
+</main></div>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
                 onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>

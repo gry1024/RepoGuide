@@ -16,18 +16,28 @@ body {
     font-size: 17px;
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
+    display: flex;
+    align-items: flex-start;
 }
 /* 侧边栏 */
 .sidebar {
-    position: fixed;
-    left: 0; top: 0;
     width: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
     height: 100vh;
     overflow-y: auto;
     background: #F5F5F7;
     border-right: 1px solid #E8E8ED;
     padding: 28px 18px 40px;
     z-index: 100;
+}
+/* 主内容外层：在侧边栏右侧的剩余空间内水平居中正文 */
+.main-wrap {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
 }
 .sidebar-title {
     font-size: 17px;
@@ -68,7 +78,7 @@ body {
 /* 主内容 */
 main.content {
     max-width: 820px;
-    margin: 0 0 0 240px;
+    width: 100%;
     padding: 64px 40px 120px;
 }
 .hero { margin-bottom: 8px; }
@@ -304,8 +314,7 @@ img { max-width: 100%; border-radius: 12px; }
 .cm-rel b { color: #0071e3; }
 /* 架构树 */
 .arch-tree {
-    background: #FFFFFF;
-    border: 1px solid #E8E8ED;
+    background: #F5F5F7;
     border-radius: 12px;
     padding: 20px 24px;
     font-family: "SF Mono", Menlo, Consolas, monospace;
@@ -316,9 +325,71 @@ img { max-width: 100%; border-radius: 12px; }
     color: #1D1D1F;
 }
 .arch-tree .c { color: #86868B; }
+/* 数据流流程图（线性） */
+.flow-diagram {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 24px 0;
+    padding: 20px;
+    background: #F5F5F7;
+    border-radius: 12px;
+}
+.flow-node {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1D1D1F;
+    white-space: nowrap;
+}
+.flow-arrow {
+    color: #0071e3;
+    font-size: 18px;
+    font-weight: 700;
+}
+/* 架构总览图（分层） */
+.arch-layer {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 0 0 8px;
+}
+.arch-layer-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0071e3;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 10px;
+}
+.arch-layer-nodes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.arch-node {
+    background: #F5F5F7;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+}
+.arch-arrow {
+    text-align: center;
+    color: #0071e3;
+    font-size: 18px;
+    margin: 4px 0;
+}
 @media (max-width: 860px) {
+    body { display: block; }
     .sidebar { position: static; width: 100%; height: auto; }
-    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .main-wrap { display: block; }
+    main.content { padding: 32px 20px 80px; }
     .toc-grid { grid-template-columns: 1fr; }
 }
 </style>
@@ -338,13 +409,14 @@ img { max-width: 100%; border-radius: 12px; }
 <a href="08.html">第8章 Alpha 动态组合</a>
 <a href="09.html">第9章 评估指标</a>
 <a href="10.html" class="active">第10章 Baseline 对比</a></aside>
+<div class="main-wrap">
 <main class="content">
 <div class="hero"><span class="badge">第 10 章 · 应用层</span></div>
 <h1>第10章：Baseline 对比</h1>
 <p class="subtitle">像同场竞技的对照组，PPO、QCM、AFF 各显神通，用以衡量 GFlowNet 的优势。</p>
-<h2>欢迎</h2>
-<p>GFlowNet 是 AlphaSAGE 的主角，但要证明它真的更好，必须有对照组。仓库提供了三类基线：<strong>PPO</strong>（经典策略梯度）、<strong>QCM</strong>（分布式强化学习）、<strong>AFF</strong>（注意力因子融合）。它们与 GFlowNet 共享同一套数据接口、同一套 AlphaPool、同一套评估指标，只换生成或组合方法——这样对比才公平。</p>
-<p>本章快速过一遍三个基线的入口，重点看它们与 GFlowNet 的异同。你会发现：PPO 与 GFlowNet 共享环境与池，只是采样器不同；QCM 用分布式 RL 建模回报分布；AFF 则在组合层做注意力融合，对照 Mega-Alpha 的线性回归组合。</p>
+<h2>这个模块做什么</h2>
+<p><code class="inline">train_ppo.py</code>、<code class="inline">train_qcm.py</code>、<code class="inline">combine_AFF.py</code> 是 AlphaSAGE 的三类基线。它们的输入与 GFlowNet 主线相同（同一套 StockData、target、AlphaPool），输出是各自的训练产物与测试指标，中间只换生成器或组合器：PPO 用 MaskablePPO 采样，QCM 用分布式 RL 建模回报分布，AFF 用注意力机制做非线性因子融合。共享环境让对比只归因于方法本身。</p>
+<p>PPO/QCM 在生成层对照 GFlowNet，AFF 在组合层对照 Mega-Alpha 的线性回归。三个基线从生成到组合覆盖了完整的对比空间。</p>
 <h2>它解决什么问题？</h2>
 <p>没有基线的实验是空中楼阁。AlphaSAGE 的核心论断是「GFlowNet 比 RL 更能生成多样化的 alpha」。要支持这个论断，必须让 GFlowNet 与 PPO 在完全相同的环境（AlphaPool、reward、数据切分）下跑，比池的多样性、IC 分布、最终组合 Sharpe。</p>
 <p>QCM 提供另一维对照：分布式 RL 不只预测期望回报，还预测回报的分位数分布，理论上信息量更大。AFF 则对照组合方法——它用注意力机制学习因子间的非线性融合权重，对照 Mega-Alpha 的线性最小二乘回归。三个基线从生成到组合全面覆盖了对比空间。</p>
@@ -561,9 +633,10 @@ img { max-width: 100%; border-radius: 12px; }
 <div class="math-block">$$\hat{y} = \sum_i \alpha_i\, v_i, \quad \alpha_i = \text{softmax}(\text{Attn}(v_i, v_{1:n}))$$</div>
 <p>对照 Mega-Alpha 的 $\hat{y} = \sum_i w_i v_i$（$w_i$ 来自最小二乘）。前者权重是学出来的非线性函数，后者是数据驱动的线性解。</p>
 <h2>小结</h2>
-<p>本章你看到了 AlphaSAGE 的对照实验设计。PPO、QCM 在生成层对照 GFlowNet，AFF 在组合层对照 Mega-Alpha。共享环境与评估口径让对比公平。这套基线不是装饰，而是 AlphaSAGE 论文结论的基石——没有它们，「GFlowNet 更多样」「Mega-Alpha 更稳」都只是断言。至此，十章节走完了从数据到生成、从训练到组合、从评估到对照的完整闭环。</p>
+<p>AlphaSAGE 的对照实验设计：PPO、QCM 在生成层对照 GFlowNet，AFF 在组合层对照 Mega-Alpha。共享环境与评估口径让对比公平。这套基线不是装饰，而是 AlphaSAGE 论文结论的基石——没有它们，「GFlowNet 更多样」「Mega-Alpha 更稳」都只是断言。至此，十章节走完了从数据到生成、从训练到组合、从评估到对照的完整闭环。</p>
 <div class="nav-footer"><a href="09.html">← 第9章 评估指标</a><a href="index.html">目录</a><a href="index.html">返回目录 →</a></div>
 </main>
+</div>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
                 onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>

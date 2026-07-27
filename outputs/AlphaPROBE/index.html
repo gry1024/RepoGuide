@@ -16,17 +16,25 @@ body {
     font-size: 17px;
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
+    display: flex;
 }
 .sidebar {
-    position: fixed;
-    left: 0; top: 0;
     width: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
     height: 100vh;
     overflow-y: auto;
     background: #F5F5F7;
     border-right: 1px solid #E8E8ED;
     padding: 28px 18px 40px;
     z-index: 100;
+}
+.main-wrap {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
 }
 .sidebar-title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; color: #1D1D1F; }
 .sidebar-sub { font-size: 12px; color: #86868B; margin: 0 0 22px; letter-spacing: 0.02em; }
@@ -40,7 +48,7 @@ body {
     font-size: 11px; color: #86868B; text-transform: uppercase;
     letter-spacing: 0.06em; margin: 18px 12px 6px;
 }
-main.content { max-width: 820px; margin: 0 0 0 240px; padding: 64px 40px 120px; }
+main.content { max-width: 820px; width: 100%; padding: 64px 40px 120px; }
 .hero { margin-bottom: 8px; }
 .badge {
     display: inline-block; font-size: 13px; font-weight: 600; color: #0071e3;
@@ -146,56 +154,151 @@ img { max-width: 100%; border-radius: 12px; }
     overflow-x: auto; white-space: pre; color: #1D1D1F;
 }
 .arch-tree .c { color: #86868B; }
+.flow-diagram {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+    margin: 24px 0; padding: 20px; background: #F5F5F7; border-radius: 12px;
+}
+.flow-node {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 8px;
+    padding: 10px 14px; font-size: 13px; font-weight: 600; color: #1D1D1F;
+    white-space: nowrap;
+}
+.flow-arrow { color: #0071e3; font-size: 18px; font-weight: 700; }
+.arch-layer {
+    background: #FFFFFF; border: 1px solid #E8E8ED; border-radius: 12px;
+    padding: 16px 20px; margin: 0 0 8px;
+}
+.arch-layer-title {
+    font-size: 13px; font-weight: 700; color: #0071e3;
+    text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px;
+}
+.arch-layer-nodes { display: flex; gap: 8px; flex-wrap: wrap; }
+.arch-node {
+    background: #F5F5F7; border-radius: 6px; padding: 6px 12px;
+    font-size: 13px; font-weight: 500; color: #1D1D1F;
+}
+.arch-arrow { text-align: center; color: #0071e3; font-size: 18px; margin: 4px 0; }
 @media (max-width: 860px) {
+    body { display: block; }
     .sidebar { position: static; width: 100%; height: auto; }
-    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .main-wrap { display: block; }
+    main.content { padding: 32px 20px 80px; }
     .toc-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
-<aside class="sidebar"><h2 class="sidebar-title">AlphaPROBE</h2><p class="sidebar-sub">深度代码教程</p><a href="index.html" class="active">首页</a><div class="group-label">数据层</div><a href="01.html">第1章 Qlib 行情数据加载</a><a href="02.html">第2章 表达式与算子体系</a><a href="03.html">第3章 IC/ICIR 因子评估</a><div class="group-label">核心层</div><a href="04.html">第4章 表达式知识图谱</a><a href="05.html">第5章 贝叶斯因子检索器</a><a href="06.html">第6章 LLM 表达式生成</a><div class="group-label">应用层</div><a href="07.html">第7章 训练主循环</a><a href="08.html">第8章 表达式验证与入池</a><a href="09.html">第9章 Mega-Alpha 动态组合</a><a href="10.html">第10章 Baseline 对比</a></aside><main class="content">
+<aside class="sidebar"><h2 class="sidebar-title">AlphaPROBE</h2><p class="sidebar-sub">深度代码教程</p><a href="index.html" class="active">首页</a><div class="group-label">数据层</div><a href="01.html">第1章 Qlib 行情数据加载</a><a href="02.html">第2章 表达式与算子体系</a><a href="03.html">第3章 IC/ICIR 因子评估</a><div class="group-label">核心层</div><a href="04.html">第4章 表达式知识图谱</a><a href="05.html">第5章 贝叶斯因子检索器</a><a href="06.html">第6章 LLM 表达式生成</a><div class="group-label">应用层</div><a href="07.html">第7章 训练主循环</a><a href="08.html">第8章 表达式验证与入池</a><a href="09.html">第9章 Mega-Alpha 动态组合</a><a href="10.html">第10章 Baseline 对比</a></aside><div class="main-wrap"><main class="content">
 <div class="hero"><span class="badge">AlphaPROBE 深度代码教程</span></div>
 <h1>AlphaPROBE：基于 DAG 偏置进化的 alpha 挖掘</h1>
 <p class="subtitle">Alpha Mining Via Principled Retrieval and On-graph Biased Evolution —— 用贝叶斯检索器与 DAG 感知 LLM 生成器，把 alpha 挖掘建模为 DAG 上的有方向进化。</p>
-<h2>论文概览</h2>
-<p><strong>AlphaPROBE</strong>（<code class="inline">Alpha Mining Via Principled Retrieval and On-graph Biased Evolution</code>）把 alpha 挖掘重新建模为「在表达式 DAG 上的策略性导航」。它由两大核心组件构成：<strong>贝叶斯因子检索器</strong>（Bayesian Factor Retriever）综合 ICIR 质量分、depth/times 衰减、三策略多样性选 out top_k 个最值得进化的因子；<strong>DAG 感知因子生成器</strong>（DAG-aware Factor Generator）用 LLM 在父因子的进化 traces 引导下生成 N 个语义不同的变体。两者闭环运行，让搜索方向不断自我修正，最终产出的因子池用滚动 OLS 组合成 Mega-Alpha 预测。</p>
-<p>本教程逐行拆解 AlphaPROBE 的真实代码，按「数据层 → 核心层 → 应用层」三层架构组织 10 章内容，每章都包含代码卡片（带行号与中文注释）、数据流分析、关联公式与设计权衡。目标是让你不仅能看懂 AlphaPROBE 怎么用，更能理解每个设计决策背后的「为什么」。</p>
-<h2>概念地图</h2>
-<p>10 个核心概念按三层架构组织，箭头表示数据流向与依赖关系：</p>
-<div class="concept-map">
-<div class="cm-layer"><div class="cm-layer-label">数据层</div><div class="cm-nodes">
-<div class="cm-node"><div class="cm-id">01</div><div class="cm-name">Qlib 行情数据加载</div></div>
-<div class="cm-node"><div class="cm-id">02</div><div class="cm-name">表达式与算子体系</div></div>
-<div class="cm-node"><div class="cm-id">03</div><div class="cm-name">IC/ICIR 因子评估</div></div>
-</div></div>
-<div class="cm-arrow">↓ 行情张量 / 表达式树 / IC 指标 向下传递</div>
-<div class="cm-layer"><div class="cm-layer-label">核心层</div><div class="cm-nodes">
-<div class="cm-node"><div class="cm-id">04</div><div class="cm-name">表达式知识图谱</div></div>
-<div class="cm-node"><div class="cm-id">05</div><div class="cm-name">贝叶斯因子检索器</div></div>
-<div class="cm-node"><div class="cm-id">06</div><div class="cm-name">LLM 表达式生成</div></div>
-</div></div>
-<div class="cm-arrow">↓ 检索选因子 / 生成变体 / 入池更新图谱</div>
-<div class="cm-layer"><div class="cm-layer-label">应用层</div><div class="cm-nodes">
-<div class="cm-node"><div class="cm-id">07</div><div class="cm-name">训练主循环</div></div>
-<div class="cm-node"><div class="cm-id">08</div><div class="cm-name">表达式验证与入池</div></div>
-<div class="cm-node"><div class="cm-id">09</div><div class="cm-name">Mega-Alpha 动态组合</div></div>
-<div class="cm-node"><div class="cm-id">10</div><div class="cm-name">Baseline 对比</div></div>
-</div></div>
+<h2>项目简介</h2>
+<p><strong>AlphaPROBE</strong>（<code class="inline">Alpha Mining Via Principled Retrieval and On-graph Biased Evolution</code>）由两大核心组件构成：<strong>贝叶斯因子检索器</strong>（Bayesian Factor Retriever）综合 ICIR 质量分、depth/times 衰减与三策略多样性，选出 top_k 个最值得进化的因子；<strong>DAG 感知因子生成器</strong>（DAG-aware Factor Generator）用 LLM 在父因子的进化 traces 引导下生成 N 个语义不同的变体。两者闭环运行，最终产出的因子池用滚动 OLS 组合成 Mega-Alpha 预测。</p>
+<p>本教程逐行拆解 AlphaPROBE 的真实代码，按「数据层 → 核心层 → 应用层」三层架构组织 10 章内容，每章包含代码卡片（带行号与中文注释）、数据流分析、关联公式与设计权衡。</p>
+<h2>数据流流程图</h2>
+<p>AlphaPROBE 从行情数据到 Mega-Alpha 预测的线性数据流：</p>
+<div class="flow-diagram">
+<div class="flow-node">Qlib行情数据</div>
+<span class="flow-arrow">→</span>
+<div class="flow-node">表达式AST解析</div>
+<span class="flow-arrow">→</span>
+<div class="flow-node">IC/ICIR评估</div>
+<span class="flow-arrow">→</span>
+<div class="flow-node">知识图谱DAG构建</div>
+<span class="flow-arrow">→</span>
+<div class="flow-node">贝叶斯检索器选因子</div>
+<span class="flow-arrow">→</span>
+<div class="flow-node">LLM变异生成</div>
+<span class="flow-arrow">→</span>
+<div class="flow-node">验证入池</div>
+<span class="flow-arrow">→</span>
+<div class="flow-node">动态组合</div>
+<span class="flow-arrow">→</span>
+<div class="flow-node">Mega-Alpha预测</div>
 </div>
-<h3>关键依赖关系</h3>
-<div class="cm-rels">
-<span class="cm-rel"><b>01 → 02</b> StockData 张量供 Feature.evaluate 切片</span>
-<span class="cm-rel"><b>02 → 03</b> Expression 求值后算 IC/ICIR</span>
-<span class="cm-rel"><b>03 → 05</b> ICIR 是检索器质量分核心</span>
-<span class="cm-rel"><b>04 → 05</b> depth/times 驱动检索器衰减</span>
-<span class="cm-rel"><b>04 → 06</b> path_to_root 拼 traces 喂 LLM</span>
-<span class="cm-rel"><b>05 → 07</b> search 选因子触发一轮迭代</span>
-<span class="cm-rel"><b>06 → 07</b> LLM 生成变体送验证</span>
-<span class="cm-rel"><b>07 → 08</b> try_new_expr 双路径入池</span>
-<span class="cm-rel"><b>08 → 04</b> 入池后 insert 更新图谱</span>
-<span class="cm-rel"><b>07 → 09</b> 训练产出的池供组合</span>
-<span class="cm-rel"><b>09 → 10</b> 组合指标与 baseline 对比</span>
+<h2>架构总览图</h2>
+<p>三层架构，自底向上：数据层提供张量与表达式，核心层在 DAG 上做闭环进化，应用层负责训练、组合与对比。</p>
+<div class="arch-layer">
+<div class="arch-layer-title">数据层</div>
+<div class="arch-layer-nodes">
+<div class="arch-node">StockData</div>
+<div class="arch-node">ExpressionParser</div>
+<div class="arch-node">Calculator</div>
+</div></div>
+<div class="arch-arrow">↑</div>
+<div class="arch-layer">
+<div class="arch-layer-title">核心层</div>
+<div class="arch-layer-nodes">
+<div class="arch-node">ExpressionKnowledgeGraph</div>
+<div class="arch-node">BayesianRetriever</div>
+<div class="arch-node">LLMGenerator</div>
+</div></div>
+<div class="arch-arrow">↑</div>
+<div class="arch-layer">
+<div class="arch-layer-title">应用层</div>
+<div class="arch-layer-nodes">
+<div class="arch-node">TrainLoop</div>
+<div class="arch-node">Validation</div>
+<div class="arch-node">DynamicCombination</div>
+<div class="arch-node">Baseline</div>
+</div></div>
+<h2>代码结构树</h2>
+<p>AlphaPROBE 仓库的目录结构，每个文件后标注其职责：</p>
+<div class="arch-tree">
+AlphaPROBE/
+
+├── src/                              <span class="c"># 核心源码包</span>
+
+│   ├── alpha_knowledge/              <span class="c"># 知识图谱与贝叶斯检索</span>
+
+│   │   ├── alpha_knowledge_trainer.py <span class="c"># 训练主循环与日志</span>
+
+│   │   └── alpha_pool.py             <span class="c"># 贝叶斯因子检索器</span>
+
+│   ├── alphagen/                     <span class="c"># 表达式与计算</span>
+
+│   │   ├── data/
+
+│   │   │   ├── expression.py         <span class="c"># 表达式类层次</span>
+
+│   │   │   ├── expression_knowledge_graph.py <span class="c"># 知识图谱DAG</span>
+
+│   │   │   ├── tree.py               <span class="c"># AST解析器</span>
+
+│   │   │   └── calculator.py         <span class="c"># 量纲计算</span>
+
+│   │   ├── models/alpha_pool.py      <span class="c"># 基础Alpha池</span>
+
+│   │   ├── rl/                       <span class="c"># RL环境与策略</span>
+
+│   │   └── utils/correlation.py      <span class="c"># IC/ICIR/收益计算</span>
+
+│   ├── alphagen_qlib/                <span class="c"># Qlib数据对接</span>
+
+│   │   ├── stock_data.py             <span class="c"># 行情数据加载</span>
+
+│   │   └── calculator.py             <span class="c"># 表达式求值</span>
+
+│   ├── fqf_iqn_qrdqn/                <span class="c"># 分布式RL基线</span>
+
+│   ├── gan/                          <span class="c"># GAN基线</span>
+
+│   └── utils/
+
+│       ├── llm.py                    <span class="c"># OpenAI API封装</span>
+
+│       └── prompt.py                 <span class="c"># LLM提示词</span>
+
+├── train_new_work.py                 <span class="c"># AlphaPROBE主入口</span>
+
+├── train_gfn.py                      <span class="c"># GFlowNet基线</span>
+
+├── train_ppo.py                      <span class="c"># PPO基线</span>
+
+├── train_qcm.py                      <span class="c"># QCM基线</span>
+
+└── run_adaptive_combination.py       <span class="c"># Mega-Alpha动态组合</span>
+
 </div>
 <h2>章节目录</h2>
 <div class="toc-grid">
@@ -210,125 +313,28 @@ img { max-width: 100%; border-radius: 12px; }
 <a class="toc-card" href="09.html"><div class="tc-num">第 9 章 · 应用层</div><div class="tc-title">第9章 Mega-Alpha 动态组合</div><div class="tc-desc">滚动窗口 OLS 回归，shift 避免 lookahead bias，共线性去除保证数值稳定。</div></a>
 <a class="toc-card" href="10.html"><div class="tc-num">第 10 章 · 应用层</div><div class="tc-title">Baseline 对比</div><div class="tc-desc">GFlowNet/FQF/IQN/QRDQN/GAN/PPO/GP 七大 baseline 横向对比，凸显 LLM+DAG 路线优势。</div></a>
 </div>
-<h2>端到端数据流</h2>
-<p>从行情数据到 Mega-Alpha 预测的完整数据流：</p>
-<div class="arch-tree">
-<span class="c"># 1. 数据层：Qlib 行情 → GPU 张量</span>
-
-Qlib binary data
-
-  └─ StockData._load_exprs  (src/alphagen_qlib/stock_data.py)
-
-      └─ StockData._get_data → (n_days, n_features, n_stocks) Tensor
-
-
-
-<span class="c"># 2. 核心层：DAG 上的闭环进化</span>
-
-初始 29 表达式 (train_new_work.py:21)
-
-  └─ AlphaKnowledgeTrainer.train  (alpha_knowledge_trainer.py)
-
-      ├─ [检索] pool.search → top_k 个 ExpressionNode
-
-      │     ├─ ICIR sigmoid 归一化 (alpha_pool.py:148)
-
-      │     ├─ depth/times 双衰减 (alpha_pool.py:152-153)
-
-      │     └─ leaf: 三策略多样性 / non_leaf: 子代增益×稀疏度
-
-      ├─ [生成] graph.path_to_root → traces
-
-      │     └─ model.chat_generate (PROMPT_GENERARTION + 算子定义)
-
-      │         └─ JSON 解析兜底 → N 个新表达式
-
-      ├─ [验证] parser.parse 语法校验
-
-      │     └─ pool._calc_ics_and_icir → IC/ICIR/MutIC
-
-      ├─ [入池] pool.try_new_expr 双路径判定
-
-      │     ├─ 路径一: ICIR 超越父因子
-
-      │     └─ 路径二: MutIC 显著降低 且 ICIR ≥ 父×0.7
-
-      └─ [日志] logger.log → pool_*.json + res.txt
-
-
-
-<span class="c"># 3. 应用层：Mega-Alpha 动态组合</span>
-
-pool_*.json (表达式列表)
-
-  └─ run_adaptive_combination.run  (run_adaptive_combination.py)
-
-      ├─ 预计算逐日 IC/RankIC 张量
-
-      ├─ 滚动循环 (每天):
-
-      │     ├─ 双阈值筛因子 (threshold_ric / threshold_ricir)
-
-      │     ├─ remove_linearly_dependent_cols 去共线性
-
-      │     └─ torch.linalg.lstsq OLS 回归 → 当天预测
-
-      └─ 输出: valid/test IC/ICIR/夏普/最大回撤 + ret_s.npy
-
+<h2>论文速览</h2>
+<p><strong>贝叶斯因子检索器：</strong>综合 ICIR 质量分（经 sigmoid 归一化）、depth/times 双衰减（鼓励浅层新因子、避免反复压榨老因子）、三策略多样性（残差相关 / 语义相似度 / 编辑距离），用乘法打分综合三维度，再用 leaf/non_leaf 分组各取 top_k/2，保证探索与利用平衡。</p>
+<p><strong>DAG 感知因子生成器：</strong>知识图谱记录每个表达式的父节点、depth（变异代数）、times（被选中次数）。<code class="inline">path_to_root</code> 追溯一条进化血脉，拼成 traces 喂给 LLM；LLM 在 topic 约束下生成 N 个语义不同的变体，用 12 条校验规则约束输出格式，JSON 解析兜底保证鲁棒性。</p>
+<p><strong>闭环与组合：</strong>检索→生成→验证→入池→日志五步闭环，双路径入池判定兼顾质量与多样性。最终因子池用滚动窗口 OLS 回归生成 Mega-Alpha 预测，<code class="inline">shift = label_days + 1</code> 严格避免 lookahead bias。</p>
+<h3>关键依赖关系</h3>
+<div class="cm-rels">
+<span class="cm-rel"><b>01 → 02</b> StockData 张量供 Feature.evaluate 切片</span>
+<span class="cm-rel"><b>02 → 03</b> Expression 求值后算 IC/ICIR</span>
+<span class="cm-rel"><b>03 → 05</b> ICIR 是检索器质量分核心</span>
+<span class="cm-rel"><b>04 → 05</b> depth/times 驱动检索器衰减</span>
+<span class="cm-rel"><b>04 → 06</b> path_to_root 拼 traces 喂 LLM</span>
+<span class="cm-rel"><b>05 → 07</b> search 选因子触发一轮迭代</span>
+<span class="cm-rel"><b>06 → 07</b> LLM 生成变体送验证</span>
+<span class="cm-rel"><b>07 → 08</b> try_new_expr 双路径入池</span>
+<span class="cm-rel"><b>08 → 04</b> 入池后 insert 更新图谱</span>
+<span class="cm-rel"><b>07 → 09</b> 训练产出的池供组合</span>
+<span class="cm-rel"><b>09 → 10</b> 组合指标与 baseline 对比</span>
 </div>
 <h2>阅读路径</h2>
 <p><strong>线性阅读：</strong>从第 1 章数据层开始，逐章深入到第 10 章 baseline 对比，适合想完整理解 AlphaPROBE 的读者。每章末尾的「小结」会预告下一章主题。</p>
 <p><strong>按兴趣跳读：</strong>如果你关心 LLM 如何生成表达式，直接看第 6 章；如果你关心检索器如何选因子，看第 5 章；如果你关心最终预测如何生成，看第 9 章。每章都自包含必要的背景说明。</p>
 <p><strong>代码实践：</strong>本教程所有代码卡片都标注了真实文件路径与行号，建议打开 <code class="inline">_repoguide_probe/repo/</code> 源码对照阅读，并结合 <code class="inline">train_new_work.py</code> 与 <code class="inline">run_adaptive_combination.py</code> 两个入口脚本实际跑通管线。</p>
-<h2>关键文件索引</h2>
-<div class="arch-tree">
-<span class="c"># 入口脚本</span>
-
-train_new_work.py              <span class="c"># AlphaPROBE 主入口：实例化 trainer 并 train</span>
-
-run_adaptive_combination.py    <span class="c"># Mega-Alpha 动态组合入口</span>
-
-train_gfn.py / train_qcm.py / train_ppo.py / train_AFF.py / train_GP.py
-
-                                <span class="c"># 5 个 baseline 训练入口</span>
-
-
-
-<span class="c"># 核心模块</span>
-
-src/alpha_knowledge/
-
-  ├─ alpha_knowledge_trainer.py <span class="c"># 训练主循环 + 日志 + 组合评估</span>
-
-  └─ alpha_pool.py              <span class="c"># 贝叶斯检索器 + AlphaKnowledgePool</span>
-
-src/alphagen/
-
-  ├─ data/expression.py         <span class="c"># Expression 抽象 + 四类算子</span>
-
-  ├─ data/tree.py               <span class="c"># RPN 解析器 + validate</span>
-
-  ├─ data/dimension.py          <span class="c"># 量纲计算器</span>
-
-  ├─ data/expression_knowledge_graph.py  <span class="c"># DAG + ExpressionNode</span>
-
-  ├─ models/alpha_pool.py       <span class="c"># AlphaPool 基类 + 末位淘汰</span>
-
-  └─ utils/correlation.py       <span class="c"># batch_pearsonr / spearmanr</span>
-
-src/alphagen_qlib/
-
-  ├─ stock_data.py              <span class="c"># StockData: Qlib → 张量</span>
-
-  └─ calculator.py              <span class="c"># QLibStockDataCalculator: IC/ICIR</span>
-
-src/utils/
-
-  ├─ llm.py                     <span class="c"># OpenAIModel 带 backoff 重试</span>
-
-  └─ prompt.py                  <span class="c"># PROMPT_HEAD / GENERARTION 等</span>
-
-</div>
 <h2>开始阅读</h2>
 <p>建议从第 1 章开始，逐章理解 AlphaPROBE 的设计哲学与代码实现：</p>
 <div class="toc-grid">
@@ -336,7 +342,7 @@ src/utils/
 <a class="toc-card" href="05.html"><div class="tc-num">第 5 章 · 核心层</div><div class="tc-title">贝叶斯因子检索器</div><div class="tc-desc">AlphaPROBE 的核心创新：三维度乘法打分 + leaf/non_leaf 分组选 top_k。</div></a>
 <a class="toc-card" href="09.html"><div class="tc-num">第 9 章 · 应用层</div><div class="tc-title">Mega-Alpha 动态组合</div><div class="tc-desc">滚动窗口 OLS 回归生成可交易 alpha 预测的最后一公里。</div></a>
 </div>
-</main>
+</main></div>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
                 onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>

@@ -16,18 +16,28 @@ body {
     font-size: 17px;
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
+    display: flex;
+    align-items: flex-start;
 }
 /* 侧边栏 */
 .sidebar {
-    position: fixed;
-    left: 0; top: 0;
     width: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
     height: 100vh;
     overflow-y: auto;
     background: #F5F5F7;
     border-right: 1px solid #E8E8ED;
     padding: 28px 18px 40px;
     z-index: 100;
+}
+/* 主内容外层：在侧边栏右侧的剩余空间内水平居中正文 */
+.main-wrap {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
 }
 .sidebar-title {
     font-size: 17px;
@@ -68,7 +78,7 @@ body {
 /* 主内容 */
 main.content {
     max-width: 820px;
-    margin: 0 0 0 240px;
+    width: 100%;
     padding: 64px 40px 120px;
 }
 .hero { margin-bottom: 8px; }
@@ -304,8 +314,7 @@ img { max-width: 100%; border-radius: 12px; }
 .cm-rel b { color: #0071e3; }
 /* 架构树 */
 .arch-tree {
-    background: #FFFFFF;
-    border: 1px solid #E8E8ED;
+    background: #F5F5F7;
     border-radius: 12px;
     padding: 20px 24px;
     font-family: "SF Mono", Menlo, Consolas, monospace;
@@ -316,9 +325,71 @@ img { max-width: 100%; border-radius: 12px; }
     color: #1D1D1F;
 }
 .arch-tree .c { color: #86868B; }
+/* 数据流流程图（线性） */
+.flow-diagram {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 24px 0;
+    padding: 20px;
+    background: #F5F5F7;
+    border-radius: 12px;
+}
+.flow-node {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1D1D1F;
+    white-space: nowrap;
+}
+.flow-arrow {
+    color: #0071e3;
+    font-size: 18px;
+    font-weight: 700;
+}
+/* 架构总览图（分层） */
+.arch-layer {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 0 0 8px;
+}
+.arch-layer-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0071e3;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 10px;
+}
+.arch-layer-nodes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.arch-node {
+    background: #F5F5F7;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+}
+.arch-arrow {
+    text-align: center;
+    color: #0071e3;
+    font-size: 18px;
+    margin: 4px 0;
+}
 @media (max-width: 860px) {
+    body { display: block; }
     .sidebar { position: static; width: 100%; height: auto; }
-    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .main-wrap { display: block; }
+    main.content { padding: 32px 20px 80px; }
     .toc-grid { grid-template-columns: 1fr; }
 }
 </style>
@@ -338,70 +409,61 @@ img { max-width: 100%; border-radius: 12px; }
 <a href="08.html">第8章 Alpha 动态组合</a>
 <a href="09.html">第9章 评估指标</a>
 <a href="10.html">第10章 Baseline 对比</a></aside>
+<div class="main-wrap">
 <main class="content">
 <div class="hero"><span class="badge">AlphaSAGE · 深度代码教程</span></div>
 <h1>AlphaSAGE 代码教程</h1>
 <p class="subtitle">从行情数据到 Mega-Alpha：逐行拆解 GFlowNet 因子生成框架</p>
 <h2>项目简介</h2>
-<p>AlphaSAGE 是一个基于 <strong>GFlowNet</strong> 的 alpha 因子自动生成与组合框架。它用 Trajectory Balance 在表达式空间里采样多样化因子，用 RGCN 编码表达式结构，用 IC+SSL+NOV 三维奖励驱动训练，最后用滚动回归把候选因子融合成稳健的 Mega-Alpha。本教程逐行拆解真实源码，覆盖从数据加载到基线对比的完整闭环。</p>
+<p>AlphaSAGE 是一个基于 <strong>GFlowNet</strong> 的 alpha 因子自动生成与组合框架。它的输入是 Qlib 行情数据，输出是可交易的 Mega-Alpha 复合因子，中间依次完成表达式采样、结构编码、池筛选、滚动回归四件事。本教程逐行拆解真实源码，覆盖从数据加载到基线对比的完整闭环。</p>
 <p>仓库共 42 个文件、约 35 个 Python 模块，入口包括 <code class="inline">train_gfn.py</code>（GFlowNet 训练）、<code class="inline">train_ppo.py</code>/<code class="inline">train_qcm.py</code>（基线）、<code class="inline">run_adaptive_combination.py</code>（Mega-Alpha 组合）、<code class="inline">combine_AFF.py</code>（AFF 基线）。配套论文见 [arxiv.org/abs/2509.25055](https://arxiv.org/abs/2509.25055)。</p>
-<h2>概念关系图</h2>
-<p>10 个核心概念按数据层→核心层→应用层组织，箭头表示数据流向。这是理解 AlphaSAGE 整体架构的导航图。</p>
-<div class="concept-map">
-<div class="cm-layer">
-<div class="cm-layer-label">数据层</div>
-<div class="cm-nodes">
-<div class="cm-node"><div class="cm-id">C1</div><div class="cm-name">数据与特征加载</div></div>
-<div class="cm-node"><div class="cm-id">C2</div><div class="cm-name">表达式与算子体系</div></div>
-</div></div>
-<div class="cm-arrow">↓ 数据流向下一层</div>
-<div class="cm-layer">
-<div class="cm-layer-label">核心层</div>
-<div class="cm-nodes">
-<div class="cm-node"><div class="cm-id">C3</div><div class="cm-name">GFlowNet 生成框架</div></div>
-<div class="cm-node"><div class="cm-id">C4</div><div class="cm-name">RGCN 结构编码器</div></div>
-<div class="cm-node"><div class="cm-id">C5</div><div class="cm-name">Alpha 池管理</div></div>
-<div class="cm-node"><div class="cm-id">C6</div><div class="cm-name">多维奖励函数</div></div>
-</div></div>
-<div class="cm-arrow">↓ 数据流向下一层</div>
-<div class="cm-layer">
-<div class="cm-layer-label">应用层</div>
-<div class="cm-nodes">
-<div class="cm-node"><div class="cm-id">C7</div><div class="cm-name">训练主循环</div></div>
-<div class="cm-node"><div class="cm-id">C8</div><div class="cm-name">Alpha 动态组合</div></div>
-<div class="cm-node"><div class="cm-id">C9</div><div class="cm-name">评估指标</div></div>
-<div class="cm-node"><div class="cm-id">C10</div><div class="cm-name">Baseline 对比</div></div>
-</div></div>
+<h2>数据流流程图</h2>
+<p>从原始行情到最终预测，数据流是一条线性管线：每一环节的输出即下一环节的输入。</p>
+<div class="flow-diagram">
+<div class="flow-node">Qlib行情数据</div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-node">表达式求值</div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-node">IC/ICIR评估</div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-node">GFlowNet采样</div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-node">RGCN编码</div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-node">Alpha池筛选</div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-node">动态组合</div>
+<div class="flow-arrow">&rarr;</div>
+<div class="flow-node">Mega-Alpha预测</div>
 </div>
-<div class="cm-rels">
-<div class="muted" style="margin-bottom:8px;font-size:13px;">概念间数据流：</div>
-<span class="cm-rel"><b>C1</b> 特征送表达式 <b>C2</b></span>
-<span class="cm-rel"><b>C2</b> 表达式入池 <b>C5</b></span>
-<span class="cm-rel"><b>C2</b> AST 转图 <b>C4</b></span>
-<span class="cm-rel"><b>C4</b> 嵌入送奖励 <b>C6</b></span>
-<span class="cm-rel"><b>C5</b> 近邻算SSL <b>C6</b></span>
-<span class="cm-rel"><b>C6</b> 奖励驱动采样 <b>C3</b></span>
-<span class="cm-rel"><b>C3</b> 损失回传训练 <b>C7</b></span>
-<span class="cm-rel"><b>C7</b> 候选池送组合 <b>C8</b></span>
-<span class="cm-rel"><b>C8</b> 预测算指标 <b>C9</b></span>
-<span class="cm-rel"><b>C7</b> 同框架对比 <b>C10</b></span>
-</div>
-<h2>目录</h2>
-<div class="toc-grid">
-<a class="toc-card" href="01.html"><div class="tc-num">第 1 章 · data</div><div class="tc-title">数据与特征加载</div><div class="tc-desc">封装 Qlib 行情数据，按股票×天数×特征组织成张量，提供特征枚举与表达式求值接口，是整个仓库的数据源头。</div></a>
-<a class="toc-card" href="02.html"><div class="tc-num">第 2 章 · data</div><div class="tc-title">表达式与算子体系</div><div class="tc-desc">定义 alpha 表达式的算子、特征、时间常数词表与 AST 求值规则，配合 QLibStockDataCalculator 把表达式算成因子值。</div></a>
-<a class="toc-card" href="03.html"><div class="tc-num">第 3 章 · core</div><div class="tc-title">GFlowNet 生成框架</div><div class="tc-desc">基于 Trajectory Balance 的 GFlowNet，通过前向/后向策略估计器和熵正则项，采样多样化 alpha 表达式轨迹。</div></a>
-<a class="toc-card" href="04.html"><div class="tc-num">第 4 章 · core</div><div class="tc-title">RGCN 结构编码器</div><div class="tc-desc">把 RPN token 序列转成关系图，用 RGCNConv 按六类边关系传递消息，再全局平均池化得到表达式结构嵌入。</div></a>
-<a class="toc-card" href="05.html"><div class="tc-num">第 5 章 · core</div><div class="tc-title">Alpha 池管理</div><div class="tc-desc">维护候选 alpha 集合，按 IC 与互相关阈值筛选入池，支持基于嵌入的 KNN 查找与末位淘汰，保存为 pool_*.json。</div></a>
-<a class="toc-card" href="06.html"><div class="tc-num">第 6 章 · core</div><div class="tc-title">多维奖励函数</div><div class="tc-desc">稠密奖励 = IC + λ_ssl·SSL + λ_nov·新颖度，SSL 基于结构嵌入 KNN 一致性，权重由 WeightScheduler 时间退火。</div></a>
-<a class="toc-card" href="07.html"><div class="tc-num">第 7 章 · io</div><div class="tc-title">训练主循环</div><div class="tc-desc">train_gfn.py 的训练主循环：每轮采样轨迹、计算 TB 损失、按 update_freq 累积梯度更新，并定期记录与保存。</div></a>
-<a class="toc-card" href="08.html"><div class="tc-num">第 8 章 · io</div><div class="tc-title">Alpha 动态组合</div><div class="tc-desc">run_adaptive_combination.py 逐日只用历史窗口筛选 alpha，用最小二乘回归当天权重，输出日度预测与 ret_s.npy。</div></a>
-<a class="toc-card" href="09.html"><div class="tc-num">第 9 章 · io</div><div class="tc-title">评估指标</div><div class="tc-desc">在 calculator 与滚动组合脚本中计算 IC、ICIR、RankICIR、收益、夏普与最大回撤，把预测质量转成可比指标。</div></a>
-<a class="toc-card" href="10.html"><div class="tc-num">第 10 章 · io</div><div class="tc-title">Baseline 对比</div><div class="tc-desc">PPO、QCM（分布式 RL）、AFF 三类基线，与 GFlowNet 共享数据与池接口，用于对照验证生成与组合效果。</div></a>
-</div>
-<h2>数据流总览</h2>
-<p>数据流从 Qlib 行情加载开始：StockData 将特征张量化后送入表达式体系，QLibStockDataCalculator 求值得到因子值。因子经 GFlowNet 采样轨迹生成新表达式，RGCN 编码器把表达式 AST 转为关系图并提取结构嵌入。AlphaPool 维护候选池，按 IC 与互相关筛选入池。多维奖励 IC+SSL+NOV 驱动 GFlowNet 更新。训练后候选池送入动态组合脚本，滚动回归得到 Mega-Alpha 日度预测。</p>
-<h2>架构树</h2>
+<h2>架构总览图</h2>
+<p>代码按数据层 / 核心层 / 应用层组织，箭头表示依赖方向。</p>
+<div class="arch-layer">
+<div class="arch-layer-title">数据层</div>
+<div class="arch-layer-nodes">
+<div class="arch-node">StockData</div>
+<div class="arch-node">Expression</div>
+<div class="arch-node">Calculator</div>
+</div></div>
+<div class="arch-arrow">&darr;</div>
+<div class="arch-layer">
+<div class="arch-layer-title">核心层</div>
+<div class="arch-layer-nodes">
+<div class="arch-node">GFlowNet</div>
+<div class="arch-node">RGCN</div>
+<div class="arch-node">AlphaPool</div>
+<div class="arch-node">MultiReward</div>
+</div></div>
+<div class="arch-arrow">&darr;</div>
+<div class="arch-layer">
+<div class="arch-layer-title">应用层</div>
+<div class="arch-layer-nodes">
+<div class="arch-node">TrainLoop</div>
+<div class="arch-node">DynamicCombination</div>
+<div class="arch-node">Baseline</div>
+</div></div>
+<h2>代码结构树</h2>
+<p>以下为仓库目录树，# 后是各模块的职责注释。</p>
 <div class="arch-tree">AlphaSAGE/
 ├── src/                          <span class="c"># 核心源码包</span>
 │   ├── alpha_gfn/                <span class="c"># GFlowNet 与生成框架</span>
@@ -419,13 +481,28 @@ img { max-width: 100%; border-radius: 12px; }
 ├── train_qcm.py                  <span class="c"># QCM 基线 # Baseline 对比</span>
 ├── run_adaptive_combination.py   <span class="c"># 动态组合 Mega-Alpha # Alpha 动态组合</span>
 └── combine_AFF.py                <span class="c"># AFF 融合基线 # Baseline 对比</span></div>
-<h2>关键设计决策</h2>
+<h2>章节目录</h2>
+<div class="toc-grid">
+<a class="toc-card" href="01.html"><div class="tc-num">第 1 章 · data</div><div class="tc-title">数据与特征加载</div><div class="tc-desc">封装 Qlib 行情数据，按股票×天数×特征组织成张量，提供特征枚举与表达式求值接口，是整个仓库的数据源头。</div></a>
+<a class="toc-card" href="02.html"><div class="tc-num">第 2 章 · data</div><div class="tc-title">表达式与算子体系</div><div class="tc-desc">定义 alpha 表达式的算子、特征、时间常数词表与 AST 求值规则，配合 QLibStockDataCalculator 把表达式算成因子值。</div></a>
+<a class="toc-card" href="03.html"><div class="tc-num">第 3 章 · core</div><div class="tc-title">GFlowNet 生成框架</div><div class="tc-desc">基于 Trajectory Balance 的 GFlowNet，通过前向/后向策略估计器和熵正则项，采样多样化 alpha 表达式轨迹。</div></a>
+<a class="toc-card" href="04.html"><div class="tc-num">第 4 章 · core</div><div class="tc-title">RGCN 结构编码器</div><div class="tc-desc">把 RPN token 序列转成关系图，用 RGCNConv 按六类边关系传递消息，再全局平均池化得到表达式结构嵌入。</div></a>
+<a class="toc-card" href="05.html"><div class="tc-num">第 5 章 · core</div><div class="tc-title">Alpha 池管理</div><div class="tc-desc">维护候选 alpha 集合，按 IC 与互相关阈值筛选入池，支持基于嵌入的 KNN 查找与末位淘汰，保存为 pool_*.json。</div></a>
+<a class="toc-card" href="06.html"><div class="tc-num">第 6 章 · core</div><div class="tc-title">多维奖励函数</div><div class="tc-desc">稠密奖励 = IC + λ_ssl·SSL + λ_nov·新颖度，SSL 基于结构嵌入 KNN 一致性，权重由 WeightScheduler 时间退火。</div></a>
+<a class="toc-card" href="07.html"><div class="tc-num">第 7 章 · io</div><div class="tc-title">训练主循环</div><div class="tc-desc">train_gfn.py 的训练主循环：每轮采样轨迹、计算 TB 损失、按 update_freq 累积梯度更新，并定期记录与保存。</div></a>
+<a class="toc-card" href="08.html"><div class="tc-num">第 8 章 · io</div><div class="tc-title">Alpha 动态组合</div><div class="tc-desc">run_adaptive_combination.py 逐日只用历史窗口筛选 alpha，用最小二乘回归当天权重，输出日度预测与 ret_s.npy。</div></a>
+<a class="toc-card" href="09.html"><div class="tc-num">第 9 章 · io</div><div class="tc-title">评估指标</div><div class="tc-desc">在 calculator 与滚动组合脚本中计算 IC、ICIR、RankICIR、收益、夏普与最大回撤，把预测质量转成可比指标。</div></a>
+<a class="toc-card" href="10.html"><div class="tc-num">第 10 章 · io</div><div class="tc-title">Baseline 对比</div><div class="tc-desc">PPO、QCM（分布式 RL）、AFF 三类基线，与 GFlowNet 共享数据与池接口，用于对照验证生成与组合效果。</div></a>
+</div>
+<h2>论文速览</h2>
+<p>三个关键设计决策，及其代码证据与理由：</p>
 <div class="callout"><span class="callout-label">用 GFlowNet 替代 RL 采样</span><p><strong>证据：</strong><code class="inline">src/alpha_gfn/gflownet.py:81</code></p><p>GFlowNet 采样多样性强于 PPO，可避免模式崩塌</p></div>
 <div class="callout"><span class="callout-label">RGCN 作用于 AST 而非序列</span><p><strong>证据：</strong><code class="inline">src/alpha_gfn/modules.py:13</code></p><p>图结构能捕获算子间关系，序列模型会丢失语法结构</p></div>
 <div class="callout"><span class="callout-label">稠密多维奖励 IC+SSL+NOV</span><p><strong>证据：</strong><code class="inline">src/alpha_gfn/env/core.py:140</code></p><p>单一 IC 奖励导致同质化，SSL 与新颖度保证多样性</p></div>
 <h2>如何阅读</h2>
-<p>建议按章节顺序阅读：第 1-2 章铺数据与表达式基础，第 3-6 章是核心（GFlowNet 损失、RGCN 编码器、Alpha 池、多维奖励），第 7-10 章是应用（训练循环、动态组合、评估指标、基线对比）。每章都含真实代码卡片（带行号与中文注释）、设计权衡 callout、关联公式（KaTeX 渲染）。左侧侧边栏可随时跳转。</p>
+<p>按章节顺序阅读：第 1-2 章铺数据与表达式基础，第 3-6 章是核心（GFlowNet 损失、RGCN 编码器、Alpha 池、多维奖励），第 7-10 章是应用（训练循环、动态组合、评估指标、基线对比）。每章都含真实代码卡片（带行号与中文注释）、设计权衡 callout、关联公式（KaTeX 渲染）。左侧侧边栏可随时跳转。</p>
 </main>
+</div>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
                 onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>

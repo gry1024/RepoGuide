@@ -16,18 +16,28 @@ body {
     font-size: 17px;
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
+    display: flex;
+    align-items: flex-start;
 }
 /* 侧边栏 */
 .sidebar {
-    position: fixed;
-    left: 0; top: 0;
     width: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
     height: 100vh;
     overflow-y: auto;
     background: #F5F5F7;
     border-right: 1px solid #E8E8ED;
     padding: 28px 18px 40px;
     z-index: 100;
+}
+/* 主内容外层：在侧边栏右侧的剩余空间内水平居中正文 */
+.main-wrap {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
 }
 .sidebar-title {
     font-size: 17px;
@@ -68,7 +78,7 @@ body {
 /* 主内容 */
 main.content {
     max-width: 820px;
-    margin: 0 0 0 240px;
+    width: 100%;
     padding: 64px 40px 120px;
 }
 .hero { margin-bottom: 8px; }
@@ -304,8 +314,7 @@ img { max-width: 100%; border-radius: 12px; }
 .cm-rel b { color: #0071e3; }
 /* 架构树 */
 .arch-tree {
-    background: #FFFFFF;
-    border: 1px solid #E8E8ED;
+    background: #F5F5F7;
     border-radius: 12px;
     padding: 20px 24px;
     font-family: "SF Mono", Menlo, Consolas, monospace;
@@ -316,9 +325,71 @@ img { max-width: 100%; border-radius: 12px; }
     color: #1D1D1F;
 }
 .arch-tree .c { color: #86868B; }
+/* 数据流流程图（线性） */
+.flow-diagram {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 24px 0;
+    padding: 20px;
+    background: #F5F5F7;
+    border-radius: 12px;
+}
+.flow-node {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1D1D1F;
+    white-space: nowrap;
+}
+.flow-arrow {
+    color: #0071e3;
+    font-size: 18px;
+    font-weight: 700;
+}
+/* 架构总览图（分层） */
+.arch-layer {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 0 0 8px;
+}
+.arch-layer-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0071e3;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 10px;
+}
+.arch-layer-nodes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.arch-node {
+    background: #F5F5F7;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+}
+.arch-arrow {
+    text-align: center;
+    color: #0071e3;
+    font-size: 18px;
+    margin: 4px 0;
+}
 @media (max-width: 860px) {
+    body { display: block; }
     .sidebar { position: static; width: 100%; height: auto; }
-    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .main-wrap { display: block; }
+    main.content { padding: 32px 20px 80px; }
     .toc-grid { grid-template-columns: 1fr; }
 }
 </style>
@@ -338,13 +409,14 @@ img { max-width: 100%; border-radius: 12px; }
 <a href="08.html" class="active">第8章 Alpha 动态组合</a>
 <a href="09.html">第9章 评估指标</a>
 <a href="10.html">第10章 Baseline 对比</a></aside>
+<div class="main-wrap">
 <main class="content">
 <div class="hero"><span class="badge">第 8 章 · 应用层</span></div>
 <h1>第8章：Alpha 动态组合</h1>
 <p class="subtitle">像每日换菜单的厨师长，只用历史食材做回归，当天配出最稳的 alpha 混合口味。</p>
-<h2>欢迎</h2>
-<p>训练结束，我们拿到一个装满候选 alpha 的池。但池里每个因子单独看都不够稳——IC 会波动，回撤会失控。AlphaSAGE 的最终输出不是单因子，而是<strong>Mega-Alpha</strong>：用滚动回归把多个 alpha 加权融合成一个更稳的复合因子。这就是 <code class="inline">run_adaptive_combination.py</code> 的职责。</p>
-<p>本章深入这个组合脚本的三个关键函数：<code class="inline">remove_linearly_dependent_cols</code>（去共线）、<code class="inline">run</code>（主入口）、<code class="inline">get_tensor_metrics</code>（指标汇总）。核心思想是：<strong>只用历史数据算权重，当天只用这些权重组合已知因子值做预测</strong>——严格无未来信息。</p>
+<h2>这个模块做什么</h2>
+<p><code class="inline">run_adaptive_combination.py</code> 把候选 alpha 池融合成 Mega-Alpha 复合因子。它的输入是训练保存的 <code class="inline">pool_*.json</code> 与行情数据，输出是测试集预测张量与指标字典，中间做三件事：SVD/QR 去共线因子、滚动回归算权重、用权重组合因子值做预测。核心约束是只用历史数据算权重，当天只用这些权重组合已知因子值——严格无未来信息。</p>
+<p>三个关键函数：<code class="inline">remove_linearly_dependent_cols</code> 去共线、<code class="inline">run</code> 主入口、<code class="inline">get_tensor_metrics</code> 指标汇总。</p>
 <h2>它解决什么问题？</h2>
 <p>组合 alpha 的本质是回归：用历史窗口的因子矩阵 $X$ 拟合目标 $y$，得到权重 $\beta$，再用当天因子值 $x_{\text{pred}}$ 算预测 $\hat{y} = x_{\text{pred}} \beta$。但有两个坑：</p>
 <p>第一，<strong>共线性</strong>：池里因子可能高度相关（即使有互相关阈值，多因子组合时仍会近似共线），直接最小二乘会让 $X^\top X$ 接近奇异，权重数值不稳。第二，<strong>未来信息泄露</strong>：如果用全样本算权重，回测会作弊。必须严格滚动——每天只用过去窗口的数据。</p>
@@ -530,9 +602,10 @@ img { max-width: 100%; border-radius: 12px; }
 <div class="math-block">$$\text{MDD} = \max_t \left( \max_{\tau \leq t} R_\tau - R_t \right)$$</div>
 <p>其中 $R_t$ 是累计收益。对应 <code class="inline">batch_max_drawdown</code>（第 264 行）。</p>
 <h2>小结</h2>
-<p>本章你看到了 Mega-Alpha 的诞生过程：去共线保证稳定，滚动回归适应变化，指标汇总评估质量。生成器产出的候选池在这里变成可交易预测。下一章我们专门看评估指标——IC、ICIR、RankICIR、夏普、回撤，它们是衡量整套系统成败的尺子。</p>
+<p>Mega-Alpha 的诞生过程：去共线保证稳定，滚动回归适应变化，指标汇总评估质量。生成器产出的候选池在这里变成可交易预测。下一章我们专门看评估指标——IC、ICIR、RankICIR、夏普、回撤，它们是衡量整套系统成败的尺子。</p>
 <div class="nav-footer"><a href="07.html">← 第7章 训练循环</a><a href="index.html">目录</a><a href="09.html">第9章 评估指标 →</a></div>
 </main>
+</div>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
                 onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>

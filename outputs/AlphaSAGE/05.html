@@ -16,18 +16,28 @@ body {
     font-size: 17px;
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
+    display: flex;
+    align-items: flex-start;
 }
 /* 侧边栏 */
 .sidebar {
-    position: fixed;
-    left: 0; top: 0;
     width: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
     height: 100vh;
     overflow-y: auto;
     background: #F5F5F7;
     border-right: 1px solid #E8E8ED;
     padding: 28px 18px 40px;
     z-index: 100;
+}
+/* 主内容外层：在侧边栏右侧的剩余空间内水平居中正文 */
+.main-wrap {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
 }
 .sidebar-title {
     font-size: 17px;
@@ -68,7 +78,7 @@ body {
 /* 主内容 */
 main.content {
     max-width: 820px;
-    margin: 0 0 0 240px;
+    width: 100%;
     padding: 64px 40px 120px;
 }
 .hero { margin-bottom: 8px; }
@@ -304,8 +314,7 @@ img { max-width: 100%; border-radius: 12px; }
 .cm-rel b { color: #0071e3; }
 /* 架构树 */
 .arch-tree {
-    background: #FFFFFF;
-    border: 1px solid #E8E8ED;
+    background: #F5F5F7;
     border-radius: 12px;
     padding: 20px 24px;
     font-family: "SF Mono", Menlo, Consolas, monospace;
@@ -316,9 +325,71 @@ img { max-width: 100%; border-radius: 12px; }
     color: #1D1D1F;
 }
 .arch-tree .c { color: #86868B; }
+/* 数据流流程图（线性） */
+.flow-diagram {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 24px 0;
+    padding: 20px;
+    background: #F5F5F7;
+    border-radius: 12px;
+}
+.flow-node {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1D1D1F;
+    white-space: nowrap;
+}
+.flow-arrow {
+    color: #0071e3;
+    font-size: 18px;
+    font-weight: 700;
+}
+/* 架构总览图（分层） */
+.arch-layer {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 0 0 8px;
+}
+.arch-layer-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0071e3;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 10px;
+}
+.arch-layer-nodes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.arch-node {
+    background: #F5F5F7;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+}
+.arch-arrow {
+    text-align: center;
+    color: #0071e3;
+    font-size: 18px;
+    margin: 4px 0;
+}
 @media (max-width: 860px) {
+    body { display: block; }
     .sidebar { position: static; width: 100%; height: auto; }
-    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .main-wrap { display: block; }
+    main.content { padding: 32px 20px 80px; }
     .toc-grid { grid-template-columns: 1fr; }
 }
 </style>
@@ -338,13 +409,14 @@ img { max-width: 100%; border-radius: 12px; }
 <a href="08.html">第8章 Alpha 动态组合</a>
 <a href="09.html">第9章 评估指标</a>
 <a href="10.html">第10章 Baseline 对比</a></aside>
+<div class="main-wrap">
 <main class="content">
 <div class="hero"><span class="badge">第 5 章 · 核心层</span></div>
 <h1>第5章：Alpha 池管理</h1>
 <p class="subtitle">像选秀节目的待定席，新选手要与现有成员比相关性，达标才入围、末位被淘汰。</p>
-<h2>欢迎</h2>
-<p>GFlowNet 每轮都会采样出大量表达式，但绝大多数是平庸甚至无效的。如果全部留下，池会迅速被噪声填满；如果只留 IC 最高的，又会丧失多样性。<code class="inline">AlphaPoolGFN</code> 是这道权衡题的答案：它维护一个固定容量的候选池，按 <strong>IC 与互相关双门槛</strong> 决定去留，并额外存储每个因子的结构嵌入，为第 6 章的 SSL 奖励铺路。</p>
-<p>本章深入 <code class="inline">src/alpha_gfn/alpha_pool.py</code> 的两个核心方法：<code class="inline">try_new_expr</code>（入池判定）和 <code class="inline">_find_k_nearest_neighbors</code>（嵌入 KNN）。你会看到「选秀节目」式的淘汰机制：新选手要与现有成员比相关性，达标才入围，末位被淘汰。</p>
+<h2>这个模块做什么</h2>
+<p><code class="inline">AlphaPoolGFN</code>（<code class="inline">src/alpha_gfn/alpha_pool.py</code>）维护一个固定容量的候选因子池。它的输入是一条新表达式，输出是入池判定结果与新颖度奖励，中间做三件事：求值表达式算 IC、算与池内因子的互相关、按双门槛决定去留。它用 IC 保质量、互相关保多样性，是质量与多样性权衡的工程答案。</p>
+<p>两个核心方法：<code class="inline">try_new_expr</code> 做入池判定与末位淘汰，<code class="inline">_find_k_nearest_neighbors</code> 在嵌入空间找近邻，为第 6 章 SSL 奖励铺路。</p>
 <h2>它解决什么问题？</h2>
 <p>alpha 生成的核心矛盾是<strong>质量与多样性的平衡</strong>。质量看 IC——预测力强的因子才值得留；多样性看互相关——高度相关的因子重复了等于浪费池容量。如果只按 IC 排序，池里会塞满本质相同的因子（比如 <code class="inline">TsMean($close,20)` 和 `TsMean($close,21)</code>），组合时无法分散风险。</p>
 <p><code class="inline">AlphaPoolGFN</code> 的解法是双门槛：新因子要 IC 达标<strong>且</strong>与池内所有因子的互相关 ≤ <code class="inline">ic_mut_threshold</code>（默认 0.3）才入池。池满后，新因子要同时强过最弱因子并满足相关性约束，才触发末位淘汰。这保证了池里每个因子都既「有用」又「不可替代」。</p>
@@ -448,9 +520,10 @@ img { max-width: 100%; border-radius: 12px; }
 <div class="math-block">$$w_i = \frac{\exp(-\|e_q - e_i\|^2 / \tau)}{\sum_j \exp(-\|e_q - e_j\|^2 / \tau)}$$</div>
 <p>对应 <code class="inline">_compute_similarity_weights</code>（第 140-176 行），距离越小权重越大，$\tau$ 控制锐度。</p>
 <h2>小结</h2>
-<p>本章你看到了 alpha 池的双门槛筛选与末位淘汰。<code class="inline">try_new_expr</code> 决定去留，<code class="inline">_find_k_nearest_neighbors</code> 在嵌入空间找近邻。池管理的本质是在质量与多样性间找平衡——IC 保质量，互相关保多样性，结构嵌入为 SSL 奖励埋下伏笔。下一章我们就看这个奖励如何被合成成驱动 GFlowNet 的多维信号。</p>
+<p>alpha 池的双门槛筛选与末位淘汰。<code class="inline">try_new_expr</code> 决定去留，<code class="inline">_find_k_nearest_neighbors</code> 在嵌入空间找近邻。池管理的本质是在质量与多样性间找平衡——IC 保质量，互相关保多样性，结构嵌入为 SSL 奖励埋下伏笔。下一章我们就看这个奖励如何被合成成驱动 GFlowNet 的多维信号。</p>
 <div class="nav-footer"><a href="04.html">← 第4章 RGCN</a><a href="index.html">目录</a><a href="06.html">第6章 奖励函数 →</a></div>
 </main>
+</div>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
                 onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>

@@ -16,18 +16,28 @@ body {
     font-size: 17px;
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
+    display: flex;
+    align-items: flex-start;
 }
 /* 侧边栏 */
 .sidebar {
-    position: fixed;
-    left: 0; top: 0;
     width: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
     height: 100vh;
     overflow-y: auto;
     background: #F5F5F7;
     border-right: 1px solid #E8E8ED;
     padding: 28px 18px 40px;
     z-index: 100;
+}
+/* 主内容外层：在侧边栏右侧的剩余空间内水平居中正文 */
+.main-wrap {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
 }
 .sidebar-title {
     font-size: 17px;
@@ -68,7 +78,7 @@ body {
 /* 主内容 */
 main.content {
     max-width: 820px;
-    margin: 0 0 0 240px;
+    width: 100%;
     padding: 64px 40px 120px;
 }
 .hero { margin-bottom: 8px; }
@@ -304,8 +314,7 @@ img { max-width: 100%; border-radius: 12px; }
 .cm-rel b { color: #0071e3; }
 /* 架构树 */
 .arch-tree {
-    background: #FFFFFF;
-    border: 1px solid #E8E8ED;
+    background: #F5F5F7;
     border-radius: 12px;
     padding: 20px 24px;
     font-family: "SF Mono", Menlo, Consolas, monospace;
@@ -316,9 +325,71 @@ img { max-width: 100%; border-radius: 12px; }
     color: #1D1D1F;
 }
 .arch-tree .c { color: #86868B; }
+/* 数据流流程图（线性） */
+.flow-diagram {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 24px 0;
+    padding: 20px;
+    background: #F5F5F7;
+    border-radius: 12px;
+}
+.flow-node {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1D1D1F;
+    white-space: nowrap;
+}
+.flow-arrow {
+    color: #0071e3;
+    font-size: 18px;
+    font-weight: 700;
+}
+/* 架构总览图（分层） */
+.arch-layer {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 0 0 8px;
+}
+.arch-layer-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0071e3;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 10px;
+}
+.arch-layer-nodes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.arch-node {
+    background: #F5F5F7;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+}
+.arch-arrow {
+    text-align: center;
+    color: #0071e3;
+    font-size: 18px;
+    margin: 4px 0;
+}
 @media (max-width: 860px) {
+    body { display: block; }
     .sidebar { position: static; width: 100%; height: auto; }
-    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .main-wrap { display: block; }
+    main.content { padding: 32px 20px 80px; }
     .toc-grid { grid-template-columns: 1fr; }
 }
 </style>
@@ -338,13 +409,14 @@ img { max-width: 100%; border-radius: 12px; }
 <a href="08.html">第8章 Alpha 动态组合</a>
 <a href="09.html">第9章 评估指标</a>
 <a href="10.html">第10章 Baseline 对比</a></aside>
+<div class="main-wrap">
 <main class="content">
 <div class="hero"><span class="badge">第 3 章 · 核心层</span></div>
 <h1>第3章：GFlowNet 生成框架</h1>
 <p class="subtitle">像一个多路探险家，同时派许多路径去采样不同 alpha，而非只走一条最优路。</p>
-<h2>欢迎</h2>
-<p>前面两章铺好了数据与表达式。现在进入 AlphaSAGE 最核心的问题：<strong>如何采样出大量多样化且高质量的 alpha 表达式？</strong> 传统强化学习（如 PPO）倾向于收敛到单一最优策略，容易模式崩塌——生成出的 alpha 高度同质。GFlowNet 给出了不同的答案：它不找「最优路径」，而是学一个<strong>与奖励成正比的概率流</strong>，让所有高质量表达式都有机会被采样到。</p>
-<p>本章深入 <code class="inline">src/alpha_gfn/gflownet.py</code> 的 <code class="inline">EntropyTBGFlowNet</code>。它基于 Trajectory Balance（TB）这一 GFlowNet 变体，并额外加入熵正则项，进一步鼓励探索。我们将逐行拆解它的两个核心方法：<code class="inline">get_trajectories_scores</code>（算 log 概率与熵）和 <code class="inline">loss</code>（TB 损失）。这是整篇教程理论密度最高的一章，建议放慢节奏。</p>
+<h2>这个模块做什么</h2>
+<p><code class="inline">EntropyTBGFlowNet</code>（<code class="inline">src/alpha_gfn/gflownet.py</code>）是 AlphaSAGE 的采样引擎。它的输入是 GFlowNet 轨迹（token 序列）与终点奖励，输出是一个标量损失，中间做两件事：算前向/后向对数概率与 TB 分数，再把误差平方反传。它不找「最优路径」，而是学一个<strong>与奖励成正比的概率流</strong>，让所有高质量表达式都有机会被采样到，从而避免 PPO 的模式崩塌。</p>
+<p>它基于 Trajectory Balance（TB）变体，额外加熵正则项鼓励探索。两个核心方法：<code class="inline">get_trajectories_scores</code> 算 log 概率与熵，<code class="inline">loss</code> 把 TB 误差与熵项收口成标量。</p>
 <h2>它解决什么问题？</h2>
 <p>GFlowNet 的目标是学一个前向策略 $P_F$，使得采样一条轨迹 $\tau$ 到达终点 $x$ 的概率，正比于该终点的奖励 $R(x)$：</p>
 <div class="math-block">$$P_F(\tau) \propto R(x), \quad x = \text{终点}(\tau)$$</div>
@@ -454,9 +526,10 @@ img { max-width: 100%; border-radius: 12px; }
 <div class="math-block">$$H(\pi) = -\sum_{t} \sum_{a} \pi_t(a)\, \log \pi_t(a)$$</div>
 <p>代码里 <code class="inline">scores</code> 就是 $\log(P_F/P_B R)$，第 99 行的 <code class="inline">(scores + self.logZ).pow(2).mean()</code> 对应第一项，<code class="inline">entropy_term.mean()</code> 对应第二项（已乘 $\lambda_H$ 即 <code class="inline">entropy_coef</code>）。数学与代码的对应关系一目了然。</p>
 <h2>小结</h2>
-<p>本章是理论核心。GFlowNet 用 TB 公式把「采样分布正比于奖励」变成一个可优化的均方误差，再用熵正则保多样性。理解了 <code class="inline">(scores + logZ)² - entropy</code> 这一行，你就理解了 AlphaSAGE 为什么能生成多样化的 alpha。下一章我们看 GFlowNet 用的「大脑」——RGCN 结构编码器，它把表达式 AST 转成图，让策略能感知表达式的语法结构。</p>
+<p>GFlowNet 用 TB 公式把「采样分布正比于奖励」变成一个可优化的均方误差，再用熵正则保多样性。理解了 <code class="inline">(scores + logZ)² - entropy</code> 这一行，你就理解了 AlphaSAGE 为什么能生成多样化的 alpha。下一章我们看 GFlowNet 用的「大脑」——RGCN 结构编码器，它把表达式 AST 转成图，让策略能感知表达式的语法结构。</p>
 <div class="nav-footer"><a href="02.html">← 第2章 表达式</a><a href="index.html">目录</a><a href="04.html">第4章 RGCN 编码器 →</a></div>
 </main>
+</div>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
                 onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>

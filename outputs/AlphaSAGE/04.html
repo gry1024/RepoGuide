@@ -16,18 +16,28 @@ body {
     font-size: 17px;
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
+    display: flex;
+    align-items: flex-start;
 }
 /* 侧边栏 */
 .sidebar {
-    position: fixed;
-    left: 0; top: 0;
     width: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
     height: 100vh;
     overflow-y: auto;
     background: #F5F5F7;
     border-right: 1px solid #E8E8ED;
     padding: 28px 18px 40px;
     z-index: 100;
+}
+/* 主内容外层：在侧边栏右侧的剩余空间内水平居中正文 */
+.main-wrap {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
 }
 .sidebar-title {
     font-size: 17px;
@@ -68,7 +78,7 @@ body {
 /* 主内容 */
 main.content {
     max-width: 820px;
-    margin: 0 0 0 240px;
+    width: 100%;
     padding: 64px 40px 120px;
 }
 .hero { margin-bottom: 8px; }
@@ -304,8 +314,7 @@ img { max-width: 100%; border-radius: 12px; }
 .cm-rel b { color: #0071e3; }
 /* 架构树 */
 .arch-tree {
-    background: #FFFFFF;
-    border: 1px solid #E8E8ED;
+    background: #F5F5F7;
     border-radius: 12px;
     padding: 20px 24px;
     font-family: "SF Mono", Menlo, Consolas, monospace;
@@ -316,9 +325,71 @@ img { max-width: 100%; border-radius: 12px; }
     color: #1D1D1F;
 }
 .arch-tree .c { color: #86868B; }
+/* 数据流流程图（线性） */
+.flow-diagram {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 24px 0;
+    padding: 20px;
+    background: #F5F5F7;
+    border-radius: 12px;
+}
+.flow-node {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1D1D1F;
+    white-space: nowrap;
+}
+.flow-arrow {
+    color: #0071e3;
+    font-size: 18px;
+    font-weight: 700;
+}
+/* 架构总览图（分层） */
+.arch-layer {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 0 0 8px;
+}
+.arch-layer-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0071e3;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 10px;
+}
+.arch-layer-nodes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.arch-node {
+    background: #F5F5F7;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+}
+.arch-arrow {
+    text-align: center;
+    color: #0071e3;
+    font-size: 18px;
+    margin: 4px 0;
+}
 @media (max-width: 860px) {
+    body { display: block; }
     .sidebar { position: static; width: 100%; height: auto; }
-    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .main-wrap { display: block; }
+    main.content { padding: 32px 20px 80px; }
     .toc-grid { grid-template-columns: 1fr; }
 }
 </style>
@@ -338,13 +409,14 @@ img { max-width: 100%; border-radius: 12px; }
 <a href="08.html">第8章 Alpha 动态组合</a>
 <a href="09.html">第9章 评估指标</a>
 <a href="10.html">第10章 Baseline 对比</a></aside>
+<div class="main-wrap">
 <main class="content">
 <div class="hero"><span class="badge">第 4 章 · 核心层</span></div>
 <h1>第4章：RGCN 结构编码器</h1>
 <p class="subtitle">像给公式做语法树体检，把算子当节点、按关系连边，再用图神经网络读出结构。</p>
-<h2>欢迎</h2>
-<p>GFlowNet 的策略网络要决定「下一步生成哪个 token」。如果只看序列（LSTM/Transformer），它会丢失表达式的<strong>语法结构</strong>——比如 <code class="inline">Add($close, TsMean($high, 20))</code> 里，<code class="inline">$close</code> 和 <code class="inline">TsMean(...)</code> 都是 <code class="inline">Add</code> 的操作数，但序列模型看不到这种父子关系。AlphaSAGE 的解法是：把表达式的逆波兰式（RPN）转成<strong>关系图</strong>，用 RGCN 按六类边关系传递消息，提取结构感知的嵌入。</p>
-<p>本章深入 <code class="inline">src/alpha_gfn/modules.py</code> 的两个关键函数：<code class="inline">_build_graph_from_rpn</code>（RPN 转图）和 <code class="inline">GNNEncoder.forward</code>（图卷积前向）。这是 AlphaSAGE 区别于普通序列 GFlowNet 的核心创新——它让策略真正「看懂」表达式结构。</p>
+<h2>这个模块做什么</h2>
+<p><code class="inline">GNNEncoder</code>（<code class="inline">src/alpha_gfn/modules.py</code>）是 GFlowNet 策略网络的结构感知器。它的输入是表达式的逆波兰式（RPN）token 序列，输出是图级嵌入向量，中间做两件事：用栈算法把 RPN 转成六类边的关系图，再用两层 RGCN 卷积加全局池化提取嵌入。它让策略真正「看懂」表达式语法，而不是只看序列位置。</p>
+<p>两个关键函数：<code class="inline">_build_graph_from_rpn</code> 把 RPN 转图，<code class="inline">GNNEncoder.forward</code> 做图卷积前向。这是 AlphaSAGE 区别于普通序列 GFlowNet 的核心创新。</p>
 <h2>它解决什么问题？</h2>
 <p>表达式天然是树（AST）。把树展平成序列会丢掉结构：同一个 token 在不同位置（是操作数还是算子？是左子还是右子？）语义完全不同。序列模型只能靠位置编码勉强区分，效果有限。</p>
 <p>图神经网络则直接在 AST 上工作：算子是节点，操作数到算子是边。更进一步，AlphaSAGE 把边分成<strong>六类</strong>——一元操作数、可交换二元操作数、左操作数、右操作数、特征操作数、时序操作数——让 RGCN 能按关系类型分别聚合消息。这样 <code class="inline">Sub</code> 的左/右操作数不会被混淆，<code class="inline">TsMean</code> 的特征参数与窗口参数也能区分对待。</p>
@@ -443,9 +515,10 @@ img { max-width: 100%; border-radius: 12px; }
 <div class="math-block">$$h_G = \frac{1}{|V|}\sum_{i \in V} h_i^{(L)}$$</div>
 <p>对应第 101 行 <code class="inline">global_mean_pool(x, batch)</code>。这个 $h_G$ 既是策略输入，也是 SSL 奖励的结构指纹。</p>
 <h2>小结</h2>
-<p>本章你看到了 AlphaSAGE 的「结构感知」设计：把表达式 AST 转成六类边的关系图，用 RGCN 提取嵌入。这比序列模型更能捕获语法结构，也为第 6 章的 SSL 奖励提供了天然的结构指纹。下一章我们转向池管理——生成的 alpha 如何被筛选、入池、淘汰，形成可持续的候选库。</p>
+<p>AlphaSAGE 的「结构感知」设计：把表达式 AST 转成六类边的关系图，用 RGCN 提取嵌入。这比序列模型更能捕获语法结构，也为第 6 章的 SSL 奖励提供了天然的结构指纹。下一章我们转向池管理——生成的 alpha 如何被筛选、入池、淘汰，形成可持续的候选库。</p>
 <div class="nav-footer"><a href="03.html">← 第3章 GFlowNet</a><a href="index.html">目录</a><a href="05.html">第5章 Alpha 池 →</a></div>
 </main>
+</div>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
                 onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>

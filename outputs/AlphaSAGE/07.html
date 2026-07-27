@@ -16,18 +16,28 @@ body {
     font-size: 17px;
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
+    display: flex;
+    align-items: flex-start;
 }
 /* 侧边栏 */
 .sidebar {
-    position: fixed;
-    left: 0; top: 0;
     width: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
     height: 100vh;
     overflow-y: auto;
     background: #F5F5F7;
     border-right: 1px solid #E8E8ED;
     padding: 28px 18px 40px;
     z-index: 100;
+}
+/* 主内容外层：在侧边栏右侧的剩余空间内水平居中正文 */
+.main-wrap {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
 }
 .sidebar-title {
     font-size: 17px;
@@ -68,7 +78,7 @@ body {
 /* 主内容 */
 main.content {
     max-width: 820px;
-    margin: 0 0 0 240px;
+    width: 100%;
     padding: 64px 40px 120px;
 }
 .hero { margin-bottom: 8px; }
@@ -304,8 +314,7 @@ img { max-width: 100%; border-radius: 12px; }
 .cm-rel b { color: #0071e3; }
 /* 架构树 */
 .arch-tree {
-    background: #FFFFFF;
-    border: 1px solid #E8E8ED;
+    background: #F5F5F7;
     border-radius: 12px;
     padding: 20px 24px;
     font-family: "SF Mono", Menlo, Consolas, monospace;
@@ -316,9 +325,71 @@ img { max-width: 100%; border-radius: 12px; }
     color: #1D1D1F;
 }
 .arch-tree .c { color: #86868B; }
+/* 数据流流程图（线性） */
+.flow-diagram {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 24px 0;
+    padding: 20px;
+    background: #F5F5F7;
+    border-radius: 12px;
+}
+.flow-node {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1D1D1F;
+    white-space: nowrap;
+}
+.flow-arrow {
+    color: #0071e3;
+    font-size: 18px;
+    font-weight: 700;
+}
+/* 架构总览图（分层） */
+.arch-layer {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 0 0 8px;
+}
+.arch-layer-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0071e3;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 10px;
+}
+.arch-layer-nodes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.arch-node {
+    background: #F5F5F7;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+}
+.arch-arrow {
+    text-align: center;
+    color: #0071e3;
+    font-size: 18px;
+    margin: 4px 0;
+}
 @media (max-width: 860px) {
+    body { display: block; }
     .sidebar { position: static; width: 100%; height: auto; }
-    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .main-wrap { display: block; }
+    main.content { padding: 32px 20px 80px; }
     .toc-grid { grid-template-columns: 1fr; }
 }
 </style>
@@ -338,13 +409,14 @@ img { max-width: 100%; border-radius: 12px; }
 <a href="08.html">第8章 Alpha 动态组合</a>
 <a href="09.html">第9章 评估指标</a>
 <a href="10.html">第10章 Baseline 对比</a></aside>
+<div class="main-wrap">
 <main class="content">
 <div class="hero"><span class="badge">第 7 章 · 应用层</span></div>
 <h1>第7章：训练主循环</h1>
 <p class="subtitle">像乐队指挥，按节拍采样轨迹、调度权重、回传梯度，把生成器一步步推向高产。</p>
-<h2>欢迎</h2>
-<p>前六章拼好了所有零件：数据接口、表达式词表、GFlowNet 损失、RGCN 编码器、Alpha 池、多维奖励。现在需要一个「指挥」把它们串起来——按节拍采样轨迹、调度权重、回传梯度，把生成器一步步推向高产。这就是 <code class="inline">train_gfn.py</code> 的 <code class="inline">train</code> 函数，AlphaSAGE 的训练主循环。</p>
-<p>本章还涉及一个关键组件 <code class="inline">WeightScheduler</code>——它用 PyTorch 的学习率调度器实现 SSL/NOV 权重的时间退火，是论文里「先探索后聚焦」策略的工程落点。我们将逐段拆解训练循环与权重调度。</p>
+<h2>这个模块做什么</h2>
+<p><code class="inline">train</code> 函数（<code class="inline">train_gfn.py</code>）是 AlphaSAGE 的训练主循环。它的输入是配置参数与已初始化的环境/池/模型，输出是训练好的模型与池 JSON，中间按 episode 循环做四件事：从调度器取退火权重写回环境、采样轨迹算 TB 损失、梯度累积、定期更新参数与 checkpoint。它把前六章的零件串成可运行的训练流程。</p>
+<p>关键组件 <code class="inline">WeightScheduler</code> 复用 PyTorch 学习率调度器实现 SSL/NOV 权重退火，是「先探索后聚焦」策略的工程落点。</p>
 <h2>它解决什么问题？</h2>
 <p>GFlowNet 训练有几个工程难题。第一，<strong>梯度累积</strong>：每步只采样 1 条轨迹，梯度噪声大，需要累积 <code class="inline">update_freq</code> 步再更新一次，模拟小批量。第二，<strong>权重退火</strong>：SSL/NOV 权重不能恒定，初期要高（鼓励探索），后期要低（聚焦 IC），需要一个调度器。第三，<strong>数值稳定</strong>：logZ 容易跑飞，损失可能 NaN，需要保护。第四，<strong> checkpoint 与日志</strong>：训练动辄百万步，必须定期保存池与模型。</p>
 <h2>核心设计思路</h2>
@@ -415,9 +487,10 @@ img { max-width: 100%; border-radius: 12px; }
 <div class="math-block">$$B_{\text{eff}} = \text{update\_freq} \times n_{\text{trajectories}}$$</div>
 <p>默认 <code class="inline">update_freq=128, n_trajectories=1</code>，所以 $B_{\text{eff}}=128$。</p>
 <h2>小结</h2>
-<p>本章你看到了 AlphaSAGE 的训练全流程：<code class="inline">WeightScheduler</code> 退火权重，<code class="inline">train</code> 主循环采样、累积、更新、记录。梯度累积与有限性检查是稳定的基石，PyTorch 调度器复用是简洁的巧思。训练产出的 <code class="inline">pool_*.json</code> 直接进入下一章——动态组合。我们将看到这些候选 alpha 如何被滚动回归成 Mega-Alpha。</p>
+<p>AlphaSAGE 的训练全流程：<code class="inline">WeightScheduler</code> 退火权重，<code class="inline">train</code> 主循环采样、累积、更新、记录。梯度累积与有限性检查是稳定的基石，PyTorch 调度器复用是简洁的巧思。训练产出的 <code class="inline">pool_*.json</code> 直接进入下一章——动态组合，用滚动回归把候选 alpha 融合成 Mega-Alpha。</p>
 <div class="nav-footer"><a href="06.html">← 第6章 奖励函数</a><a href="index.html">目录</a><a href="08.html">第8章 动态组合 →</a></div>
 </main>
+</div>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
                 onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>

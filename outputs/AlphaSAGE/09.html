@@ -16,18 +16,28 @@ body {
     font-size: 17px;
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
+    display: flex;
+    align-items: flex-start;
 }
 /* 侧边栏 */
 .sidebar {
-    position: fixed;
-    left: 0; top: 0;
     width: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
     height: 100vh;
     overflow-y: auto;
     background: #F5F5F7;
     border-right: 1px solid #E8E8ED;
     padding: 28px 18px 40px;
     z-index: 100;
+}
+/* 主内容外层：在侧边栏右侧的剩余空间内水平居中正文 */
+.main-wrap {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
 }
 .sidebar-title {
     font-size: 17px;
@@ -68,7 +78,7 @@ body {
 /* 主内容 */
 main.content {
     max-width: 820px;
-    margin: 0 0 0 240px;
+    width: 100%;
     padding: 64px 40px 120px;
 }
 .hero { margin-bottom: 8px; }
@@ -304,8 +314,7 @@ img { max-width: 100%; border-radius: 12px; }
 .cm-rel b { color: #0071e3; }
 /* 架构树 */
 .arch-tree {
-    background: #FFFFFF;
-    border: 1px solid #E8E8ED;
+    background: #F5F5F7;
     border-radius: 12px;
     padding: 20px 24px;
     font-family: "SF Mono", Menlo, Consolas, monospace;
@@ -316,9 +325,71 @@ img { max-width: 100%; border-radius: 12px; }
     color: #1D1D1F;
 }
 .arch-tree .c { color: #86868B; }
+/* 数据流流程图（线性） */
+.flow-diagram {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 24px 0;
+    padding: 20px;
+    background: #F5F5F7;
+    border-radius: 12px;
+}
+.flow-node {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1D1D1F;
+    white-space: nowrap;
+}
+.flow-arrow {
+    color: #0071e3;
+    font-size: 18px;
+    font-weight: 700;
+}
+/* 架构总览图（分层） */
+.arch-layer {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 0 0 8px;
+}
+.arch-layer-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0071e3;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 10px;
+}
+.arch-layer-nodes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.arch-node {
+    background: #F5F5F7;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+}
+.arch-arrow {
+    text-align: center;
+    color: #0071e3;
+    font-size: 18px;
+    margin: 4px 0;
+}
 @media (max-width: 860px) {
+    body { display: block; }
     .sidebar { position: static; width: 100%; height: auto; }
-    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .main-wrap { display: block; }
+    main.content { padding: 32px 20px 80px; }
     .toc-grid { grid-template-columns: 1fr; }
 }
 </style>
@@ -338,13 +409,14 @@ img { max-width: 100%; border-radius: 12px; }
 <a href="08.html">第8章 Alpha 动态组合</a>
 <a href="09.html" class="active">第9章 评估指标</a>
 <a href="10.html">第10章 Baseline 对比</a></aside>
+<div class="main-wrap">
 <main class="content">
 <div class="hero"><span class="badge">第 9 章 · 应用层</span></div>
 <h1>第9章：评估指标</h1>
 <p class="subtitle">像体检报告的多项指标，IC、ICIR、RankICIR、回撤与夏普一起给出 alpha 健康度。</p>
-<h2>欢迎</h2>
-<p>一个 alpha 好不好，不能只看一两天的 IC。AlphaSAGE 用一套<strong>多维评估指标</strong>给 alpha 做体检：IC 看预测力，ICIR 看稳定性，RankICIR 看单调性（对极端值稳健），夏普看风险调整收益，最大回撤看尾部风险。这些指标分散在 <code class="inline">calculator.py</code> 与 <code class="inline">run_adaptive_combination.py</code> 里，共同构成评估体系。</p>
-<p>本章梳理这套指标体系，重点拆解 <code class="inline">calculator.py</code> 的 IC/ICIR 实现与 <code class="inline">run_adaptive_combination.py</code> 的 <code class="inline">get_tensor_metrics</code>。你会看清每个指标的数学定义、代码实现与适用场景——下次看到回测报告，你就能判断哪些指标可信、哪些有水分。</p>
+<h2>这个模块做什么</h2>
+<p><code class="inline">calculator.py</code> 的 IC/ICIR 实现与 <code class="inline">run_adaptive_combination.py</code> 的 <code class="inline">get_tensor_metrics</code> 共同构成 AlphaSAGE 的评估指标体系。它们的输入是预测张量与目标张量，输出是指标字典（IC/ICIR/RankIC/RankICIR/收益/夏普/最大回撤），中间按日算 Pearson 与 Spearman 相关序列再做统计。五个维度覆盖预测力、稳定性、单调性、风险调整收益、尾部风险。</p>
+<p>每个指标都有对应的代码实现与数值保护（除零、NaN），保证对任何输入都返回合理结果。</p>
 <h2>它解决什么问题？</h2>
 <p>评估 alpha 的难点在于「好坏」是多维的。一个 IC=0.05 的因子，如果每天都稳定 0.05（ICIR 高），可能比一个平均 IC=0.08 但剧烈波动的因子更值得交易——因为前者可预测、可加仓，后者随时可能失效。同理，Pearson IC 对线性关系敏感，但因子与收益的关系往往非线性，这时 RankIC（Spearman 秩相关）更稳健。</p>
 <p>AlphaSAGE 的指标体系覆盖五个维度：</p>
@@ -431,9 +503,10 @@ img { max-width: 100%; border-radius: 12px; }
 <div class="math-block">$$\text{Sharpe} = \frac{\mathbb{E}[r]}{\sigma_r}, \quad \text{MDD} = \max_t\left(\max_{\tau\leq t} R_\tau - R_t\right)$$</div>
 <p>对应第 263-264 行。这五个指标共同构成 alpha 的「体检报告」。</p>
 <h2>小结</h2>
-<p>本章梳理了 AlphaSAGE 的评估指标体系。IC/ICIR 管预测力与稳定性，RankIC/RankICIR 对极端值更稳健，Sharpe 与 MDD 衡量收益质量。数值保护（除法下限、NaN 填零）让指标对任何输入都可信。下一章我们看 Baseline 对比——PPO、QCM、AFF 如何与 GFlowNet 同场竞技。</p>
+<p>AlphaSAGE 的评估指标体系：IC/ICIR 管预测力与稳定性，RankIC/RankICIR 对极端值更稳健，Sharpe 与 MDD 衡量收益质量。数值保护（除法下限、NaN 填零）让指标对任何输入都可信。下一章讲 Baseline 对比——PPO、QCM、AFF 与 GFlowNet 同场竞技。</p>
 <div class="nav-footer"><a href="08.html">← 第8章 动态组合</a><a href="index.html">目录</a><a href="10.html">第10章 Baseline →</a></div>
 </main>
+</div>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
                 onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>

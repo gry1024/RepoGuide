@@ -16,18 +16,28 @@ body {
     font-size: 17px;
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
+    display: flex;
+    align-items: flex-start;
 }
 /* 侧边栏 */
 .sidebar {
-    position: fixed;
-    left: 0; top: 0;
     width: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
     height: 100vh;
     overflow-y: auto;
     background: #F5F5F7;
     border-right: 1px solid #E8E8ED;
     padding: 28px 18px 40px;
     z-index: 100;
+}
+/* 主内容外层：在侧边栏右侧的剩余空间内水平居中正文 */
+.main-wrap {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
 }
 .sidebar-title {
     font-size: 17px;
@@ -68,7 +78,7 @@ body {
 /* 主内容 */
 main.content {
     max-width: 820px;
-    margin: 0 0 0 240px;
+    width: 100%;
     padding: 64px 40px 120px;
 }
 .hero { margin-bottom: 8px; }
@@ -304,8 +314,7 @@ img { max-width: 100%; border-radius: 12px; }
 .cm-rel b { color: #0071e3; }
 /* 架构树 */
 .arch-tree {
-    background: #FFFFFF;
-    border: 1px solid #E8E8ED;
+    background: #F5F5F7;
     border-radius: 12px;
     padding: 20px 24px;
     font-family: "SF Mono", Menlo, Consolas, monospace;
@@ -316,9 +325,71 @@ img { max-width: 100%; border-radius: 12px; }
     color: #1D1D1F;
 }
 .arch-tree .c { color: #86868B; }
+/* 数据流流程图（线性） */
+.flow-diagram {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 24px 0;
+    padding: 20px;
+    background: #F5F5F7;
+    border-radius: 12px;
+}
+.flow-node {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1D1D1F;
+    white-space: nowrap;
+}
+.flow-arrow {
+    color: #0071e3;
+    font-size: 18px;
+    font-weight: 700;
+}
+/* 架构总览图（分层） */
+.arch-layer {
+    background: #FFFFFF;
+    border: 1px solid #E8E8ED;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 0 0 8px;
+}
+.arch-layer-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0071e3;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 10px;
+}
+.arch-layer-nodes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.arch-node {
+    background: #F5F5F7;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+}
+.arch-arrow {
+    text-align: center;
+    color: #0071e3;
+    font-size: 18px;
+    margin: 4px 0;
+}
 @media (max-width: 860px) {
+    body { display: block; }
     .sidebar { position: static; width: 100%; height: auto; }
-    main.content { margin-left: 0; padding: 32px 20px 80px; }
+    .main-wrap { display: block; }
+    main.content { padding: 32px 20px 80px; }
     .toc-grid { grid-template-columns: 1fr; }
 }
 </style>
@@ -338,13 +409,14 @@ img { max-width: 100%; border-radius: 12px; }
 <a href="08.html">第8章 Alpha 动态组合</a>
 <a href="09.html">第9章 评估指标</a>
 <a href="10.html">第10章 Baseline 对比</a></aside>
+<div class="main-wrap">
 <main class="content">
 <div class="hero"><span class="badge">第 6 章 · 核心层</span></div>
 <h1>第6章：多维奖励函数</h1>
 <p class="subtitle">像三味调料的递减配方，IC 主味之外加 SSL 与新颖度佐料，随训练推进逐渐收浓。</p>
-<h2>欢迎</h2>
-<p>GFlowNet 的采样质量，最终取决于奖励信号设计得好不好。如果只奖励 IC，生成器会迅速收敛到几个高 IC 但高度同质的因子——模式崩塌。AlphaSAGE 的解法是<strong>三维稠密奖励</strong>：IC（预测力）+ SSL（结构一致性）+ NOV（新颖度），且 SSL/NOV 的权重随训练时间退火，让生成器先探索后聚焦。</p>
-<p>本章深入 <code class="inline">src/alpha_gfn/env/core.py</code> 的 <code class="inline">GFNEnvCore.reward</code> 和 <code class="inline">alpha_pool.py</code> 的 <code class="inline">compute_ssl_reward</code>。你会看到三路奖励如何被合成一个标量，以及 SSL 如何利用第 4 章的结构嵌入做自监督一致性约束。这是「三味调料递减配方」的完整配方表。</p>
+<h2>这个模块做什么</h2>
+<p><code class="inline">GFNEnvCore.reward</code>（<code class="inline">src/alpha_gfn/env/core.py</code>）与 <code class="inline">compute_ssl_reward</code>（<code class="inline">alpha_pool.py</code>）合成 GFlowNet 的奖励信号。它们的输入是一条完整轨迹与池状态，输出是一个标量奖励，中间做三件事：算 IC 奖励、算 SSL 结构一致性奖励、算 NOV 新颖度奖励，再加权融合。三维信号分别管预测力、结构多样性、数值独立性。</p>
+<p>SSL/NOV 权重随训练时间退火（由第 7 章的 <code class="inline">WeightScheduler</code> 控制），让生成器先探索后聚焦，避免单一 IC 奖励导致的模式崩塌。</p>
 <h2>它解决什么问题？</h2>
 <p>单一 IC 奖励的失败模式很典型：生成器发现 <code class="inline">TsMean($close, 20)</code> IC 不错，就开始围绕它做微调（改窗口、加 Abs），池里塞满本质相同的因子。组合时它们高度相关，无法分散风险，Mega-Alpha 退化成单因子。</p>
 <p>三维奖励分别针对三个目标：IC 保证预测力；SSL（Self-Supervised Learning）用结构嵌入的 KNN 一致性，奖励「结构相近但数值不同」的因子，鼓励结构多样性；NOV 直接惩罚与池内因子的高相关，保证数值独立性。三者加权融合，权重由第 7 章的 <code class="inline">WeightScheduler</code> 随时间退火——训练初期 SSL/NOV 权重高，鼓励探索；后期降到接近 0，聚焦 IC。</p>
@@ -449,9 +521,10 @@ img { max-width: 100%; border-radius: 12px; }
 <div class="math-block">$$r_{\text{SSL}} = \exp(-L_{\text{consist}}), \quad w_i = \text{softmax}(-\|e_q - e_i\|^2 / \tau)$$</div>
 <p>对应第 266 行与 <code class="inline">_compute_similarity_weights</code>。$L_{\text{consist}} = \sum_i w_i \cdot \text{MSE}(v_q, v_i)$。数学与代码逐项对应。</p>
 <h2>小结</h2>
-<p>本章是奖励设计的核心。三维奖励 IC+SSL+NOV 分别管预测力、结构多样性、数值独立性，权重随时间退火让生成器先探索后聚焦。SSL 巧妙复用第 4 章的结构嵌入做自监督。下一章我们看这套奖励如何被训练主循环消费——采样、算损失、退火权重、回传梯度，串成完整的训练流程。</p>
+<p>三维奖励 IC+SSL+NOV 分别管预测力、结构多样性、数值独立性，权重随时间退火让生成器先探索后聚焦。SSL 巧妙复用第 4 章的结构嵌入做自监督。下一章我们看这套奖励如何被训练主循环消费——采样、算损失、退火权重、回传梯度，串成完整的训练流程。</p>
 <div class="nav-footer"><a href="05.html">← 第5章 Alpha 池</a><a href="index.html">目录</a><a href="07.html">第7章 训练循环 →</a></div>
 </main>
+</div>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
                 onload="renderMathInElement(document.body,{delimiters:[{left:&apos;$$&apos;,right:&apos;$$&apos;,display:true},{left:&apos;$&apos;,right:&apos;$&apos;,display:false}]});"></script>
